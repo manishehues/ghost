@@ -1,0 +1,76 @@
+<?php
+    if(isset($_POST['Submit'])){
+		//print_r($_REQUEST);
+        global $wpdb;
+        $words=$_POST['words'];
+        $hours=$_POST['hours'];
+        $wordscost=$_POST['wordscost'];
+
+        $table_name = $wpdb->prefix . 'word_cost';
+
+        $wpdb->insert(
+            $table_name,
+            array(
+                'upto_words' => $words,
+                'time_frame' => $hours,
+                'word_cost' => $wordscost
+            )
+        );
+	}	//wp_redirect(admin_url('/admin.php?page=words-pricing-qoute'));
+?>
+<div class="wrap wqmain_body">
+	<h3 class="wqpage_heading">Words Pricing Quote</h3>
+	<div class="wqform_body">
+		<form method="post" action="" id="save_pricing">
+			<?php wp_nonce_field('update-options') ?>
+			<div class="form-group">
+				<!-- <label for="">Upto words</label> -->
+				<div class="wqlabel">Upto words</div>
+				<div class="wqfield">
+					<select class="form-control form-control-sm
+					 wqtextfield " style="width: 100%;" name="words">
+						<option value="1500" >Upto 1500</option>
+						<option value="4000" >Upto 4000</option>
+						<option value="6000" >Upto 6000</option>
+						<option value="8000" >Upto 8000</option>
+						<option value="16000" >Upto 16000</option>
+						<option value="20000" >Upto 20000</option>
+						<option value="50000" >Upto 50000</option>
+						<option value="90000" >Upto 90000</option>
+						<option value="125000" >Upto 125000</option>
+						<option value="250000" >Upto 250000</option>
+						<option value="400000" >Upto 400000</option>
+					</select>
+				</div>	
+			</div>
+			<div>&nbsp;</div>
+			<div class="form-group">
+				<div class="wqlabel">Time Duration</div>
+				<div class="wqfield">
+					<select class="form-control form-control-sm wqtextfield" style="width: 100%;" name="hours">
+						<option value="4 hours">4 Hours </option>
+						<option value="8 hours">8 Hours </option>
+						<option value="12 hours">12 Hours</option>
+						<option value="24 hours">24 Hours</option>
+						<option value="48 hours">48 Hours</option>
+						<option value="72 hours">72 Hours</option>
+						<option value="1 Week">1 Week</option>
+						<option value="2 Weeks">2 Weeks</option>
+						<option value="3 Weeks">3 Weeks</option>
+						<option value="4 Weeks">4 Weeks</option>
+						<option value="5 Weeks">5 Weeks</option>
+					</select>
+				</div>	
+			</div>
+			<div>&nbsp;</div>
+			<div class="form-group">
+				<div class="wqlabel">Words cost</div>
+				<div class="wqfield">
+					<input type="text" class="form-control wqtextfield" placeholder="Words Cost" name="wordscost" id="" >
+				</div>
+			</div>
+			<div>&nbsp;</div>
+			<div><input type="submit" class="wqsubmit_button" id="save_pricing_btn" name="Submit" class="button button-primary" value="Save" /></div>
+		</form>
+	</div>
+</div>
