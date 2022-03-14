@@ -1,0 +1,177 @@
+@import 'components/fonts';
+@import 'components/variables'; 
+@import 'components/mixins';
+@import 'components/buttons';
+@import 'components/banner';
+@import 'components/header';
+@import 'components/footer';
+@import 'pages/home-page';
+@import 'pages/contact-page';
+@import 'pages/team-page';
+@import 'pages/how-we-work-page';
+@import 'pages/critea-page';
+
+
+.entryContent{
+    h2,h3,h4,h5{
+        font-family:$f-B!important;
+    }
+    h3{
+        font-size:35px;
+        line-height:1.3em!important;
+    }
+    p{
+        line-height:1.5em;        
+    }
+}
+
+.shortContainer{
+    .fusion-row{
+        max-width:950px!important;
+    }
+    &.fusion-row{
+        max-width:950px!important;
+    }
+}
+
+.commonPhara{
+    .entryContent{
+        p{
+            font-family:$rm;
+            font-size:18px;
+            line-height:1.9em;
+            margin-bottom:40px;
+            &:last-child{
+                margin-bottom:0;
+            }
+        } 
+    }
+}
+
+.bigTitle{
+    .title{
+        h2{
+            @include fut-con-bold;
+            font-size:230px;
+            text-transform: uppercase;
+            color:$p;
+            line-height:180px!important;
+        }
+    }
+}
+
+
+.brandsBelieve{
+    .fusion-imageframe{
+        overflow: visible!important;
+    }
+}
+
+
+/*================Responsive===============*/
+@media screen and (max-width:1599px){
+    .entryContent{
+        h3{
+            font-size:30px;
+            margin-bottom:15px;
+        }
+        p{
+            font-size:14px;
+            line-height:1.3em;
+        }
+    }
+    .brandsBelieve{
+        .brandImg{
+            img{
+                width:650px;
+            }
+        }
+    }    
+    .bigTitle{
+        .title{
+            h2{
+                font-size:200px!important;
+                line-height: 170px!important;
+            }
+        }
+    }
+}
+
+@media screen and (max-width:1439px){
+    .shortContainer{
+        .fusion-row{
+            max-width:850px!important;
+        }
+    }    
+}
+
+@media screen and (max-width:1365px){
+    .entryContent{
+        p{
+            line-height:1.4em;
+        }
+        h4{
+            margin-bottom:5px!important;
+        }
+    }
+}
+
+@media screen and (max-width:1023px){
+    .entryContent{
+        br{
+            display:none;
+        }
+    }
+}
+
+@media screen and (max-width:767px){
+    .bigTitle{
+        .title{
+            h2{
+                font-size:140px!important;
+                line-height:120px!important;
+            }
+        }
+    }
+}
+
+@media screen and (max-width:735px){
+    .commonPhara{
+        .entryContent{
+            p{
+                font-size:16px;
+                line-height:1.9em;
+            }
+        }
+    }
+    .whoWeArea{
+        padding-top:50px!important;
+        padding-bottom:50px!important;
+    }
+}
+
+@media screen and (max-width:666px){
+    .entryContent{
+        h3{
+            font-size:26px!important;
+        }
+    }
+    .brandsBelieve{
+        .brandImg{
+            img{
+                max-width:100%;
+            }
+        }
+    }
+}
+
+@media screen and (max-width:479px){
+    .width-100 .fusion-fullwidth, .width-100 .nonhundred-percent-fullwidth{
+        margin-left:-30px!important;
+        margin-right:-30px!important;        
+    }
+    #main{
+        padding-left:20px!important;
+        padding-right:20px!important;
+    }
+}

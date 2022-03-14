@@ -1,0 +1,135 @@
+@mixin b-radius($radius) {
+	border-radius: $radius;
+	-webkit-border-radius: $radius;
+	-moz-border-radius: $radius;
+}
+
+@mixin fut-con-bold{
+	font-family: $f-cB!important;
+	font-weight: 700!important;
+	font-style: normal!important;
+}
+
+@mixin fut-con-medium{
+	font-family: $f-cB!important;
+	font-weight: 500!important;
+	font-style: normal!important;
+}
+
+@mixin fut-book-ob{
+	font-family: futura-pt, sans-serif!important;
+	font-weight: 400!important;
+	font-style: italic!important;
+}
+
+@mixin fut-heavy-ob{
+	font-family: $f!important;
+	font-weight: 700!important;
+	font-style: italic!important;
+}
+
+@mixin p-bg{
+  	// background-image: -moz-linear-gradient( 180deg, rgb(4,214,251) 0%, rgb(4,185,251) 30%, rgb(3,120,251) 100%);
+	// background-image: -webkit-linear-gradient( 180deg, rgb(4,214,251) 0%, rgb(4,185,251) 30%, rgb(3,120,251) 100%);
+	// background-image: -ms-linear-gradient( 180deg, rgb(4,214,251) 0%, rgb(4,185,251) 30%, rgb(3,120,251) 100%);
+	
+	background-image: -moz-linear-gradient( 180deg, rgb(4,216,251) 0%, rgb(2,151,252) 29%, rgb(0,86,253) 100%);
+  background-image: -webkit-linear-gradient( 180deg, rgb(4,216,251) 0%, rgb(2,151,252) 29%, rgb(0,86,253) 100%);
+  background-image: -ms-linear-gradient( 180deg, rgb(4,216,251) 0%, rgb(2,151,252) 29%, rgb(0,86,253) 100%);
+}
+
+@mixin sort-down($b-size, $b-color){
+	border-left: $b-size solid transparent;
+    border-right: $b-size solid transparent;
+    border-top: $b-size solid $b-color;
+}
+
+@mixin calc($property, $expression) {
+	#{$property}: -moz-calc(#{$expression});
+	#{$property}: -webkit-calc(#{$expression});
+	#{$property}: calc(#{$expression});
+  }
+
+@mixin flex-center{
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}  
+
+@mixin center($horizontal: true, $vertical: true) {
+	position: absolute;
+	@if ($horizontal and $vertical) {
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+	} @else if ($horizontal) {
+		left: 50%;
+		transform: translate(-50%, 0);
+	} @else if ($vertical) {
+		top: 50%;
+		transform: translate(0, -50%);
+	}
+}
+@mixin overlay{
+	&::after{
+        content:'';
+        left:0;
+        top:0;
+        width:100%;
+        height:100%;
+        position: absolute;
+        background:rgba(0,0,0,0.3);
+        pointer-events:none;        
+    }
+}
+
+// generic transform
+@mixin transform($transforms) {
+	-moz-transform: scale($transforms);
+	  -o-transform: scale($transforms);
+	 -ms-transform: scale($transforms);
+ -webkit-transform: scale($transforms);
+	   transform: scale($transforms);
+}
+
+
+@mixin flip($transforms) {
+	-moz-transform: ($transforms);
+	  -o-transform: ($transforms);
+	 -ms-transform: ($transforms);
+ -webkit-transform: ($transforms);
+	   transform: ($transforms);
+}
+
+// rotate
+@mixin rotate($deg) {	
+	-moz-transform: rotate($deg);
+	  -o-transform: rotate($deg);
+	 -ms-transform: rotate($deg);
+ -webkit-transform: rotate($deg);
+	   transform: rotate($deg);
+}
+
+@mixin transition($what: all, $time: 0.4s, $how: ease-in-out) {
+    -webkit-transition: $what $time $how;
+    -moz-transition:    $what $time $how;
+    -ms-transition:     $what $time $how;
+    -o-transition:      $what $time $how;
+    transition:         $what $time $how;
+}
+
+@mixin text-clip($text-clip){
+	-webkit-text-fill-color: transparent;
+	background: -webkit-linear-gradient(transparent, transparent), $text-clip ;
+	background: -o-linear-gradient(transparent, transparent);
+	-webkit-background-clip: text;
+	background-position: center center;
+	background-size:cover;
+}
+
+@mixin placeholder {
+  ::-webkit-input-placeholder {@content}
+  :-moz-placeholder           {@content}
+  ::-moz-placeholder          {@content}
+  :-ms-input-placeholder      {@content}  
+}

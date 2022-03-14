@@ -1,0 +1,77 @@
+@import 'fonts';
+@import 'variables'; 
+@import 'mixins';
+
+.internalMain-banner{
+    height:450px;
+    display:flex;
+    align-items: center;
+    justify-content: center;
+    h1{
+        font-family:$rr;
+        font-size:60px;
+        margin-top:0;
+        margin-bottom:20px;
+    }
+    p{
+        font-family:$rm;
+        font-size:21px;
+        span{
+            background:#C5DBC7;
+            padding:2px 20px;
+        }        
+    }
+}
+
+
+.internal{
+    &.mainBanner{
+        .bannerImg{
+            width:65%!important;
+            float:left;
+            margin:0;
+            position: relative;
+            padding-left:70px;
+        }
+        .leftContent{
+            position: absolute;
+            top:0;
+            left:0;
+            z-index: 999;
+            h3{
+                font-family:$r;                
+                font-size:24px;
+                line-height:35px!important;
+                strong{
+                    font-weight:normal;
+                    padding:0 8px;
+                    background:$sb;                    
+                    color:#F3F0E8;
+                }
+            }
+        }
+        .bannerTagLine{
+            position: absolute;
+            right:0;
+            bottom:30px;
+            z-index: 999;
+            width:auto!important;
+            .fusion-text{
+                h2{
+                    font-size:60px;
+                    line-height:75px!important;
+                    font-family:$r!important;
+                    -webkit-text-stroke: 2px $sb;
+                    color:transparent;
+                    margin-bottom:0;
+                    strong{
+                        font-weight:normal;
+                        @include fut-heavy-ob; 
+                        -webkit-text-stroke: 0 $sb;                                               
+                        color:$sb;
+                    }
+                }
+            }
+        }
+    }
+}

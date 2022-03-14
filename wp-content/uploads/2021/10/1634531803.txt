@@ -1,0 +1,93 @@
+titile 
+	Hide shipping options for pickup orders
+
+code
+
+Input.cart.line_items.select do |line_item|
+  
+  next unless line_item.properties.has_key?('Location')
+  
+  Input.shipping_rates.delete_if do |shipping_rate|
+    
+    not shipping_rate.name.downcase.start_with?('pickup')
+    
+  end
+  
+end
+
+Output.shipping_rates = Input.shipping_rates
+
+------------------------------------------------------------------
+titile 
+	Pay In Store
+
+code
+	only_pay_store = [ 'ON', 'BC' ]
+
+if Input.cart.shipping_address && Input.cart.shipping_address.province_code
+  
+  if only_pay_store.include? Input.cart.shipping_address.province_code
+    
+    Input.payment_gateways.delete_if do |payment_gateway|
+      
+      not payment_gateway.name.downcase == "pay in store"
+      
+    end
+    
+  end
+  
+end
+
+Output.payment_gateways = Input.payment_gateways
+
+
+======================================================================================
+
+
+cova connector
+	API key
+		390a98acb749fc4eea8001df047ee5b8
+
+	Password
+		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
+
+	Example URL
+		https://390a98acb749fc4eea8001df047ee5b8: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@vlomni-dev-arcannabis.myshopify.com/admin/api/2021-07/orders.json
+	
+
+	Shared Secret
+		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
+
+
+
+==========================   arcannabis store  =========================================
+
+
+	Themekit - Little Rocket
+Emergency developer email : support@littlerocket.io
+
+API key   227390e8686a071b1937c8f780892503
+password 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
+
+
+Example URL
+
+
+https://227390e8686a071b1937c8f780892503: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@arcannabis-production.myshopify.com/admin/api/2021-07/orders.json
+
+Shared Secret
+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
+===========================================================================
+VL OMNI Connector
+Emergency developer email : support@virtuallogistics.ca
+
+API key    8f1f874d7364351658f46f805ae0e6ff
+
+password    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
+
+Example URL
+https://8f1f874d7364351658f46f805ae0e6ff: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@arcannabis-production.myshopify.com/admin/api/2021-07/orders.json
+
+
+Shared Secret	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
+

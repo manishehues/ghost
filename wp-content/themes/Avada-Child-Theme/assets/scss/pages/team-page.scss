@@ -1,0 +1,774 @@
+@import '../components/fonts';
+@import '../components/variables'; 
+@import '../components/mixins';
+
+
+
+#teamBanner{
+    &.internal{
+        &.mainBanner{
+            .bannerImg{                
+                float:left!important;
+                padding-right:0!important;
+                padding-left:70px;
+            }
+            .leftContent{
+                top:0;left:0;                
+               
+                h3{
+                    text-align: left;
+                }
+            }
+            .bannerTagLine{
+               left:auto;
+                right:0!important;
+                .fusion-text{
+                    h2{
+                        
+                    }
+                }                                    
+            }
+        }
+    }
+}
+
+#butWhy{
+    margin-top:80px!important;
+    .bigTitle{
+        transform:translateY(-150px);
+        margin-left:15px;        
+    }
+    .leftSide{
+        position: absolute;
+        left:0;
+    }
+    .rightSide{
+        float:right!important;
+        padding-right:120px;
+        text-align: right;
+    }
+}
+
+.meetYourTeam{
+    margin-top:25px!important;
+    margin-bottom:-70px !important;
+    position: relative;
+    z-index: 999;
+    .brandsBelieve{
+        .brandImg{
+            img{
+                 max-width:650px;
+            }
+        }
+    }
+}
+
+.owner{    
+    position: relative;
+    &::after{
+        content:'';
+        position: absolute;
+        height:52%;
+        width:100%;
+        top:50%;
+        background:#cadbdb;
+        transform:translateY(-50%);
+    }
+    &.fusion-fullwidth{
+        .fusion-row{
+            
+        }
+    }
+    
+    .fusion-layout-column{
+        position:static;
+    }
+    .leftSide{
+        // position: absolute;
+        // margin:0;
+        // left:0;
+        // top:0;
+        width:48%!important;
+    }
+    .rightSide{
+        position:absolute;
+        width:calc(65% - 250px)!important;
+        right:250px;
+        height:100%;
+        display:flex;
+        align-items: center;
+    }
+    .imgContent{
+        .fusion-column-wrapper{
+            display:flex;
+            flex-wrap: wrap;
+        }        
+        .teamSmallImg,
+        .entryContent{
+            float:left;
+            width:50%;
+            padding:0 25px;
+        }        
+        .entryContent{
+            &.fusion-text{
+                display:flex;
+                align-items: center;            
+            }
+            h3{
+                font-family:$r!important;
+                font-size:25px;
+                margin-top:0;
+                margin-bottom:10px;
+            }
+            p{
+                &:last-child{
+                    margin-bottom:0;
+                }
+            }
+            .button{
+                margin-top:0;
+            }
+        }
+        .bgContent{
+            position: absolute;
+            right:0;
+            bottom:-100px;
+            text-align: right;
+            width:100%;
+            h2{
+                float:right;
+                font-size:240px;
+                line-height:190px!important;
+                @include fut-con-bold;
+                text-transform: uppercase;
+                -webkit-text-stroke: 1.5pt #F3F1EC;
+                color:transparent;
+                strong{
+                    @include fut-book-ob;
+                }
+            }
+        }
+    }
+    .snglOwner{
+        &:nth-child(2n){
+            .leftSide{
+                float:right!important;
+                margin-right:0!important;
+            }
+            .rightSide{
+                left:250px;
+                right:auto;
+            }
+            .imgContent{
+                 .fusion-column-wrapper{
+                     flex-direction: row-reverse;
+                 }
+                .entryContent.fusion-text{
+                    text-align: right;
+                }
+            }
+        }        
+        
+    }
+}
+
+.ourPartners {    
+     margin-top:-45px!important;
+     &.fusion-fullwidth{
+         .fusion-row{
+             max-width:1280px!important;
+         }
+     }
+    .brandsBelieve{
+        margin-bottom:30px!important;
+        margin-top:0!important;
+        .brandImg{
+            img{
+               width:1000px;
+               margin-top:-25px;
+            }
+        }
+    }
+    .snglPartner{
+        .entryContent{
+            h3{
+                font-family:$r!important;
+                margin-top:30px;
+                margin-bottom:25px;
+                font-size:20px;
+            }
+        }
+    }
+}
+
+.testimonials{    
+    margin-top:40px!important;
+    .fusion-row{
+        padding-top:100px!important;
+        padding-bottom:100px!important;
+        .fusion-layout-column{
+            position: static!important;
+        }
+    }
+    .review{
+        background:none!important;
+        max-width:950px;
+        margin:auto;
+        left:50%!important;
+        transform: translateX(-50%);
+        position: relative;
+        z-index: 999;
+        q{
+            font-style:normal;
+            p{
+                font-style:normal;
+                letter-spacing: normal;
+                font-size:20px;
+                font-family:$rm;
+                color:$sb;
+                line-height:2.3em!important;
+            }
+        }
+        .author{
+            font-weight:bold!important;
+        }
+    }
+    .fusion-testimonials .testimonial-pagination a{
+        width:8px!important;
+        height:8px!important;
+        margin:0 15px!important
+    }
+    .quotes{
+        margin-bottom:0!important;
+    }
+}
+
+.bgBigTitle{
+    position: absolute;
+    left:0;
+    top:50%;
+    transform: translateY(-50%);
+    width:100%;
+    h2{
+        @include fut-con-bold;
+        transform: translateX(-30px);
+        font-size:250px;
+        line-height:180px!important;
+        color:transparent!important;
+        -webkit-text-stroke:1.5pt #f3f1ec;
+        &:last-child{
+            text-align: right;
+            transform: translateX(30px);
+        }
+    }
+}
+
+.fusion-testimonials{
+    .testimonial-pagination{
+        position: relative;
+        z-index: 99;
+    }
+}
+
+/*==============Responsive==============*/
+@media screen and (max-width:1599px){
+    #butWhy{
+        .rightSide{
+            margin-top:50px!important;
+        }
+        .bigTitle{
+            transform: translateY(-80px);
+        }
+    }
+    #butWhy{
+        .bigTitle{
+            transform: translateY(-70px);
+            left:10px;
+        }
+    }
+    .owner{
+        .imgContent{
+            .teamSmallImg{
+            }
+            .bgContent{
+                
+                h2{
+                    font-size:200px;
+                    line-height:150px!important;                    
+                }                
+            }
+            .entryContent{
+                position: relative;
+                z-index: 999;                
+                float:right;
+                h3{
+                    font-size:21px;
+                }
+            }
+        }
+        .rightSide{
+            width:calc(70% - 210px) !important;
+            right:150px;
+        }
+        .snglOwner{
+            &:first-child{
+                margin-bottom:70px!important;
+            }
+            &:nth-child(2n){
+                .rightSide{
+                    left:150px;
+                }
+            }
+        }
+    }
+    .meetYourTeam{
+        .brandsBelieve{
+            .brandImg{
+                img{
+                    max-width:570px;
+                }
+            }
+        }
+    }
+    .ourPartners{
+        &.fusion-fullwidth{
+            .fusion-row{
+                max-width:1170px!important;
+            }
+        }
+        .brandsBelieve{
+            .brandImg{
+                img{
+                    width:900px;
+                }
+            }
+        }
+        .snglPartner{
+            .entryContent{
+                h3{
+                    font-size:18px;
+                    margin-bottom:15px;
+                }
+            }
+        }
+    }
+
+    .testimonials{
+        .review{
+            q{
+                padding:0!important;
+                p{
+                    font-size:18px;
+                    line-height:2em!important;
+                }
+            }
+        }
+    }
+    .bgBigTitle{
+        h2{
+            transform:unset;
+            font-size:200px;
+            margin:0;
+            &:last-child{
+                transform: unset;
+                transform: translateY(-20px);
+            }
+        }
+    }
+}
+
+@media screen and (max-width:1439px){
+    .owner{
+        .imgContent{          
+            .bgContent{
+                bottom:-130px;
+                h2{
+                    font-size:200px;
+                    line-height:150px!important;                    
+                }                
+            }
+            .entryContent{               
+                h3{
+                    font-size:21px;
+                }
+            }
+        }
+        .rightSide{
+            width:calc(75% - 230px) !important;
+            right:110px;
+        }
+        .snglOwner{
+            &:first-child{
+                margin-bottom:70px!important;
+            }
+            &:nth-child(2n){
+                .rightSide{
+                    left:110px;
+                }
+            }
+        }
+    }
+}
+
+
+@media screen and (max-width:1365px){
+    .owner{
+        .imgContent{
+            .bgContent{
+                bottom:-100px;
+                h2{
+                    font-size:180px;
+                    line-height:135px!important;
+                }                
+            }
+        }
+    }
+}
+
+@media screen and (max-width:1279px){
+    #butWhy{
+        .rightSide{
+            padding-right:50px;
+        }
+    }
+    .meetYourTeam{
+        margin-bottom:-60px!important;
+        .brandsBelieve{
+            .brandImg{
+                img{
+                    max-width:500px;
+                }
+            }
+        }
+    }
+    .owner{
+        .imgContent{
+            .teamSmallImg,
+            .entryContent{
+                padding:0 20px;
+            }
+            .bgContent{
+                right:30px;
+                h2{
+                    font-size:130px!important;
+                    line-height:105px!important;
+                }
+            }
+        }
+        .rightSide{
+            width:calc(95% - 280px)!important;
+            right:20px;
+        }
+        .snglOwner{
+            &:nth-child(2n){
+                .rightSide{
+                    left:20px;
+                }
+            }
+        }
+    }
+    .ourPartners{
+        .brandsBelieve{
+            .brandImg{
+                img{
+                    width:750px;
+                }
+            }
+        }
+    }
+}
+
+
+@media screen and (max-width:1023px){
+    #teamBanner{
+        &.internal{
+            &.mainBanner{
+                .bannerImg{
+                    padding-left:0!important;
+                }
+            }
+        }
+    }
+    #butWhy{
+        .rightSide{
+            padding:0 0;
+            text-align: center;
+        }
+        .bigTitle{
+            position: relative;
+            transform: translateY(0);
+        }
+        .rightSide{
+            margin-bottom:50px!important;
+            margin-top:-100px!important;
+        }
+    }
+    .owner{
+        .rightSide{
+            right:0;
+            position: relative;
+        }
+        .snglOwner{
+           .leftSide{
+               &.featImg{
+                   display:none;
+               }
+           }
+            &:nth-child(2n){
+                .right{
+                    left:0;
+                }
+            }
+        }
+    }
+
+    .fusion-body{
+        .ourPartners{
+            .fusion-row{
+                display:flex;
+                flex-wrap:wrap;
+            }
+            .snglPartner{
+                &.fusion-layout-column{
+                    width:50%!important;
+                    float:left!important;
+                    margin:0!important;
+                    padding:15px;
+                }                
+            }
+        }
+    }
+    .bgBigTitle{
+        position: relative;
+        transform: unset;
+        margin-bottom:-80px;
+        h2{
+            text-align: center;
+            font-size:130px!important;
+            line-height:130px!important; 
+            &:last-child{
+                text-align: center;
+            }
+        }
+    }
+    .testimonials{
+        .fusion-row{
+            padding-top:50px!important;
+            padding-bottom:50px!important;
+        }
+        .review q{
+            padding:0 25px!important;
+        }
+    }
+    
+}
+
+@media screen and (max-width:767px){
+    #butWhy{
+        margin-top:40px!important;
+    }
+    .owner{
+        .imgContent{
+            .bgContent{
+                bottom:-160px;
+            }
+        }
+    }
+    .meetYourTeam{
+        margin-bottom:10px!important
+    }
+    .owner{
+        .imgContent{
+            .teamSmallImg{
+                width:100%;
+                padding:0 30px;
+                margin-bottom:35px;
+            }
+            .entryContent{
+                padding:0 30px;
+                width:100%;
+            }
+            .bgContent{
+                position: relative;
+                right:50px;
+                bottom:0;
+                margin-bottom:-70px;
+                margin-top:-100px;
+            }
+        }
+        .snglOwner{
+            &:first-child{
+                margin-bottom:0!important;
+            }
+            &:nth-child(2n){ 
+                margin-top:-50px!important;
+                position: relative;             
+                z-index: -1;
+                .rightSide{
+                    left:0;
+                }
+            }
+            .imgContent{
+                .entryContent{
+                    &.fusion-text{
+                        text-align: left!important;
+                    }
+                }
+            }
+        }
+        &::after{
+            height:75%;
+        }       
+    }    
+}
+
+@media screen and (max-width:667px){
+    .meetYourTeam{
+        margin-bottom:-45px!important;
+    }
+    .ourPartners{
+        margin-top:0!important;
+        .fusion-row{
+            margin-left:-15px;
+            margin-right:-15px;
+            display:block!important;
+            width:auto!important;;            
+        }
+        .brandsBelieve{
+            position: relative;
+            z-index: 999;
+            margin-bottom:-39px!important;
+            margin-top:40px!important;
+        }
+        .snglPartner{
+            .entryContent{
+                h3{
+                    font-size:20px!important;
+                }
+            }
+        }
+    }
+}
+
+@media screen and (max-width:639px){
+    .meetYourTeam{
+        .brandsBelieve{
+            .brandImg{
+                img{
+                    max-width:100%;
+                }
+            }
+        }
+    }
+}
+
+@media screen and (max-width:479px){
+    .owner{
+        .imgContent{
+            .bgContent{
+                margin-bottom: -49px;
+                margin-top: -40px;
+                h2{
+                    font-size:120px!important;
+                    line-height:95px!important;
+                }
+            }
+        }
+        &::after{
+            display:none;
+        }
+        .snglOwner{
+            position: relative;
+            &:first-child{
+                &::after{
+                    content:'';
+                    position: absolute;
+                    left:0;
+                    top:25%;
+                    width:100%;
+                    height:calc(100% - 25%);
+                    background:#cadbdb;
+                }
+            }
+            &:last-child{
+                .imgContent{                    
+                    .teamSmallImg{
+                        position: relative;
+                        &::after{
+                            content:'';
+                            position: absolute;
+                            left:0;
+                            top:0;
+                            width:100%;
+                            height:50%;                        
+                            background:#cadbdb;
+                            z-index: -1;
+                        }
+                    }                    
+                }
+            }
+        }
+    }
+    .fusion-body{
+        .ourPartners{
+            .snglPartner{
+                padding:20px!important;
+                &.fusion-layout-column{
+                    width:100%!important;
+                }
+                .entryContent{
+                    p{
+                        margin-bottom:0;
+                    }
+                }
+                .fusion-imageframe{
+                    display:block!important;
+                    max-width:none!important;
+                    width:auto!important;
+                    margin-left:-25px!important;
+                    margin-right:-25px!important;
+                }
+            }
+        }
+    }
+    .bgBigTitle{
+        h2:last-child{
+            margin-top:10px;
+            line-height:110px!important;
+        }
+    }
+    .testimonials{
+        .fusion-row{
+            padding-top:30px!important;
+        }
+        .review{
+            q{
+                p{
+                    font-size:16px;
+                    line-height:1.8em!important;
+                    margin-bottom:15px;
+                }
+            }
+        }
+    }
+    .fusion-testimonials.clean .author{
+        font-size:16px!important;
+    }
+    .fusion-testimonials .testimonial-pagination{
+        margin-top:10px!important;
+    }
+}
+
+@media screen and (max-width:413px){
+    .owner{
+        .imgContent{
+            .bgContent{
+                margin-top:-60px!important;
+                h2{
+                    font-size:100px!important;
+                    line-height:85px!important;
+                }
+            }
+        }
+    }
+}

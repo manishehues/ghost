@@ -1,0 +1,943 @@
+@media screen and (max-width: 1919px){
+    .fusion-body #content .fusion-row,
+    .fusion-body .fusion-header .fusion-row,
+    .fusion-body .fusion-secondary-header .fusion-row,
+    .fusion-body .fusion-footer .fusion-row{
+        max-width:1300px!important;
+    }
+
+    #mainSlider .fusion-column-wrapper{
+        margin-left:0!important;
+        margin-right:0!important;
+    }
+    .mainSlider .rightSide{
+        top:250px;
+    }
+    .heroBanner .contArea .banTitle.fusion-title .title-heading-left{
+        font-size:60px;
+    }
+    .fusion-body #content .certifiedReviews .fusion-row{
+        max-width:1024px!important;
+    }
+
+    .aboutDescr .entryContent.fusion-text{
+        padding:80px 90px;
+    }
+    .fusion-body .proofreading .leftSide{
+        padding:100px!important
+    }
+    .fusion-footer ul.menu li a{
+        font-size:14px;
+    }
+    .fusion-footer ul.menu li{
+        padding-top:3px;
+        padding-bottom:3px;
+    }
+    .fusion-footer-widget-area{
+        padding-top:80px!important;
+    }
+    .fusion-footer .widget-title{
+        font-size:20px;
+    }
+    #quotePageBanner.mainSlider .rightSide .fusion-imageframe.badge{
+        width:130px;
+        bottom:-10%;
+    }
+    .fusion-body #quotePageBanner.mainSlider .leftSideImg{
+        width:62%!important;
+        margin-top:130px!important;
+        transform: translateX(10%);
+    }
+    .documentation .secTitle.fusion-title .title-heading-left br{
+        display:none;
+    }    
+    #quotePageBanner.mainSlider .fusion-column-wrapper{
+        margin:0!important;
+    }
+    .mainSlider .rightSide{
+        top:200px;
+    }
+    .afterBefore{
+        padding-top:80px!important;
+    }
+    .fusion-body .receiver .rightSide{
+        padding-left:0;
+    }
+    .receiver{
+        padding-bottom:70px!important;
+    }
+    #documentation{
+        padding:0!important;
+    }
+    .documentation .rightSide .fusion-column-wrapper{
+        padding:80px!important;
+    }
+    .quoteTable{
+        margin-top:60px!important;
+    }
+/*=============================================*/
+    /*.Img-bottom .fusion-row .style-image .fusion-text ul li{padding: 0px 40px;}*/
+
+
+}
+
+@media screen and (max-width: 1599px){
+    
+}
+
+@media screen and (max-width: 1439px){
+    .fusion-body #quotePageBanner.mainSlider .leftSideImg{
+        width:60%!important;
+        transform: unset;
+    }
+}
+
+@media screen and (max-width: 1365px){
+    .bttn.fusion-button{
+        font-size:16px!important
+    }
+    .fusion-body #content .fusion-row,
+    .fusion-body .fusion-header .fusion-row,
+    .fusion-body .fusion-secondary-header .fusion-row,
+    .fusion-body .fusion-footer .fusion-row{
+        max-width:1170px!important;
+    }    
+/* 
+    .heroBanner .contArea .banTitle.fusion-title .title-heading-left{        
+        font-size:50px;
+    } */
+    .heroBanner .contArea .fusion-text h3{
+        font-size:25px;
+        margin-top:0;
+    }
+    .heroBanner .contArea .fusion-text p br{
+        display:none;
+    }
+    .fusion-body #content .certifiedReviews .fusion-row{
+        max-width:700px!important;
+        margin-top:-50px;
+    }
+    .certifiedReviews .entryContent h2{
+        font-size:25px!important
+    }
+    .fusion-body .certifiedReviews .fusion-row{
+        padding:70px 70px;
+        border-radius:10px;
+    }
+    .certifiedReviews .entryContent ul li img{
+        max-height:65px;
+    }
+    .secTitle.fusion-title .title-heading-center, .secTitle.fusion-title .title-heading-left, .secTitle.fusion-title .title-heading-right{
+        font-size:45px!important;
+    }
+
+    .fusion-header-wrapper ul.fusion-menu a, body:not(.fusion-header-layout-v6).fusion-top-header .fusion-main-menu > ul > li > a.fusion-bar-highlight{
+        font-size:16px;
+    }
+   .fusion-header-wrapper ul.fusion-menu li.menu-item{
+        padding-right:28px!important;
+    }
+    .fusion-header-wrapper ul.fusion-menu li.menu-item.btn a span.fusion-button{
+        font-size:15px;
+        padding:15px 30px!important;
+    }
+    .fusion-logo img{
+        max-height:45px!important;
+		
+    }
+    .fusion-header-wrapper.fusion-is-sticky .fusion-header .fusion-row{
+        height:90px;
+    }
+    .fusion-header-wrapper ul.fusion-menu li.menu-item.btn.btnOutline{
+        padding-right:15px!important;
+    }
+    .fusion-body .mainSlider .leftSideImg{
+        top:0;
+    }
+    .aboutDescr .entryContent.fusion-text{
+        width:100%;
+        text-align: center;
+    }
+    .fusion-body .features .snglFeat .fusion-column-wrapper{
+        padding-left:30px!important;
+        padding-right:30px!important;
+    }
+    .fusion-body .features .snglFeat .fusion-imageframe{
+        width:120px;
+        height:120px;
+    }
+    .fusion-body .features .snglFeat .fusion-imageframe img{
+        max-height:45px;
+    }
+    .fusion-body .features .snglFeat .fusion-imageframe{
+        border-radius:25px;
+    }
+    .proofreading{
+        padding-left:0!important;
+        padding-right:0!important;
+    }
+    .proofreading .contentArea .entryContent h2 br{
+        display:none;
+    }
+    .fusion-footer .widget{
+        margin-bottom:25px;
+    }
+
+    .fusion-body #quotePageBanner.mainSlider .leftSideImg{
+        width:70%!important;
+        transform: translateX(7%);
+        margin-bottom:40px;
+    }
+    .fusion-body #main .shortContainer .fusion-row{
+        max-width:1170px!important;
+    }
+    #afterBefore .leftSide .fusion-column-wrapper{
+        margin:0!important;
+    }
+    .fusion-body .afterBefore .rightSide,
+    .fusion-body .afterBefore .leftSide{
+        margin-bottom:0!important;
+    }
+    .afterBefore{
+        padding-bottom:60px!important;
+    }
+    .receiver .learMore{
+        padding-top:60px!important;;
+    }
+}
+
+
+@media screen and (max-width: 1279px){
+    .fusion-body #content .fusion-row, .fusion-body .fusion-header .fusion-row, .fusion-body .fusion-secondary-header .fusion-row, .fusion-body .fusion-footer .fusion-row{
+        max-width:900px!important
+    }
+    .mainSlider .rightSide{
+        top:150px;
+    }
+    .heroBanner .contArea .banTitle.fusion-title .title-heading-left{
+        font-size:45px;
+    }
+    .fusion-header-wrapper ul.fusion-menu li.menu-item{
+        display:none;
+    }
+    .fusion-header-wrapper ul.fusion-menu li.menu-item.fusion-menu-item-button{
+        display:block;
+    }
+    .fusion-flyout-menu-icons.fusion-flyout-mobile-menu-icons{
+        display:block!important;
+        position: absolute;
+        top:50%;
+        transform: translateY(-50%);
+        right:0;
+    }
+    .fusion-header-wrapper ul.fusion-menu li.menu-item.btn a span.fusion-button{
+        font-size:14px;
+        padding:12px 25px!important;
+    }
+    .fusion-header-wrapper ul.fusion-menu li.menu-item.btn a span.fusion-button{
+        border-radius:4px;
+    }
+    .fusion-header-has-flyout-menu .fusion-flyout-mobile-menu-icons{
+        margin-top:0;
+    }
+    .fusion-header-has-flyout-menu .fusion-flyout-menu-icons .fusion-toggle-icon-line{
+        height:2px;
+        background-color:#fff!important;
+    }
+    .fusion-header-wrapper ul.fusion-menu li.menu-item{
+        padding-right:0!important;
+    }
+    .fusion-header-wrapper ul.fusion-menu{
+        margin-right:50px;
+    }
+    .fusion-header-has-flyout-menu:hover .fusion-flyout-menu-icons .fusion-toggle-icon-line{
+        background-color:#fff!important;
+    }
+    .fusion-header-has-flyout-menu.fusion-flyout-menu-active .fusion-flyout-menu{
+        background-color:#ed3823!important;
+        height:100%!important;
+        margin-top:0!important;
+    }
+    .fusion-header-has-flyout-menu.fusion-flyout-menu-active .fusion-flyout-menu.fusion-mobile-nav-holder ul.fusion-menu{
+        display:block!important;
+    }
+    .fusion-header-wrapper .fusion-flyout-menu.fusion-mobile-nav-holder ul.fusion-menu{
+        margin-right:0;
+        border:none;
+    }
+    .fusion-header-wrapper .fusion-flyout-menu.fusion-mobile-nav-holder ul.fusion-menu li.fusion-mobile-nav-item a{
+        font-size:30px;
+        font-family:'Circular Std';
+        font-weight:bold;
+        letter-spacing: -0.5px;
+    }
+    .features .entryContent .fusion-text img{
+        max-height:11px;
+    }
+    .features .entryContent .leftImg{
+        left:-73px;
+    }
+    .features .entryContent .rightImg{
+        right:-73px;
+    }
+    .features{
+        margin-top:70px!important;
+    }
+    .features .snglFeat .bttn{
+        min-width:240px;
+        padding-right:25px!important;
+        padding-left:25px!important;
+    }
+    .learMore .entryContent h3{
+        margin-top:0;
+    }
+    .learMore{
+        padding-top:50px;
+    }
+    .entryContent h3{
+        font-size:30px!important;
+    }
+    .learMore{
+        padding-bottom:60px;
+        margin-bottom:40px!important;
+    }
+    .bttn.fusion-button{
+        padding-top:18px!important;;
+        padding-bottom:18px!important;
+    }
+    .secTitle.fusion-title .title-heading-center, .secTitle.fusion-title .title-heading-left, .secTitle.fusion-title .title-heading-right{
+        font-size:38px!important
+    }
+    .fusion-body .insQuotes .snglQuote.fusion-flex-column{
+        width:50%!important;        
+    }
+    .insQuotes .snglQuote .quoteImg{
+        max-height:250px;
+    }
+    .insQuotes .snglQuote .quoteImg img{
+        width:100%;        
+    }
+    .insQuotes .titleArea{
+        margin-bottom:15px!important;
+    }
+    .fusion-body .proofreading .leftSide{
+        width:100%!important;
+        position: relative;        
+        z-index: 999;
+        background:rgb(27,43,104,0.9)!important;
+    }
+    .fusion-body .proofreading .rightSide{
+        width:100%!important;
+        position: absolute;
+        height:100%;
+    }
+    .fusion-body .proofreading .leftSide .fusion-column-wrapper{
+        background:none!important;
+        text-align: center;
+    }
+    .fusion-footer ul.menu li{
+        margin:5px 0;
+    }
+    .fusion-footer ul.menu li a{
+        font-size:12px;
+        line-height:normal;
+    }
+    .fusion-footer .widget-title{
+        font-size:15px;
+    }
+    .fusion-copyright-content .fusion-copyright-notice div{
+        font-size:12px!important;
+    }
+    .lastSection .fusion-text h2{
+        padding-top:40px;
+        padding-bottom:40px;
+        font-size:30px!important
+    }
+    .proofreading .contentArea .fusion-text h2{
+        font-size:40px
+    }
+    #quotePageBanner.mainSlider .rightSide .fusion-imageframe.badge{
+        width:90px;
+        bottom:-30%;
+    }
+    .fusion-body #quotePageBanner.mainSlider .leftSideImg{
+        transform: translateX(15%);
+    }
+    .fusion-body .afterBefore .leftSide,
+    .fusion-body .afterBefore .rightSide{
+        width:100%!important;
+    }
+
+    .fusion-body .afterBefore .fusion-row{
+        display:block;
+    }
+    .fusion-body .afterBefore .rightSide{
+        max-width:850px;
+        margin:auto;
+        display:block;
+        float:none;
+        text-align: center;
+    }
+    .fusion-body .afterBefore .leftSide .fusion-imageframe{
+        width:100%;
+        display:block;
+    }
+    .fusion-body .afterBefore .leftSide .fusion-imageframe img{
+        width:100%;
+        max-width:650px;
+        margin:auto;
+        display:block;
+    }
+    .fusion-body .afterBefore .secTitle.fusion-title.fusion-sep-none .title-heading-left{
+        text-align: center!important;
+    }
+    .fusion-body .afterBefore .secTitle.fusion-title br{
+        display:none;
+    }
+    .fusion-body .afterBefore .fusion-column-wrapper{
+        margin:0!important;
+    }
+    .fusion-body .quoteTable .formTable{
+        min-height:auto;
+        max-width:calc(100% - 80px)!important;;
+    }
+    .quoteTable{margin-bottom:50px!important;}
+
+
+    /*===============================*/
+    .Img-bottom .fusion-row .style-image .fusion-text ul li{padding: 10px!important;}
+    .fusion-body .proofreading .leftSide{background: #1b2b68bf !important;}
+    
+}
+
+@media screen and (max-width: 1023px){
+
+
+ 
+.fusion-header-wrapper .fusion-header .fusion-logo{margin: 0px!important;}
+.fusion-body .fusion-builder-column-8 .fusion-empty-dims-img-placeholder {
+    display: block!important;
+}
+.fusion-body .fusion-builder-column-9 .fusion-empty-dims-img-placeholder{display: block!important;}
+
+.fusion-body .afterBefore .leftSide img {
+    max-width: 100% !important;
+}
+    .fusion-header-wrapper .fusion-header-has-flyout-menu{
+        position: absolute;
+        width:100%;
+    }
+    
+   
+    .fusion-header-wrapper .fusion-header .fusion-row{
+        
+    }
+    .fusion-secondary-header{
+        display:none;
+    }
+    .fusion-header-has-flyout-menu .fusion-flyout-mobile-menu-icons{    
+        position: absolute!important;
+    }
+    .fusion-header{
+        top:0!important;
+    }
+
+    .fusion-body .mainSlider .leftSideImg{
+        width:75%!important;
+        transform: translateX(-10%);
+        margin-top:80px;
+    }
+    .fusion-body .mainSlider .rightSide{
+        position: relative;
+        top:0;
+        width:100%!important;
+        padding-left:60px;
+        padding-right:60px;
+        text-align: center;
+    }
+    .heroBanner .contArea .banTitle.fusion-title .title-heading-left{
+        text-align: center;
+    }
+    .mainSlider::after{
+        bottom:-230px;
+    }
+    .fusion-body #content .certifiedReviews .fusion-row{
+        margin-top:80px;
+    }
+
+    #mainSlider .fusion-row{
+        align-items: unset;
+        justify-content: center;
+    }
+    .aboutContent{
+        margin-top:50px!important;
+    }
+    .aboutDescr .entryContent.fusion-text{
+        padding:50px;
+    }
+    .aboutDescr .fusion-column-wrapper{
+        border-radius:10px;
+    }
+    .features .entryContent .leftImg,
+    .features .entryContent .rightImg{
+        display:none;
+    }
+    .fusion-body .features .fusion-row{
+        align-items: unset;
+        justify-content: center;
+    }
+    .fusion-body .features .snglFeat{
+        max-width:550px;
+        width:100%!important;
+    }
+    .features .snglFeat .bttn{
+        display:none;
+    }
+    .features .snglFeat.translate .bttn{
+        display:block;
+        position: relative;
+        width:240px;
+    }
+    .features .entryContent .fusion-text{
+        margin-bottom:0;
+    }
+    .insQuotes .snglQuote .entryContent{
+        padding:70px 25px;
+        padding-top:230px;
+    }
+    .insQuotes .snglQuote .quoteImg{
+        width:calc(100% - 50px);
+    }
+    .fusion-body .insQuotes .snglQuote.fusion-flex-column{
+        width:100%!important;;
+    }
+    .fusion-footer .fusion-column{
+        margin-bottom:0!important;
+    }
+    .fusion-footer ul.menu li{
+        margin:0;
+    }
+    .fusion-footer-widget-area{
+        padding-top:40px!important;
+    }
+    .lastSection .fusion-row{
+        padding-left:15px!important;
+        padding-right:15px!important;
+    }
+    .insQuotes{
+        margin-bottom:60px!important;
+    }
+    .fusion-body .proofreading .leftSide{
+        padding:60px!important;
+    }
+    .proofreading .contentArea .fusion-text h2{
+        font-size:40px!important;
+    }
+    .mainSlider .fusion-row{
+        display:flex!important;;
+    }
+    .fusion-body #quotePageBanner.mainSlider .leftSideImg.desktop{
+        display:none;
+    }
+    .fusion-body #quotePageBanner.mainSlider .leftSideImg.ipadView{
+        display:block;
+    }
+
+    .fusion-body #quotePageBanner.mainSlider .rightSide{
+        margin-top:150px;
+    }
+    #quotePageBanner.mainSlider .rightSide .fusion-imageframe.badge{
+        display:none;
+    }
+    .fusion-body #quotePageBanner.mainSlider .leftSideImg{
+        margin-top:50px!important;
+        margin-bottom:0!important;
+    }
+    .fusion-body #quotePageBanner.mainSlider .leftSideImg{
+        transform: unset;
+        margin:auto!important;        
+        width:80%!important;
+        margin-top:20px!important;
+        margin-bottom:-80px!important;
+    }
+    #quotePageBanner.mainSlider::after{
+        bottom:-320px;
+    }
+    .fusion-body .afterBefore .rightSide{
+        padding-left:20px;
+        padding-right:20px;
+        clear:both;        
+    }
+    .afterBefore{
+        padding-top:40px!important;
+        padding-bottom:40px!important;
+    }
+    .fusion-body .afterBefore .leftSide{
+        margin-bottom:30px!important;
+    }
+    .fusion-body .afterBefore .secTitle.fusion-title.fusion-sep-none .title-heading-left{
+        margin-bottom:15px!important;
+    }
+    .receiver .learMore{
+        padding-top:40px!important;
+    }
+    .fusion-body .receiver .rightSide{
+        display:none;
+    }
+    .fusion-body .receiver .leftSide{
+        width:100%!important;
+    }
+    .receiver #learMore{
+        margin-bottom:10px!important;
+    }
+    .fusion-body .documentation .leftSide{
+        position: absolute;
+        top:0;
+        left:0;
+        width:100%!important;
+        height:100%;
+    }
+    .fusion-body .documentation .rightSide{
+        width:100%!important;
+    }
+    .documentation .rightSide .fusion-column-wrapper{
+        background:rgba(53,210,193,0.9)!important;
+    }
+    .receiver{
+        padding-bottom:40px!important;
+    }
+    .documentation .rightSide .fusion-column-wrapper{
+        padding:40px 80px !important
+    }
+    .fusion-body .quoteTable .formTable{
+        max-width:calc(100% - 50px) !important;
+        display:block;
+        margin:auto;
+        padding:40px 10px
+    }
+    .fusion-body .quoteTable .fusion-row{
+        justify-content: center;
+        align-items: unset;
+    }
+    .quoteTable .table-1 table tr td{
+        font-size:16px;
+        line-height: 1.8em;
+    }
+    #formTable{
+        padding-left:0;
+        padding-right:0;
+    }
+    #formTable .fusion-column-wrapper{
+        margin-left:0;
+        margin-right:0;
+    }
+    .quoteTable .table-1 tr td{
+        font-size:16px;
+        line-height:normal
+    }
+    .allSteps .bttn.fusion-button{
+        padding:10px 30px!important;
+    }
+    .formGroup .label{
+        line-height:1.5em;
+    }
+    .grandTotal .upper table.total tfoot tr td{
+        font-size:25px;
+    }
+    .Img-bottom .fusion-row .style-image .fusion-text ul li{width: 25%;margin-left: 38px;
+margin-top: 38px;}
+.fusion-body .fusion-header-wrapper .fusion-header, .fusion-body .fusion-header-wrapper .fusion-secondary-main-menu {
+    background: none!important;
+}
+
+    
+    
+}
+
+@media screen and (max-width:666px){
+    .insQuotes .snglQuote .bttn{
+        padding-top:20px!important;
+        padding-bottom:20px!important;
+    }
+    .fusion-body .mainSlider .leftSideImg{
+        width:70%!important;
+        padding-top:40px;
+        transform: unset;
+    }
+    .fusion-header-wrapper .fusion-header .fusion-row{
+        height:90px;
+    }
+    .fusion-logo img{
+        max-height:35px!important;
+		min-height:35px!important;		
+		width:auto;
+    }
+    .fusion-body .mainSlider .rightSide{
+        padding-left:30px;
+        padding-right:30px;
+    }
+    .fusion-header-wrapper .fusion-flyout-menu.fusion-mobile-nav-holder ul.fusion-menu li.fusion-mobile-nav-item{
+        padding:10px 0;
+    }
+    .bttn.fusion-button{
+        padding:15px 35px!important;
+    }
+    .heroBanner .contArea .fusion-text p{
+        font-size:16px;
+    }
+    .certifiedReviews .entryContent h2 br{
+        display:none;
+    }
+    .fusion-body .certifiedReviews .fusion-row{
+        padding:45px!important;
+    }
+    .certifiedReviews .entryContent ul{
+        padding:0;
+        margin-top:0;
+    }
+    .certifiedReviews .entryContent ul li{
+        width:50%;
+        margin:0;
+        float:left;
+        padding:0 15px;
+    }
+    .fusion-body #content .certifiedReviews .fusion-row{
+        margin-top:50px;
+    }
+    .aboutDescr .entryContent.fusion-text{
+        padding:35px;
+    }
+    .entryContent br{
+        display:none;
+    }
+    .entryContent h3{
+        font-size:24px!important;
+    }
+    .learMore{
+        padding-top:20px;
+    }
+    .lastSection .leftSide .fusion-text h2{
+        padding-bottom:0;
+        text-align: center;
+    }
+    .lastSection .rightSide .fusion-text h2{
+        padding-top:10px!important;
+        text-align: center;
+    }
+    .fusion-footer footer .fusion-row .fusion-columns{
+        column-count: 2;
+    }
+    .fusion-footer .fusion-column {
+        margin-bottom: 0 !important;
+        width: 100% !important;       
+        display: inline-block;
+    }
+    .fusion-body #quotePageBanner.mainSlider .leftSideImg{
+        margin-bottom:-50px!important;
+        width:95%!important;;
+        margin-top:0!important;
+        padding-top:0;
+    }
+    #quotePageBanner.mainSlider::after{
+        bottom:-250px;
+    }
+    .fusion-body .afterBefore .rightSide{
+        padding-left:10px;
+        padding-right:10px;
+    }
+    .documentation .rightSide .fusion-column-wrapper{
+        padding:40px!important;
+    }
+    .fusion-body .quoteTable .formTable{
+        max-width:calc(100% - 20px)!important;
+        box-shadow:none!important;
+    }
+    .fusion-body .quoteTable .formTable{
+        padding:0;
+        overflow: hidden;
+    }
+    .fusion-body .quoteTable .fusion-column-wrapper{
+        margin:0!important;
+    }
+    .quoteTable .table-1 table{
+        box-shadow:none;
+    }
+    .quoteTable .table-1 table tr td{
+        font-size:12px;
+    }
+    .fusion-body .quoteTable a.bttn.fusion-button{
+        margin-bottom:15px!important;
+        margin-top:0!important;
+    }
+    .quoteTable{
+        margin-bottom:30px!important;
+    }
+    .quoteTable .col-6{
+        width:100%;
+        
+    }
+    .quoteTable form.wpcf7-form .label{
+        text-align: left;
+    }
+    .quoteTable{
+        margin-top:30px!important;
+    }
+    #quoteTable .secTitle.fusion-title{
+        text-align: left!important;;
+    }
+    #receiver{
+        padding-left:20px!important;
+        padding-right:20px!important;
+    }
+    .fusion-body .afterBefore .rightSide{
+        text-align: left;
+    }
+    .documentation .secTitle.fusion-title .title-heading-left{
+        text-align: center;
+    }    
+    .quoteTable .col-6{
+        width:100%;
+    }
+    .quoteTable .table-1{
+        display:block;
+    }
+    .formSteps .headArea li{
+        font-size:18px;
+    }
+    .formSteps .one .rangeForm h3,
+    .formSteps .one .rangeForm output, .formSteps .one .rangeForm input[type="text"]{
+        font-size:25px!important;
+    }
+    .formSteps .one .rangeForm output, .formSteps .one .rangeForm input[type="text"]{
+        width:140px!important;
+    }
+    .formSteps .one .leftSide{
+        width:calc(100% - 160px);
+    }
+    .formGroup .form-control{
+        height:55px;
+    }
+/*===========================================*/
+.Img-bottom .fusion-row .style-image .fusion-text ul li {
+    width: 25%;
+    margin-left: 28px;
+    margin-top: 28px;
+}
+    
+}
+
+@media screen and (max-width:639px){
+    .secTitle.fusion-title br{
+        display:none;
+    }
+    .receiver .checklists .fusion-li-item .fusion-li-item-content img{
+        position: relative;
+        margin-bottom:10px;
+    }
+    .receiver .checklists .fusion-li-item{
+        padding-left:0;
+    }
+    .receiver .checklists .fusion-li-item .fusion-li-item-content{
+        margin-left:0!important;
+        text-align: center;        
+    }
+    .fusion-body .receiver .leftSide{
+        margin-bottom:0;
+    }
+    .quoteTable .secTitle.fusion-title .title-heading-center{text-align: left;}
+    .fusion-body #quotePageBanner.mainSlider .rightSide{
+        margin-top:120px;
+        margin-bottom:30px;
+    }
+    .fusion-body .certifiedReviews .fusion-row{
+        padding:30px!important;;
+    }
+    .quoteTable .secTitle.fusion-title .title-heading-center{
+        text-align: center!important;
+    }
+    .formSteps .one .leftSide{
+        width:100%;
+    }
+    .formSteps .one .rangeForm output, .formSteps .one .rangeForm input[type="text"]{
+        width:100%!important;
+        font-size:75px!important;
+        height:100px;
+    }
+    .grandTotal .upper table.total tbody tr td{
+        font-size:14px;
+    }
+    .grandTotal .upper table.total tfoot tr td{
+        font-size:18px;
+    }
+    .grandTotal .upper table.total tr td{
+        height:60px;
+    }
+    .Img-bottom .fusion-row .style-image .fusion-text ul{padding: 0;}
+    .Img-bottom .fusion-row .style-image .fusion-text ul li {margin-left: -3px;margin-top: 12px;width:50%;}
+	.fusion-header{
+		padding-left:20px!important;
+		padding-right:20px!important;
+	}
+}
+@media screen and (max-width:479px){
+    .heroBanner .contArea .banTitle.fusion-title .title-heading-left{
+        font-size:40px!important;
+    }
+    .secTitle.fusion-title .title-heading-center, .secTitle.fusion-title .title-heading-left, .secTitle.fusion-title .title-heading-right{
+        font-size:35px!important;
+    }
+    #aboutContent{
+        padding-left:0!important;
+        padding-right:0!important;
+    }
+    .aboutDescr .fusion-column-wrapper{
+        border-radius:0;
+    }
+    .aboutDescr .entryContent p{
+        font-size:16px;
+        line-height:1.8em!important;
+    }
+    .fusion-body .features .snglFeat .fusion-column-wrapper{
+        padding-left:10px!important;
+        padding-right:10px!important;
+    }
+    .insQuotes .snglQuote .fusion-column-wrapper{
+        padding-left:10px!important;
+        padding-right:10px!important;
+    }
+    .insQuotes .snglQuote .bttn{
+        width:calc(100% - 20px);
+        left:10px;
+    }
+    .fusion-body .proofreading .leftSide{
+        padding:40px!important;;
+    }
+    .insQuotes{
+        margin-bottom:40px!important;;
+    }
+    .proofreading .contentArea .fusion-text h2{
+        font-size:30px!important;
+    }
+    .formSteps .headArea li{
+        font-size:13px;
+    }
+    .quoteTable.fusion-fullwidth {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+    .formGroup .label{
+        font-size:15px;
+    }
+    .specialInst .allFeatures ul li{
+        font-size:13px;
+        line-height:normal;
+        margin:5px 0;
+    }
+    .editorCode p{
+        font-size:15px;
+        line-height:normal
+    }
+    .step .stepTitle{
+        font-size:25px!important;
+    }
+}

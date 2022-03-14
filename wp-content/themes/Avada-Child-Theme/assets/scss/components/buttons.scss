@@ -1,0 +1,31 @@
+@import 'fonts';
+@import 'variables'; 
+@import 'mixins';
+
+.fusion-button.button{
+    background:#333;
+    font-family:$r;
+    font-size:14px!important;
+    margin-top:15px;
+    padding:14px 35px!important;
+    border-radius:100px!important;
+    color:#fff;
+    &:hover{
+        background:$s;
+        color:#fff;
+    }
+}
+
+@media screen and (max-width:1599px){
+    .fusion-button{
+        &.button{
+            padding:10px 20px!important;
+        }
+    }
+}
+
+@media screen and (max-width:1279px){
+    .fusion-button.button{
+        font-size:12px!important;
+    }
+}

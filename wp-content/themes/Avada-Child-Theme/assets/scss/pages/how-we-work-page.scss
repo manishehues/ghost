@@ -1,0 +1,322 @@
+@import '../components/fonts';
+@import '../components/variables'; 
+@import '../components/mixins';
+
+.internal{
+    &.mainBanner{
+        .bannerImg{
+            float:right!important;
+            margin-right:0!important;
+            padding-left:0;
+            padding-right:70px;
+            width:66%!important;
+        }
+        .leftContent{
+            top:auto;
+            bottom:0;
+            left:auto;
+            right:0;
+            h3{
+                text-align: right;
+            }
+        }
+        .bannerTagLine{
+            right: auto;
+            left: 0;
+            margin-bottom: 0 !important;
+            top: 50%;
+            bottom: auto;
+            transform: translateY(-50%); 
+            .fusion-text{
+                h2{
+                    font-size:70px;
+                    line-height:85px!important
+                }
+            }                                    
+        }
+    }
+}
+
+.howIntro{
+    padding-top:100px!important;
+    margin-top:-60px!important;
+    padding-bottom:50px!important;
+    .button{
+        position: absolute;
+        bottom: -90px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
+.howHelp{
+    margin-top:-6px!important;
+    background-size:100%!important;
+    padding-top:100px!important;
+    padding-bottom:180px!important;
+    &.fusion-fullwidth{        
+        .fusion-row{
+            max-width:1280px!important;            
+        }
+    }
+    .fusion-imageframe{
+        max-width:none;
+        width:100%;
+        img{
+            width:100%;
+        }
+    }
+}
+
+.purpose{
+    &.cultureWise{
+        .photoSide{
+            transform: translateY(-130px);
+            .fusion-text{
+                top:-50px;
+            }
+        }
+    }
+}
+
+/*=============Responsive=============*/
+@media screen and (max-width:1919px){
+    .purpose{
+        &.cultureWise{
+            .photoSide{
+                transform: translateY(-90px);
+            }
+        }
+    }
+}
+
+@media screen and (max-width:1599px){
+    .howIntro{
+        .entryContent{
+            margin-top:70px;
+        }
+    }
+    .internal{
+        &.mainBanner{
+            .bannerTagLine{
+                .fusion-text{
+                    h2{
+                        font-size:60px!important;
+                        line-height:75px!important;
+                    }
+                }
+            }
+        }
+    }
+    
+}
+
+
+@media screen and (max-width:1439px){
+    .howHelp{
+        margin-top:-3px!important;
+        &.fusion-fullwidth{
+            .fusion-row{
+                max-width:1170px!important;
+            }
+        }
+    }
+}
+
+@media screen and (max-width:1279px){
+    .purpose{
+        &.cultureWise{
+            .photoSide{
+                transform: translateY(-50px);
+            }            
+        }
+    }
+    .howHelp{
+        padding-bottom:100px!important;
+    }
+    .internal{
+        &.mainBanner{
+            .bannerTagLine{
+                .fusion-text{
+                    h2{
+                        font-size:55px!important;
+                        line-height:65px!important;
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media screen and (max-width:1023px){
+    .purpose{
+        &.cultureWise{
+            .photoSide{
+                 transform:translate(0);
+            }
+            .fusion-layout-column.contentArea{
+                background:#cadbdb;
+            }
+        }
+    }
+
+    .internal{
+        padding-right:0!important;
+        padding-left:0!important;
+        &.mainBanner{
+            .leftContent{
+                display:none
+            }
+            .bannerImg{
+                width:100%!important;
+                padding-right:0;
+                margin-bottom:0!important;
+            }
+        }
+        .bannerTagLine{
+            padding-left:35px;
+            padding-right:35px;
+            transform: unset;
+            top:0;
+            height:100%;
+            display:flex;
+            align-items: center;
+            background:rgba(0,0,0,0.1);
+            .fusion-text{
+                h2{
+                    -webkit-text-stroke:2px #f3f1ec!important;
+                    strong{
+                        color:#f3f1ec!important;
+                    }
+                }
+            }
+        }
+    }
+    .howIntro{
+        margin-top:0!important;
+        padding-top:40px!important;
+        padding-bottom:40px!important;
+        .entryContent{
+            margin-top:0;
+            h3{
+                margin-top:0;
+            }
+        }
+        .button{
+            bottom:0;
+            position: relative;
+            left:0;
+            transform: unset;
+        }
+    }
+    .howHelp{
+        padding-bottom:40px!important;
+    }
+}
+
+@media screen and (max-width:666px){
+    .internal{
+        &.mainBanner{
+            .bannerTagLine{
+                .fusion-text{
+                    h2{
+                        font-size:60px!important;
+                    }
+                }
+            }
+            .desktopView{
+                display:block!important;
+            }
+            .mobileView{
+                display:none!important;
+            }
+        }
+    }
+
+    #howHelp{
+        padding-top:60px!important;
+        .desktopView{
+            display:block!important;            
+        }
+        .mobileView{
+            display:none!important;
+        }       
+    }
+}
+
+@media screen and (max-width:639px){
+    .internal{
+        &.mainBanner{           
+            .desktopView{
+                display:none!important;
+            }
+            .mobileView{
+                display:block!important;
+            }
+            .bannerTagLine{
+                .fusion-text{
+                    h2{
+                        line-height:70px!important
+                    }
+                }
+            }
+        }
+    }
+    .purpose{
+        &.cultureWise{
+            .photoSide{
+                .fusion-text{
+                    top:0;
+                }
+            }
+        }
+    }
+    #howHelp{
+        padding-top:60px!important;
+        &.desktopView{
+            display:none!important;             
+        }
+        &.mobileView{
+            display:block!important;
+            background-size: 70%!important;
+            background-position-y: 50px!important;
+            padding-top:250px!important;
+        }       
+    }
+}
+
+@media screen and (max-width:479px){
+    .internal{
+        &.mainBanner{
+            .bannerTagLine{
+                .fusion-text{
+                    h2{
+                        line-height:60px!important;
+                        font-size:55px!important;                        
+                    }
+                }
+            }
+        }
+    }    
+}
+
+@media screen and (max-width:413px){
+    .internal{
+        &.mainBanner{
+            .bannerTagLine{
+                .fusion-text{
+                    h2{
+                        line-height:54px!important;
+                        font-size:48px!important;
+                        -webkit-text-stroke:1.5px #f3f1ec !important
+                    }
+                }
+            }
+        }
+    }
+    .cultureWise .photoSide .fusion-text h2{
+        font-size:130px!important;
+        line-height:110px !important;
+    }
+}
+

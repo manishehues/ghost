@@ -1,0 +1,471 @@
+@import '../components/fonts';
+@import '../components/variables'; 
+@import '../components/mixins';
+
+
+
+.critera{
+    &.internal{
+        &.mainBanner{
+            .bannerImg{
+                float:left!important;
+                padding-right:0;
+                padding-left:70px;
+            }
+            .leftContent{                
+                top:0;
+                left:0;
+                h3{
+                    text-align: left;
+                }
+            }
+            .bannerTagLine{
+                top:50%;
+                transform: translateY(-50%);
+                bottom:auto;
+                left:auto;
+                right:0;
+                .fusion-text{
+                    h2{
+                        text-align: right;                        
+                    }
+                }
+            }
+        }
+    }
+}
+
+.sngleCritea{
+    &#criteaMembers{
+        padding-top:130px!important;       
+    }
+    padding-top:90px!important;
+    padding-bottom:45px!important;
+    .leftSide,
+    .rightSide{
+        margin:0!important;
+        width:50%!important;
+        padding-left:20px;
+        padding-right:20px;
+    }
+    // .leftSide{
+    //     float:right!important;
+    // }
+    // .rightSide{
+    //     float:left!important;
+    // }
+    .fusion-row{
+        display:flex;
+        flex-wrap:wrap;
+        flex-direction: row-reverse;
+        position: static!important;
+    }
+    &.revert{
+       .fusion-row{
+            flex-direction: unset;
+        }
+        .ImgArea{            
+            &:before{
+                content:'';
+                left:0;
+                right:auto;
+                top:0;
+                height:100%;
+                background:#ebd5b4;
+            }
+        }
+        .contentArea{
+            .entryContent{
+                &.upper{
+                    h2{
+                        left:auto;
+                        right:-15px;
+                    }
+                }
+            }
+        }
+    }
+
+    .ImgArea{
+        position: static;
+        &:before{
+            content:'';
+            position: absolute;
+            width:calc(50% - 175px);
+            right:0;
+            top:0;
+            height:100%;
+            background:#ebd5b4;
+        }
+    }
+
+    .contentArea{
+        .entryContent{
+            position: relative;
+            &.upper{
+                h2{
+                    font-size:200px;
+                    @include fut-con-bold;
+                    color:transparent;
+                    -webkit-text-stroke: 1.5pt #CDC7B9;
+                    position: absolute;
+                    left:-50px;
+                    top:-100px;
+                }
+                h3{
+                    color:#e3c89f;
+                    @include fut-con-medium;
+                    margin-bottom:0;
+                    transform: translateY(-10px);
+                    font-size:24px;
+                }
+            }
+            &.lower{
+                margin-top:10px;
+                h3{
+                    margin-top:0;
+                    margin-bottom:20px;
+                    font-size:40px;
+                    line-height:1.2em!important;
+                }
+            }
+        }
+    }
+}
+
+.believe{
+    &.cultureWise{
+        .fusion-layout-column{
+            &.contentArea{
+                width:47%!important;
+                p{
+                    font-family:$rm;
+                    font-size:21px;
+                    line-height:2em;
+                }
+            }
+        }
+        .fusion-row{
+            flex-direction: row-reverse;
+        }
+        .photoSide{
+            width:53%!important;
+            .fusion-text{
+                left:10%;
+                h2{
+                    text-align: right;
+                } 
+            }
+        }
+    }
+}
+
+/*==============Responsive=============*/
+
+@media screen and (max-width:1599px){
+    .sngleCritea{
+        &#criteaMembers{
+            margin-top:63px!important;
+        }
+        .ImgArea{
+            &::before{
+                width:calc(50% - 188px);
+            }
+        }
+        .contentArea{
+            .entryContent{
+                &.lower{
+                    h3{
+                        font-size:36px;
+                    }
+                }
+            }
+        }
+        &#productivity{
+            padding-bottom:90px!important;
+        }
+    }
+    .believe{
+        &.cultureWise{
+            .fusion-layout-column{
+                &.contentArea{
+                    p{
+                        font-size:18px;
+                        line-height:1.8em;
+                    }
+                }
+            }
+            .photoSide{
+                width:56%!important;
+                .fusion-text{
+                    left:auto;
+                    right:120px;
+                }
+            }
+            .fusion-layout-column{
+                &.contentArea{
+                    width:44%!important;
+                }
+            }
+        }        
+    }
+}
+
+@media screen and (max-width:1365px){
+    .sngleCritea{
+        .contentArea{
+            .entryContent{
+                &.lower{
+                    h3{
+                        font-size:30px;
+                    }
+                }
+                &.upper{
+                    h2{
+                        font-size:180px;
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media screen and (max-width:1279px){
+    .sngleCritea{
+        &#criteaMembers{
+            margin-top:33px!important;
+        }
+        .ImgArea::before{
+            width:calc(50% - 155px);
+        }
+    }
+}
+
+@media screen and (max-width:1023px){
+    .critera{
+        &.internal{
+            &.mainBanner{
+                .bannerImg{
+                    padding-left:0;
+                }
+                .bannerTagLine{
+                    .fusion-text{
+                        h2{
+                            text-align: left;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    .fusion-body{
+        .sngleCritea{ 
+            padding-left:0!important;
+            padding-right:0!important;  
+            &#criteaMembers         {
+                margin-top:0!important;
+                padding-top:100px!important;
+            }
+            .leftSide,
+            .rightSide{
+                &.fusion-layout-column{
+                    width:50%!important;
+                    position: static;
+                }
+            }
+            .fusion-row{
+                padding-left:40px!important;
+                padding-right:40px!important;
+                position: static!important;
+            }
+            .contentArea{
+                .entryContent{
+                    &.lower{
+                        margin-top:0;
+                        h3{
+                            font-size:30px!important;
+                        }
+                    }
+                }
+                .fusion-button.button{
+                    margin-top:0!important;
+                }
+            }
+        }
+    }
+    #criteaMembers{
+        padding-right:0!important;
+        padding-left:0!important
+    }
+    .believe{
+        &.cultureWise{
+            .photoSide{
+                .fusion-text{
+                    right:auto;
+                    left:5%;
+                    h2{
+                        text-align: left;
+                    }
+                }
+            }
+            .fusion-layout-column{
+                &.contentArea{
+                    width:100%!important;
+                }
+            }
+        }
+    }
+}
+
+@media screen and (max-width:767px){
+    .sngleCritea{
+         .contentArea{
+            .entryContent{
+                &.upper{
+                    h2{
+                        right:-10px;
+                        left:auto;
+                    }
+                }
+            }
+        }
+    }   
+}
+
+@media screen and (max-width:735px){
+    .fusion-body{
+        .sngleCritea{
+            .fusion-row{
+                padding-right:15px!important;
+                padding-left:15px!important;
+            }
+            .contentArea{
+                .entryContent{
+                    &.lower{
+                        h3{
+                            font-size:25px!important;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media screen and (max-width:639px){
+    #critera{
+        .internal{
+            &.mainBanner{
+                .bannerTagLine{
+                    .fusion-text{
+                        h2{
+                            br{
+                                display:none;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .fusion-body{
+        .sngleCritea{            
+            padding-bottom:0!important;
+            &#criteaMembers{                
+                .contentArea{
+                    .entryContent{
+                        &.upper{                            
+                            h2{
+                                position: relative;
+                                top:0;                                
+                            }
+                            h3{
+                                
+                                left:80px;                                
+                                top:35px;
+                            }                           
+                        }
+                    }
+                }
+            }
+            .leftSide,
+            .rightSide{
+                &.fusion-layout-column{
+                    width:100%!important;
+                    padding:0;
+                }
+            }
+            .rightSide{
+                padding:35px!important;
+            }
+            .fusion-row{
+                padding-left:0!important;
+                padding-right:0!important;
+            }
+            .ImgArea{
+                &::before{
+                    width:50%;
+                    left:0;
+                }
+            }
+            .contentArea{
+                .entryContent{
+                    &.upper{
+                        position: absolute;
+                        top:0;
+                        z-index: 999;
+                        width: calc(100% - 15px);
+                        left:0;
+                        margin-left:15px;
+                        h2{
+                            position: relative;
+                            top:-30px;
+                            -webkit-text-stroke:1.5pt #f3f1ec;
+                            line-height:200px!important;
+                        }
+                        h3{
+                            position: absolute;
+                            top:20px;
+                            left:110px;
+                            font-size:45px!important;
+                            margin-top:10px!important;
+                        }
+                    }
+                }
+            }
+            &#productivity{
+                padding-bottom:0!important;
+            }
+        }
+    }   
+    
+}
+@media screen and (max-width:479px){
+    .fusion-body{
+        .sngleCritea{
+            &#criteaMembers{
+                .contentArea{
+                    .entryContent.upper{
+                        h3{
+                            top:45px;
+                        }
+                    }
+                }
+            }
+            .contentArea{
+                .entryContent{
+                    &.upper{
+                        h3{
+                            font-size:35px!important;
+                            top:30px;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    .critera.internal.mainBanner .bannerTagLine .fusion-text h2 br{
+        display:none;
+    }
+}

@@ -1,0 +1,852 @@
+@import '../components/fonts';
+@import '../components/variables'; 
+@import '../components/mixins';
+
+
+.mainBanner{
+    height:500px;
+    position: relative;
+    .fusion-layout-column{
+        &.rightSide{
+            float:left;
+        }
+        &.leftSide{
+            float:right;
+        }
+        
+    }
+    .bannerContent{
+        position: absolute;
+        left:0;
+        top:0;
+        z-index: 99;
+        .bannerTitle{
+            font-size:170px;
+            margin-bottom:0;            
+            @include fut-con-bold;
+            color:$y;
+            text-transform: uppercase;
+            line-height:140px!important;
+            margin-top:-35px;
+            strong{
+                @include fut-book-ob;
+            }
+        }
+        .banSubTitle{ 
+            font-size:28px;
+            color:#fff;
+            font-family:$r;
+            margin-bottom:0;
+            margin-top:50px;            
+            span{
+                background:$p;
+                display:inline-block;
+                padding:0 10px;
+                margin:3px 0;
+                line-height:normal;
+            }
+        }
+    }   
+    .videoBanner{
+       margin-right:0!important;
+       width:750px!important;
+       margin-top:160px!important
+    }
+}
+
+.welcomeArea{
+    margin-top:130px!important;    
+    .entryContent{
+        p{
+            padding-right:65px;
+            padding-left:65px;
+        }        
+    }
+}
+
+#welcome{
+    position: relative;
+    z-index: 99;
+}
+
+.brandsBelieve{
+    margin-top:-40px!important;
+    .brandImg{
+        img{
+            width:750px;
+        }
+    }
+}
+
+.allBrands{
+    margin-top:30px!important;
+    margin-bottom:0!important;
+    .fusion-row{
+        width:50%;
+        float:left;
+        &:nth-child(3),
+        &:nth-child(4),
+        &:nth-child(7),
+        &:nth-child(8){
+            .mainPhoto{
+                float:right;
+            }
+        }        
+        .LeftSide{
+            float:left;            
+            margin:0!important;
+            width:50%!important;
+        }
+        .rightSide{
+            float:right;            
+            margin:0!important;
+            width:50%!important;
+            position: relative;
+        }
+        .mainLogo{
+            overflow: hidden;
+            cursor:pointer;
+            .fusion-imageframe{               
+                @include transition;
+                width:100%;
+            }
+            .entryContent{
+                position: absolute;                
+                left:0;
+                top:-100%;
+                width:100%;
+                height:100%;
+                display:flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 999;
+                padding:0 65px ;
+                @include transition;
+                p{
+                    color:#fff;
+                }
+                h4{
+                    color:#fff;
+                    font-family:$r!important;
+                    font-size:22px;  
+                    margin-bottom:15px;                  
+                }
+            }
+            img{
+                width:100%;
+            }
+            &:hover{
+                .entryContent{
+                    top:0;
+                }
+                .fusion-imageframe{
+                    opacity: 0;
+                }
+            }
+        }        
+    }
+}
+
+.whoWeArea{
+    padding-top:70px!important;
+    padding-bottom:70px!important;
+    .who{
+        position: relative;
+        &::before{
+            content:'WHO';
+            font-size:205px;
+            position: absolute;
+            @include fut-con-bold;
+            -webkit-text-stroke: 2px #cdc7b9;
+            color:transparent;
+            width:100%;
+            text-align: left;
+            top:-75px;
+            left:-75px;
+            z-index: -1;
+        }
+        &::after{
+            content:'WE ARE'; 
+            font-size:205px;
+            position: absolute;
+            @include fut-con-bold;
+             -webkit-text-stroke: 2px #cdc7b9;
+            color:transparent;
+            width:100%;
+            text-align: right;
+            bottom:-75px;
+            right:-75px;
+            z-index: -1;
+        }
+    }    
+}
+
+.values{
+    margin-top:0!important;
+    padding-bottom:70px!important;
+    .brandImg{
+        .fusion-imageframe{
+            overflow: visible;
+        }
+        img{
+            margin-top:-25px;
+            max-width:700px;
+        }
+    }   
+    .snglValue{        
+        .entryContent{
+            h3{
+                font-family:$r!important;                  
+                font-size:22px;
+                margin-bottom:10px;
+            }
+        }
+        .fusion-button{
+            &.simpleButton{
+                background:none;
+                padding:0;                
+                font-size:13px;
+                letter-spacing: 3px;
+                font-weight:400;
+                span{
+                    color:#89c08e!important;
+                }
+                &::after{
+                    content:'';
+                    float:right;
+                    margin-left:5px;
+                    width:5px;
+                    height:11px;
+                    background:url('../images/arrow.svg') no-repeat;
+                    background-size:cover;
+                    background-position-y: center;
+                    margin-top:3px;
+                }
+            }
+        }
+    }
+}
+
+.cultureWise{
+    padding:0!important;
+    position: relative;
+    z-index: 999;
+    .fusion-row{
+        display:flex;
+        flex-wrap:wrap;
+    }
+    .photoSide{
+        width:60%!important;
+        margin:0!important;        
+        .fusion-column-wrapper{
+            margin:0!important;            
+        }
+        img,
+        .fusion-imageframe{
+            width:100%;
+        }
+        .fusion-text{
+            position: absolute;
+            top:5px;
+            z-index: 999;        
+            left: 20%;  
+            height:100%;
+            display:flex;
+            align-items: center;
+            justify-content: center;;  
+            h2{
+                font-weight:700!important;
+                text-transform: uppercase;
+                font-size:300px;
+                color:$p;
+                font-family:$f-cB!important;
+                line-height:240px!important;
+                letter-spacing: -3px;;
+            }
+        }
+    }
+    .fusion-layout-column.contentArea{
+        width:40%!important;
+        margin:0!important;           
+        display:flex;
+        align-items: center;     
+        justify-content: center;
+        .entryContent{
+            p{
+                font-family:$f-B;
+                font-size:35px;
+            }
+        }
+    }
+}
+
+.lastSection{        
+    &.brandsBelieve{
+        margin-top:-20px!important;  
+        .brandImg{
+            margin-bottom:35px!important;
+            img{
+                width:900px;
+            }
+        }
+    }
+    .entryContent{
+        h4{
+            font-family:$rm!important;
+            font-size:20px;
+            margin-bottom:15px;            
+        }
+    }
+}
+
+
+/*================Responsive==============*/
+@media screen and (max-width:1919px){
+    .cultureWise{
+        .photoSide{
+            .fusion-text{
+                h2{
+                    font-size:250px;
+                    line-height:200px!important;
+                }
+            }
+        }
+        .fusion-layout-column{
+            &.contentArea{
+                .entryContent p{
+                    font-size:30px;
+                }
+            }
+        }
+    }
+    .lastSection.brandsBelieve{
+        margin-top:-10px!important
+    }
+    .values{
+        .snglValue{
+            .entryContent{
+                h3{
+                    
+                }
+            }        
+        }
+    }
+}
+
+@media screen and (max-width:1599px){
+    .mainBanner{
+        height:450px;
+        .bannerContent{
+            .bannerTitle{
+                font-size:170px;
+                line-height:130px!important
+            }
+            .banSubTitle{
+                font-size:26px;
+                margin-top:40px;
+            }
+        }
+        .videoBanner{
+            margin-top:140px!important
+        }
+    }
+    .welcomeArea{
+        .entryContent{
+            p{
+                padding-left:120px;
+                padding-right:120px;
+            }
+        }
+    }
+    
+    .allBrands{
+         .fusion-row{
+              .mainLogo{
+                   .entryContent{
+                       padding:0 45px;
+                       h4{
+                           font-size:18px;
+                       }
+                   }
+              }
+        }
+    }
+    .whoWeArea{
+        .who{
+            &::before{
+                font-size:200px;
+                left:-35px;
+            }
+            &::after{
+                font-size:200px;
+                right:-35px;
+            }
+        }
+    }
+    .values{
+        .brandImg{
+            img{
+                max-width:600px;
+                margin-top:-20px;
+            }
+        }
+        .snglValue{
+            .entryContent{
+                h3{
+                    
+                }
+            }        
+        }
+    }
+    .cultureWise{
+        .photoSide{
+            .fusion-text{
+                left:15%;
+                h2{
+                    font-size:200px;
+                    line-height:190px!important
+                }
+            }
+        }
+    }
+    .lastSection{
+        &.brandsBelieve{
+            .brandImg{
+                img{
+                    width:800px;
+                }
+            }
+        }
+        .entryContent{
+            h4{
+                font-size:18px;
+            }
+        }
+    }
+}
+
+@media screen and (max-width:1439px){
+    .allBrands{
+        .fusion-row{
+            .mainLogo{
+                .entryContent{
+                    padding:25px;
+                }
+            }
+        }
+    }
+    .cultureWise{
+        .photoSide{
+            .fusion-text{
+                left:13%;
+                h2{
+                    font-size:200px;
+                    line-height:180px!important
+                }
+            }
+        }
+    }
+    .welcomeArea{
+        .entryContent{
+            p{
+                padding-left:80px;
+                padding-right:80px;
+            }
+        }
+    }
+}
+
+@media screen and (max-width:1365px){
+    .cultureWise{
+        .photoSide{
+            .fusion-text{
+                left:5%;
+                h2{
+                    line-height:160px!important
+                }
+            }
+        }
+        .fusion-layout-column{
+            &.contentArea{
+                .entryContent{
+                    p{
+                        font-size:25px;
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media screen and (max-width:1279px){
+    .mainBanner{
+        height:380px;
+        .videoBanner{
+            width:60%!important;
+            margin-top:100px!important;
+            position:absolute!important;
+            right:0;
+        }
+        .bannerContent{
+            .bannerTitle{
+                font-size:130px;
+                line-height:110px!important
+            }
+            .banSubTitle{
+                font-size:23px;
+                margin-top:30px;
+            }
+        }
+    }
+    .welcomeArea{
+        margin-top:60px!important;
+    }
+    .allBrands{
+        .fusion-row{
+            width:100%;
+            display:flex;
+            flex-wrap:wrap;
+            .mainLogo{
+                overflow: visible;
+                .entryContent{
+                    position: relative;
+                    top:0;
+                    padding:65px 100px;
+                    h4{
+                        font-size:25px;
+                        margin-bottom:10px!important;
+                    }
+                }
+                .fusion-imageframe{
+                    opacity: 1!important;
+                    position: absolute;
+                    right:0;
+                    width:100%;
+                    transform: translateX(-100%);
+                    background:rgba(0,0,0,0.2);
+                }
+            }
+            .rightSide{
+                position: relative;
+                .fusion-column-wrapper{
+                    position: absolute;
+                    width:100%;
+                    height:100%;
+                }
+            }
+
+            &:nth-child(2n){
+                flex-direction: row-reverse;
+                .mainLogo{
+                    .fusion-imageframe{
+                        transform: translateX(100%);
+                    }
+                }
+            }
+        }
+    }
+    .cultureWise{
+        .photoSide{
+            .fusion-text h2{
+                font-size:160px!important;
+                line-height:130px!important;
+            }
+        } 
+        .fusion-button.button{
+            margin-top:0;
+        }       
+        .fusion-layout-column{
+            &.contentArea{
+                .entryContent p{
+                    font-size:21px;
+                }
+            }
+        }
+    }
+    .lastSection{
+        &.brandsBelieve{
+            .brandImg{
+                img{
+                    width:650px;
+                }
+            }
+        }
+    }
+    .values{
+        padding-bottom:40px!important
+    }
+}
+
+@media screen and (max-width:1023px){
+    .mainBanner{
+        height:auto;
+        background-position: left top!important;
+        background-size:auto 550px!important;
+
+        .videoBanner{
+            margin-top:90px!important;
+            position: relative!important;
+        }
+        .bannerContent{
+            .bannerTitle{
+                margin-top:30px;
+            }
+            .banSubTitle{
+                margin-top:15px;
+            }
+            .fusion-button.button{
+                display:block!important;
+                background:#fff!important;
+                span{
+                        color:#333!important;
+                }
+                &:hover{
+                    background:$s!important;
+                    span{
+                        color:#fff!important;
+                    }
+                }
+            }
+        }
+    }
+    .welcomeArea{
+        margin-top:30px!important;
+        .entryContent{
+            p{
+                padding-left:30px;
+                padding-right:30px;
+            }
+        }
+    }
+    .fusion-body{
+        .allBrands{
+            .fusion-layout-column{
+                width:50%;
+            }
+            .fusion-row{               
+                .LeftSide,
+                .rightSide{
+                    width:50%!important
+                }
+                .fusion-row{
+                    display:none;
+                }
+                .mainLogo{
+                    .entryContent{
+                        padding:30px 45px;
+                        h4{
+                            margin-top:0;
+                            font-size:20px!important;
+                        }
+                        p{
+                            margin-bottom:0;
+                        }
+                    }
+                }
+            }
+        }
+
+
+        .values{
+            .fusion-row{
+                display:flex;
+                flex-wrap: wrap;
+            }
+            .snglValue{
+                padding:0 15px;
+                &.fusion-layout-column{
+                    width:50%!important;
+                }
+                .entryContent{
+
+                }
+            }
+        }
+    }
+    .whoWeArea{
+        .who{
+            &::before{
+                left:0;
+                text-align: center;
+                top:-60px;
+            }
+            &::after{
+                text-align: center;
+                right:0;
+                bottom:-60px;
+            }
+        }
+    }
+    
+    .cultureWise{
+        .fusion-layout-column{
+            &.contentArea{
+                max-width:550px;
+                padding:35px;
+                background:#f3f1ec;
+                margin:auto!important;
+                display:block;
+                margin-top:-50px!important;
+                position: relative;
+                z-index: 999;
+            }
+        }
+    }
+    .lastSection{
+        &.brandsBelieve{
+            position: relative;
+            z-index: 9999;
+        }
+    }
+    .mainBanner{
+        .bannerContent{
+            position: relative;
+        }
+    }    
+}
+
+@media screen and (max-width:735px){
+    .welcomeArea{
+        .entryContent{
+            p{
+                padding-left:0;
+                padding-right:0;
+            }
+        }
+    }
+}
+
+@media screen and (max-width:666px){
+    #main{
+        padding-bottom:0!important
+    }
+    .fusion-body{
+        .allBrands{
+            .fusion-row{
+                .mainLogo{
+                   .entryContent{
+                        padding:25px
+                   }
+                }
+            }
+        }
+    } 
+    #brands.brandsBelieve{
+        position: relative;
+        z-index: 9999;
+        margin-top:0!important;
+        margin-bottom:-80px!important;
+    }   
+}
+
+@media screen and (max-width:639px){
+    .mainBanner{
+        background-size:auto 450px !important;
+        .bannerContent{
+            .bannerTitle{
+                font-size:90px!important;
+                line-height:80px!important
+            }
+            .banSubTitle{
+                font-size:21px!important;
+                line-height:1.5em!important;
+                span{
+                    display:unset;
+                }
+            }
+        }
+    }
+    .welcomeArea{
+        .entryContent{
+            h3{
+                margin-top:0;
+            }
+        }
+    }
+    
+    .allBrands{
+        .fusion-row{
+            &:nth-child(2n){
+                 flex-direction: unset;
+            }
+        }
+    }
+    .fusion-body .allBrands .fusion-row .LeftSide, .fusion-body .allBrands .fusion-row .rightSide{
+        width:100%!important;
+    }
+    .allBrands .fusion-row .mainLogo .fusion-imageframe,
+    .allBrands .fusion-row:nth-child(2n) .mainLogo .fusion-imageframe{
+        transform:translateY(-100%);
+    }
+    .fusion-body .allBrands .fusion-row .mainLogo .entryContent{
+        display:flex;
+        padding:65px;
+        min-height:350px;
+    }
+    .allBrands .fusion-row .rightSide .fusion-column-wrapper{
+        position: relative;
+    }
+
+    .whoWeArea{
+        margin-top:230px!important;
+        .who{
+            &::after{
+                display:none;
+            }
+            &::before{
+                content:'Who We Are';
+                text-transform: uppercase;
+                line-height:150px;
+                top:-220px;
+            }   
+        }    
+    }
+    
+    .fusion-body .values .snglValue.fusion-layout-column{
+        width:100%!important;
+        padding:0 20px;
+    }
+    .values .snglValue .entryContent h3{
+        margin-top:10px;
+    }
+    .cultureWise{
+        .fusion-layout-column.contentArea{
+            margin-top:0!important;
+        }
+    }
+}
+
+@media screen and (max-width:479px){
+    .mainBanner{
+        .bannerContent{
+            .bannerTitle{
+                font-size:100px!important
+            }
+            .banSubTitle{
+                font-size:18px!important;
+                span{
+                    padding:0 3px;
+                }
+            }
+        }
+    }
+}
+
+
+@media screen and (max-width:413px){
+    .mainBanner{
+        .videoBanner{
+            margin-top:50px!important;
+        }
+    }
+    .whoWeArea{
+        margin-top:140px!important;
+    }
+    .whoWeArea .who::before{
+        line-height:120px;
+        font-size:160px;
+        top:-160px;
+    }
+}
+
+
