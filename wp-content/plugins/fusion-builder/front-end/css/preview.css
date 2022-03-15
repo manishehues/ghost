@@ -4454,3 +4454,14 @@ body.fusion-builder-live .fusion-builder-live-child-element:hover .fusion-builde
   margin: 0 auto;
   width: 50%;
 }
+#fusion-load-studio-dialog {
+  background: #64bc7a;
+  color: #fff;
+  border: none;
+}
+#fusion-load-studio-dialog .fusiona-avada-logo {
+  margin-right: 5px;
+}
+#fusion-load-studio-dialog:hover {
+  background: #5aa96e;
+}

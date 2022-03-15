@@ -56,7 +56,7 @@ class AWB_Critical_CSS_Table extends WP_List_Table {
 
 		// Actions which need to removed from the URL after page reloads.
 		$remove_actions = [ 'action', 'action2', 'post' ];
-		$this->url      = remove_query_arg( $remove_actions, wp_unslash( $_SERVER['REQUEST_URI'] ) );
+		$this->url      = remove_query_arg( $remove_actions, wp_unslash( $_SERVER['REQUEST_URI'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 	}
 
 	/**
@@ -165,10 +165,10 @@ class AWB_Critical_CSS_Table extends WP_List_Table {
 			'where'  => [],
 		];
 
-		// Add sorting,
-		if ( isset( $_GET['orderby'] ) ) {
-			$args['order_by'] = sanitize_text_field( wp_unslash( $_GET['orderby'] ) );
-			$args['order']    = ( isset( $_GET['order'] ) ) ? sanitize_text_field( wp_unslash( $_GET['order'] ) ) : 'ASC';
+		// Add sorting.
+		if ( isset( $_GET['orderby'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			$args['order_by'] = sanitize_text_field( wp_unslash( $_GET['orderby'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
+			$args['order']    = ( isset( $_GET['order'] ) ) ? sanitize_text_field( wp_unslash( $_GET['order'] ) ) : 'ASC'; // phpcs:ignore WordPress.Security.NonceVerification
 		}
 
 		$codes = AWB_Critical_CSS()->get( $args );
@@ -193,12 +193,12 @@ class AWB_Critical_CSS_Table extends WP_List_Table {
 	 * @since 1.0
 	 * @access public
 	 * @param  array $item        Data.
-	 * @return string
+	 * @return void
 	 */
 	public function single_row( $item ) {
 		$row_classes = '';
 
-		echo '<tr class="' . ltrim( $row_classes ) . '" data-id="' . $item['id'] . '">';
+		echo '<tr class="' . ltrim( $row_classes ) . '" data-id="' . $item['id'] . '">'; // phpcs:ignore WordPress.Security.EscapeOutput
 		$this->single_row_columns( $item );
 		echo '</tr>';
 	}

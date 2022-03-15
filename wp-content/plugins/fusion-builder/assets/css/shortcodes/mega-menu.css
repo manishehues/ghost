@@ -134,15 +134,18 @@
 .avada-has-megamenu-item-divider .fusion-menu-element-wrapper .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu .fusion-megamenu-submenu {
   border-color: #e2e2e2;
 }
-.fusion-menu-element-wrapper .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu .sub-menu > li > a .fusion-megamenu-icon {
+.fusion-menu-element-wrapper .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu .sub-menu > li > a .fusion-megamenu-icon,
+.fusion-menu-element-wrapper .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu .fusion-megamenu-title-disabled .fusion-megamenu-icon {
   width: 1.5em;
   display: inline-flex;
   box-sizing: content-box;
 }
-.ltr .fusion-menu-element-wrapper .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu .sub-menu > li > a .fusion-megamenu-icon {
+.ltr .fusion-menu-element-wrapper .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu .sub-menu > li > a .fusion-megamenu-icon,
+.ltr .fusion-menu-element-wrapper .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu .fusion-megamenu-title-disabled .fusion-megamenu-icon {
   padding-right: 1em;
 }
-.rtl .fusion-menu-element-wrapper .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu .sub-menu > li > a .fusion-megamenu-icon {
+.rtl .fusion-menu-element-wrapper .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu .sub-menu > li > a .fusion-megamenu-icon,
+.rtl .fusion-menu-element-wrapper .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu .fusion-megamenu-title-disabled .fusion-megamenu-icon {
   padding-left: 1em;
 }
 .fusion-menu-element-wrapper .fusion-megamenu-wrapper .fusion-megamenu {
@@ -163,9 +166,16 @@
   font-family: var(--body_typography-font-family);
   font-weight: var(--body_typography-font-weight);
   padding-top: 12px;
+  padding-right: 20px;
   padding-bottom: 12px;
-  color: #e2e2e2;
+  padding-left: 20px;
+  color: #212934;
+  background-color: #fff;
   font-size: 14px;
+  border-bottom: 1px solid #e2e2e2;
+}
+.fusion-menu-element-wrapper .fusion-megamenu-wrapper li .fusion-megamenu-title-disabled:hover {
+  background-color: #f9f9fb;
 }
 .fusion-menu-element-wrapper .fusion-megamenu-wrapper li ul.sub-menu {
   display: block !important;
@@ -379,12 +389,6 @@
 .fusion-menu-element-wrapper.collapse-enabled.mobile-mode-always-expanded.expanded > ul.fusion-menu li.fusion-megamenu-menu:not(.fusion-has-all-widgets) .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu li.fusion-megamenu-submenu {
   padding: 0;
 }
-.fusion-menu-element-wrapper.collapse-enabled.mobile-mode-collapse-to-button > ul.fusion-menu li.fusion-megamenu-menu:not(.fusion-has-all-widgets).expanded .fusion-megamenu-wrapper,
-.fusion-menu-element-wrapper.collapse-enabled.mobile-mode-always-expanded > ul.fusion-menu li.fusion-megamenu-menu:not(.fusion-has-all-widgets).expanded .fusion-megamenu-wrapper,
-.fusion-menu-element-wrapper.collapse-enabled.mobile-mode-collapse-to-button.expanded > ul.fusion-menu li.fusion-megamenu-menu:not(.fusion-has-all-widgets).expanded .fusion-megamenu-wrapper,
-.fusion-menu-element-wrapper.collapse-enabled.mobile-mode-always-expanded.expanded > ul.fusion-menu li.fusion-megamenu-menu:not(.fusion-has-all-widgets).expanded .fusion-megamenu-wrapper {
-  max-height: 500px;
-}
 .fusion-menu-element-wrapper.collapse-enabled.mobile-mode-collapse-to-button > ul.fusion-menu li.fusion-megamenu-menu:not(.fusion-has-all-widgets) .fusion-megamenu-holder,
 .fusion-menu-element-wrapper.collapse-enabled.mobile-mode-always-expanded > ul.fusion-menu li.fusion-megamenu-menu:not(.fusion-has-all-widgets) .fusion-megamenu-holder,
 .fusion-menu-element-wrapper.collapse-enabled.mobile-mode-collapse-to-button.expanded > ul.fusion-menu li.fusion-megamenu-menu:not(.fusion-has-all-widgets) .fusion-megamenu-holder,
@@ -438,11 +442,6 @@
 .ltr .fusion-menu-element-wrapper.collapse-enabled .fusion-megamenu-holder {
   padding-right: calc(20px / 2);
 }
-.fusion-menu-element-wrapper.collapse-enabled .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu-submenu .fusion-megamenu-title .awb-justify-title {
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
 .fusion-menu-element-wrapper.collapse-enabled.mobile-justify-left .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu-submenu .fusion-megamenu-title span,
 .fusion-menu-element-wrapper.collapse-enabled.mobile-justify-left .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu-submenu .fusion-megamenu-title a {
   justify-content: flex-start !important;
@@ -455,15 +454,19 @@
 .fusion-menu-element-wrapper.collapse-enabled.mobile-justify-right .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu-submenu .fusion-megamenu-title a {
   justify-content: flex-end !important;
 }
+.fusion-menu-element-wrapper.collapse-enabled.mega-menu-loaded .fusion-megamenu-wrapper {
+  opacity: 1 !important;
+}
 .fusion-menu-element-wrapper.collapse-enabled .fusion-megamenu-wrapper {
-  max-height: 0;
-  transition: max-height calc(300 * 1ms) cubic-bezier(0.42, 0.01, 0.58, 1);
-  display: block !important;
+  display: none;
   overflow: hidden;
   position: static;
 }
 .fusion-menu-element-wrapper.collapse-enabled .fusion-megamenu-wrapper .fusion-megamenu-holder {
   width: 100% !important;
+}
+.fusion-menu-element-wrapper.collapse-enabled .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu-submenu {
+  font-size: inherit;
 }
 .fusion-menu-element-wrapper.collapse-enabled .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu-submenu .fusion-megamenu-title {
   padding-top: 0 !important;
@@ -473,6 +476,9 @@
   min-height: inherit;
 }
 .fusion-menu-element-wrapper.collapse-enabled .fusion-megamenu-wrapper .fusion-megamenu-holder .fusion-megamenu-submenu .fusion-megamenu-title .awb-justify-title {
+  display: flex;
+  align-items: center;
+  width: 100%;
   font-size: inherit;
   font-weight: normal;
   justify-content: flex-start !important;

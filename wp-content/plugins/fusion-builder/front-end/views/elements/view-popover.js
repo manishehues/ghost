@@ -122,10 +122,10 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				styles  = '<style type="text/css">';
 				if ( '' !== values.bordercolor ) {
-					styles += '.fusion-popover-' + cid + '.' + values.placement + ' .arrow{border-' + values.placement + '-color:' + values.bordercolor + ';}';
-					styles += '.fusion-popover-' + cid + '{border-color:' + values.bordercolor + ';}';
+					styles += '.popover.fusion-popover-' + cid + '.' + values.placement + ' .arrow{border-' + values.placement + '-color:' + values.bordercolor + ';}';
+					styles += '.popover.fusion-popover-' + cid + '{border-color:' + values.bordercolor + ';}';
 				}
-				styles += '.fusion-popover-' + cid + ' .popover-title{';
+				styles += '.popover.fusion-popover-' + cid + ' .popover-title{';
 				if ( '' !== values.title_bg_color ) {
 					styles += 'background-color:' + values.title_bg_color + ';';
 				}
@@ -137,7 +137,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				}
 				styles += '}';
 
-				styles += '.fusion-popover-' + cid + ' .popover-content{';
+				styles += '.popover.fusion-popover-' + cid + ' .popover-content{';
 				if ( '' !==  values.content_bg_color ) {
 					styles += 'background-color:' + values.content_bg_color + ';';
 				}
@@ -147,7 +147,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				styles += '}';
 
 				if ( '' !== arrowColor ) {
-					styles += '.fusion-popover-' + cid + '.' + values.placement + ' .arrow:after{border-' + values.placement + '-color:' + arrowColor + ';}';
+					styles += '.popover.fusion-popover-' + cid + '.' + values.placement + ' .arrow:after{border-' + values.placement + '-color:' + arrowColor + ';}';
 				}
 				styles += '</style>';
 

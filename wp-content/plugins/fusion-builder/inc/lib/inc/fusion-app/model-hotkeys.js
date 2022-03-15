@@ -219,6 +219,16 @@ var FusionPageBuilder = FusionPageBuilder || {};
 		 * @return {boolean} - Returns the bool value.
 		 */
 		isValidTarget: function( event ) {
+
+			//Ctrl+S/CMD+S always valid
+			if (
+				( 83 === event.keyCode && event.metaKey && !event.altKey ) || // CMD + s MacOS
+				( 83 === event.keyCode && event.ctrlKey && !event.altKey ) // Ctrl + s Windows
+			) {
+				return true;
+			}
+
+
 			if ( jQuery( event.target ).is( 'input' ) || jQuery( event.target ).is( 'textarea' ) || jQuery( event.target ).is( '.fusion-live-editable' ) ) {
 				return false;
 			}

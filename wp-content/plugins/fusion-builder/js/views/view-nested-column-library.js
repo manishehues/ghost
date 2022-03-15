@@ -7,7 +7,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 	$( document ).ready( function() {
 
 		// Builder Elements View
-		FusionPageBuilder.NestedColumnLibraryView = window.wp.Backbone.View.extend( {
+		FusionPageBuilder.NestedColumnLibraryView = FusionPageBuilder.BaseLibraryView.extend( {
 
 			className: 'fusion-builder-modal-settings-container',
 
@@ -18,11 +18,6 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				'click .fusion_builder_custom_elements_load': 'addCustomModule',
 				'click .fusion-builder-column-layouts li': 'addNestedColumns',
 				'click .fusion-builder-modal-close': 'closeModal'
-			},
-
-			initialize: function( attributes ) {
-				this.options = attributes;
-				this.listenTo( FusionPageBuilderEvents, 'fusion-modal-view-removed', this.remove );
 			},
 
 			render: function() {

@@ -30,6 +30,9 @@
 			<# if ( 'false' == FusionPageBuilderApp.innerColumn  && true !== FusionPageBuilderApp.shortcodeGenerator ) { #>
 				<li class=""><a href="#inner-columns">{{ fusionBuilderText.inner_columns }}</a></li>
 			<# } #>
+			<# if ( '1' === fusionBuilderConfig.studio_status ) { #>
+				<li><a href="#fusion-builder-elements-studio"><i class="fusiona-avada-logo"></i> <?php esc_html_e( 'Studio', 'fusion-builder' ); ?></a></li>
+			<# } #>
 		</ul>
 	</div>
 
@@ -132,6 +135,23 @@
 				<# if ( FusionPageBuilderApp.shortcodeGenerator === true ) { #>
 					<div id="default-columns" class="fusion-tab-content">
 						<?php echo fusion_builder_generator_column_layouts(); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+					</div>
+				<# } #>
+				<# if ( '1' === fusionBuilderConfig.studio_status ) { #>
+					<div id="fusion-builder-elements-studio" class="fusion-tab-content">
+						<?php if ( Avada()->registration->is_registered() ) : ?>
+							<div class="studio-wrapper">
+								<aside>
+									<ul></ul>
+								</aside>
+								<section>
+									<div class="fusion-builder-element-content fusion-loader"><span class="fusion-builder-loader"></span><span class="awb-studio-import-status"></span></div>
+									<ul class="studio-imports"></ul>
+								</section>
+							</div>
+						<?php else : ?>
+							<h2><?php esc_html_e( 'You need to be registered to access the Avada Studio.', 'fusion-builder' ); ?></h2>
+						<?php endif; ?>
 					</div>
 				<# } #>
 				<div id="custom-elements" class="fusion-tab-content"></div>

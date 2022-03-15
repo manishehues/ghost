@@ -8,7 +8,10 @@ ul.fusion-checklist {
 ul.fusion-checklist.fusion-404-checklist > li,
 .fusion-checklist .fusion-li-item,
 ul.fusion-checklist .fusion-li-item {
-  padding: 5.5px 0;
+  padding-top: var(--checklist_item_padding-top, 0.35em);
+  padding-right: var(--checklist_item_padding-right, 0);
+  padding-bottom: var(--checklist_item_padding-bottom, 0.35em);
+  padding-left: var(--checklist_item_padding-left, 0);
   margin-left: 0;
 }
 .fusion-checklist.fusion-404-checklist > li:first-child,
@@ -33,7 +36,8 @@ ul.fusion-checklist .fusion-li-item p:last-of-type {
 ul.fusion-checklist.fusion-checklist-divider.fusion-404-checklist > li,
 .fusion-checklist.fusion-checklist-divider .fusion-li-item,
 ul.fusion-checklist.fusion-checklist-divider .fusion-li-item {
-  padding: 0.7em 0;
+  padding-top: calc(var(--checklist_item_padding-top, 0.35em) * 2);
+  padding-bottom: calc(var(--checklist_item_padding-bottom, 0.35em) * 2);
   border-bottom: 1px solid;
 }
 .fusion-checklist .icon-wrapper,

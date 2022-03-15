@@ -95,7 +95,7 @@ if ( fusion_is_element_enabled( 'fusion_form_time' ) ) {
 
 				if ( isset( $this->args['input_field_icon'] ) && '' !== $this->args['input_field_icon'] ) {
 					$icon_html     = '<div class="fusion-form-input-with-icon">';
-					$icon_html    .= '<i class=" ' . $this->args['input_field_icon'] . '"></i>';
+					$icon_html    .= '<i class="' . fusion_font_awesome_name_handler( $this->args['input_field_icon'] ) . '"></i>';
 					$element_html  = $icon_html . $element_html;
 					$element_html .= '</div>';
 				}
@@ -173,7 +173,7 @@ function fusion_form_time() {
 					[
 						'type'        => 'textfield',
 						'heading'     => esc_attr__( 'Field Name', 'fusion-builder' ),
-						'description' => esc_attr__( 'Enter the field name. Should be single word without spaces. Underscores and dashes are allowed.', 'fusion-builder' ),
+						'description' => esc_attr__( 'Enter the field name. Please use only lowercase alphanumeric characters, dashes, and underscores.', 'fusion-builder' ),
 						'param_name'  => 'name',
 						'value'       => '',
 						'placeholder' => true,

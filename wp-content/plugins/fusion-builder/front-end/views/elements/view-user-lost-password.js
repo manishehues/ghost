@@ -92,7 +92,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				// LoginShortcodeButton Attributes.
 				var loginShortcodeButton = {
-					class: 'fusion-login-button fusion-button button-default button-' + this.extras.button_size
+					class: 'fusion-login-button fusion-button button-default fusion-button-default-size'
 				};
 
 				if ( 'yes' !== values.button_fullwidth ) {

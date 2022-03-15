@@ -159,15 +159,14 @@ if ( fusion_is_element_enabled( 'fusion_tb_woo_checkout_billing' ) ) {
 			 * @return string
 			 */
 			public function get_woo_checkout_billing_content() {
-				$content  = '';
-				$checkout = WC()->checkout();
+				$content = '';
 
 				if ( ! is_object( WC()->cart ) || 0 === WC()->cart->get_cart_contents_count() ) {
 					return $content;
 				}
 
 				ob_start();
-				wc_get_template( 'checkout/form-billing.php', [ 'checkout' => $checkout ] );
+				do_action( 'woocommerce_checkout_billing' );
 				$content = preg_replace( '#<h3>(.*?)</h3>#', '', ob_get_clean(), 1 );
 
 				return apply_filters( 'fusion_woo_component_content', $content, $this->shortcode_handle, $this->args );

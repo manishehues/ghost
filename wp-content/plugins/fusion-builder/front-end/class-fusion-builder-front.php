@@ -166,9 +166,14 @@ if ( ! class_exists( 'Fusion_Builder_Front' ) ) {
 				add_action( 'wp_footer', [ $this, 'enqueue_wp_editor_scripts' ] );
 			}
 
-			// Deregister WP admin forms.css.
 			if ( fusion_is_preview_frame() || fusion_is_builder_frame() ) {
+				// Deregister WP admin forms.css.
 				wp_deregister_style( 'forms' );
+
+				// Disable All In One SEO head output.
+				if ( defined( 'AIOSEO_PHP_VERSION_DIR' ) ) {
+					add_filter( 'aioseo_meta_views', '__return_false' );
+				}
 			}
 
 			add_action( 'wp_ajax_nopriv_get_shortcode_render', [ $this, 'get_shortcode_render' ] );
@@ -443,6 +448,9 @@ if ( ! class_exists( 'Fusion_Builder_Front' ) ) {
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/next-page.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/dynamic-selection.php';
 
+			// Studio Import Modal.
+			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/studio-import-modal.php';
+
 			// Shared element components.
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/new-slideshow-blog-shortcode.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/featured-image.php';
@@ -462,6 +470,7 @@ if ( ! class_exists( 'Fusion_Builder_Front' ) ) {
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-dropcap.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-fontawesome.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-highlight.php';
+			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-image-hotspots.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-image.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-lightbox.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-lottie.php';
@@ -469,6 +478,7 @@ if ( ! class_exists( 'Fusion_Builder_Front' ) ) {
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-menu.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-modal.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-modal-text-link.php';
+			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-news-ticker.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-one-page-link.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-popover.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-progress.php';
@@ -478,6 +488,7 @@ if ( ! class_exists( 'Fusion_Builder_Front' ) ) {
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-separator.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-shortcode.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-soundcloud.php';
+			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-star-rating.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-tagline-box.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-table.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-text.php';
@@ -485,6 +496,7 @@ if ( ! class_exists( 'Fusion_Builder_Front' ) ) {
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-tooltip.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-user-login.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-vimeo.php';
+			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-views-counter.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-video.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-youtube.php';
 
@@ -501,6 +513,11 @@ if ( ! class_exists( 'Fusion_Builder_Front' ) ) {
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-woo-product-slider.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-woo-featured-products-slider.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-gallery.php';
+			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-facebook-page.php';
+			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-twitter-timeline.php';
+			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-flickr.php';
+			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-tagcloud.php';
+
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-woo-product-grid.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-woo-cart-table.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/fusion-woo-cart-totals.php';
@@ -541,6 +558,7 @@ if ( ! class_exists( 'Fusion_Builder_Front' ) ) {
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/form-components/text.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/form-components/phone.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/form-components/hidden.php';
+			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/form-components/honeypot.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/form-components/notice.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/form-components/number.php';
 			include FUSION_BUILDER_PLUGIN_DIR . '/front-end/templates/form-components/checkbox.php';
@@ -688,6 +706,10 @@ if ( ! class_exists( 'Fusion_Builder_Front' ) ) {
 
 				wp_enqueue_script( 'fusion_builder_extra_shortcodes', FUSION_BUILDER_PLUGIN_URL . 'front-end/models/model-extra-shortcodes.js', [], FUSION_BUILDER_VERSION, true );
 
+				wp_enqueue_script( 'fusion_builder_studio', FUSION_BUILDER_PLUGIN_URL . 'front-end/models/model-studio.js', [], FUSION_BUILDER_VERSION, true );
+
+				wp_enqueue_script( 'fusion_builder_website_demos', FUSION_BUILDER_PLUGIN_URL . 'front-end/models/model-website.js', [], FUSION_BUILDER_VERSION, true );
+
 				wp_enqueue_script( 'fusion_builder_dynamic_values', FUSION_BUILDER_PLUGIN_URL . 'front-end/models/model-dynamic-values.js', [], FUSION_BUILDER_VERSION, true );
 
 				wp_enqueue_script( 'fusion_builder_dynamic_params', FUSION_BUILDER_PLUGIN_URL . 'front-end/models/model-dynamic-params.js', [], FUSION_BUILDER_VERSION, true );
@@ -705,6 +727,10 @@ if ( ! class_exists( 'Fusion_Builder_Front' ) ) {
 				wp_enqueue_script( 'fusion_builder_column', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/view-column.js', [], FUSION_BUILDER_VERSION, true );
 
 				wp_enqueue_script( 'fusion_builder_container', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/view-container.js', [], FUSION_BUILDER_VERSION, true );
+
+				wp_enqueue_script( 'fusion_builder_studio_import_modal', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/view-studio-import-modal.js', [], FUSION_BUILDER_VERSION, true );
+
+				wp_enqueue_script( 'fusion_builder_demo_import_modal', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/view-demo-import-modal.js', [], FUSION_BUILDER_VERSION, true );
 
 				wp_enqueue_script( 'fusion_builder_context_menu', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/view-context-menu.js', [], FUSION_BUILDER_VERSION, true );
 
@@ -727,6 +753,8 @@ if ( ! class_exists( 'Fusion_Builder_Front' ) ) {
 				wp_enqueue_script( 'fusion_builder_widget_settings', FUSION_BUILDER_PLUGIN_URL . 'js/views/view-base-widget-settings.js', [], FUSION_BUILDER_VERSION, true );
 
 				wp_enqueue_script( 'fusion_builder_settings-children', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/view-element-settings-parent.js', [], FUSION_BUILDER_VERSION, true );
+
+				wp_enqueue_script( 'fusion_builder_view_library_base', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/view-library-base.js', [], FUSION_BUILDER_VERSION, true );
 
 				wp_enqueue_script( 'fusion_builder_view_elements_library', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/view-library-elements.js', [], FUSION_BUILDER_VERSION, true );
 
@@ -761,6 +789,8 @@ if ( ! class_exists( 'Fusion_Builder_Front' ) ) {
 				wp_enqueue_script( 'fusion_builder_callback_functions', FUSION_BUILDER_PLUGIN_URL . 'front-end/models/model-callback-functions.js', [], FUSION_BUILDER_VERSION, true );
 
 				wp_enqueue_script( 'fusion_builder_form_styles', FUSION_BUILDER_PLUGIN_URL . 'front-end/models/model-form-styles.js', [], FUSION_BUILDER_VERSION, true );
+
+				wp_enqueue_script( 'fusion_builder_off_canvas_styles', FUSION_BUILDER_PLUGIN_URL . 'front-end/models/model-off-canvas-styles.js', [], FUSION_BUILDER_VERSION, true );
 
 				wp_enqueue_script( 'fusion_builder_bulk_add', FUSION_BUILDER_PLUGIN_URL . 'js/views/view-bulk-add.js', [], FUSION_BUILDER_VERSION, true );
 
@@ -823,6 +853,8 @@ if ( ! class_exists( 'Fusion_Builder_Front' ) ) {
 
 				wp_enqueue_script( 'fusion_builder_video_element', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-video.js', [], FUSION_BUILDER_VERSION, true );
 
+				wp_enqueue_script( 'fusion_builder_views_counter_element', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-views-counter.js', [], FUSION_BUILDER_VERSION, true );
+
 				wp_enqueue_script( 'fusion_builder_vimeo_element', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-vimeo.js', [], FUSION_BUILDER_VERSION, true );
 
 				wp_enqueue_script( 'fusion_builder_post_slider_element', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-post-slider.js', [], FUSION_BUILDER_VERSION, true );
@@ -860,6 +892,9 @@ if ( ! class_exists( 'Fusion_Builder_Front' ) ) {
 				wp_enqueue_script( 'fusion_builder_slider_element', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-media-slider.js', [], FUSION_BUILDER_VERSION, true );
 				wp_enqueue_script( 'fusion_builder_slide_element', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-slide.js', [], FUSION_BUILDER_VERSION, true );
 
+				wp_enqueue_script( 'fusion_builder_image_hotspots_element', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-image-hotspots.js', [], FUSION_BUILDER_VERSION, true );
+				wp_enqueue_script( 'fusion_builder_image_hotspot_point_element', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-image-hotspot-point.js', [], FUSION_BUILDER_VERSION, true );
+
 				wp_enqueue_script( 'fusion_builder_image_carousel_element', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-image-carousel.js', [], FUSION_BUILDER_VERSION, true );
 				wp_enqueue_script( 'fusion_builder_image_carousel_child_element', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-image-carousel-child.js', [], FUSION_BUILDER_VERSION, true );
 
@@ -891,6 +926,8 @@ if ( ! class_exists( 'Fusion_Builder_Front' ) ) {
 
 				wp_enqueue_script( 'fusion_builder_modal_text_link_element', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-modal-text-link.js', [], FUSION_BUILDER_VERSION, true );
 
+				wp_enqueue_script( 'fusion_builder_news_ticker_element', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-news-ticker.js', [], FUSION_BUILDER_VERSION, true );
+
 				wp_enqueue_script( 'fusion_builder_popover_element', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-popover.js', [], FUSION_BUILDER_VERSION, true );
 
 				wp_enqueue_script( 'fusion_builder_events_element', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-events.js', [], FUSION_BUILDER_VERSION, true );
@@ -906,6 +943,8 @@ if ( ! class_exists( 'Fusion_Builder_Front' ) ) {
 				wp_enqueue_script( 'fusion_builder_youtube_element', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-youtube.js', [], FUSION_BUILDER_VERSION, true );
 
 				wp_enqueue_script( 'fusion_builder_soundcloud_element', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-soundcloud.js', [], FUSION_BUILDER_VERSION, true );
+
+				wp_enqueue_script( 'fusion_builder_star_rating_element', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-star-rating.js', [], FUSION_BUILDER_VERSION, true );
 
 				wp_enqueue_script( 'fusion_builder_text_element', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-text.js', [], FUSION_BUILDER_VERSION, true );
 
@@ -945,6 +984,8 @@ if ( ! class_exists( 'Fusion_Builder_Front' ) ) {
 
 				wp_enqueue_script( 'fusion_builder_form_hidden', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/form/view-hidden.js', [], FUSION_BUILDER_VERSION, true );
 
+				wp_enqueue_script( 'fusion_builder_form_honeypot', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/form/view-honeypot.js', [], FUSION_BUILDER_VERSION, true );
+
 				wp_enqueue_script( 'fusion_builder_form_number', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/form/view-number.js', [], FUSION_BUILDER_VERSION, true );
 
 				wp_enqueue_script( 'fusion_builder_form_checkbox', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/form/view-checkbox.js', [], FUSION_BUILDER_VERSION, true );
@@ -973,6 +1014,11 @@ if ( ! class_exists( 'Fusion_Builder_Front' ) ) {
 				wp_enqueue_script( 'fusion_builder_form_submit', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/form/view-submit.js', [], FUSION_BUILDER_VERSION, true );
 
 				wp_enqueue_script( 'fusion_builder_post_cards', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-post-cards.js', [], FUSION_BUILDER_VERSION, true );
+
+				wp_enqueue_script( 'fusion_builder_facebook_page', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-facebook-page.js', [], FUSION_BUILDER_VERSION, true );
+				wp_enqueue_script( 'fusion_builder_twitter_timeline', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-twitter-timeline.js', [], FUSION_BUILDER_VERSION, true );
+				wp_enqueue_script( 'fusion_builder_flickr', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-flickr.js', [], FUSION_BUILDER_VERSION, true );
+				wp_enqueue_script( 'fusion_builder_tagcloud', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/elements/view-tagcloud.js', [], FUSION_BUILDER_VERSION, true );
 
 				// Woo elements.
 				wp_enqueue_script( 'fusion_builder_tb_woo_products_element', FUSION_BUILDER_PLUGIN_URL . 'front-end/views/components/view-woo-products.js', [], FUSION_BUILDER_VERSION, true ); // Base Product class (Related, Upsells).
@@ -1265,6 +1311,14 @@ function load_builder_front_class() {
  * @param array $params An array of arguments.
  */
 function fusion_element_front_options_loop( $params ) {
+	$preferences        = Fusion_App()->preferences->get_preferences();
+	$descriptions_class = '';
+	$descriptions_css   = '';
+
+	if ( isset( $preferences['descriptions'] ) && 'show' === $preferences['descriptions'] ) {
+		$descriptions_class = ' active';
+		$descriptions_css   = ' style="display: block;"';
+	}
 	?>
 	<#
 	function fusion_display_option( param ) {
@@ -1272,6 +1326,7 @@ function fusion_element_front_options_loop( $params ) {
 			supportsDynamic,
 			escape_html,
 			hasResponsive,
+			supportsGlobal,
 			responsiveIcons = {
 				'large': 'desktop',
 				'medium': 'tablet',
@@ -1327,6 +1382,7 @@ function fusion_element_front_options_loop( $params ) {
 		hasDynamic      = 'object' === typeof atts.dynamic_params && 'undefined' !== typeof atts.dynamic_params[ param.param_name ] && supportsDynamic;
 		hasResponsive   = 'undefined' !== typeof param.responsive ? true : false;
 		responsiveState = 'undefined' !== typeof param.responsive ? 'responsive-state-' + param.responsive.state : '';
+		supportsGlobal  = 'undefined' !== typeof param.global;
 		#>
 		<li data-option-id="{{ param.param_name }}" data-option-type="{{ param.type }}" class="fusion-builder-option {{ param.type }}{{ hidden }}{{ childDependency }}{{tabGroup}} {{responsiveState}} {{optionMap}}{{escape_html}}" data-dynamic="{{ hasDynamic }}" data-dynamic-selection="false">
 
@@ -1338,7 +1394,7 @@ function fusion_element_front_options_loop( $params ) {
 						</h3>
 						<ul class="fusion-panel-options">
 							<# if ( 'undefined' !== typeof param.description ) { #>
-								<li> <a href="JavaScript:void(0);" class="fusion-panel-description"><i class="fusiona-question-circle" aria-hidden="true"></i></a> <span class="fusion-elements-option-tooltip fusion-tooltip-description">{{ fusionBuilderText.fusion_panel_desciption_toggle }}</span></li>
+								<li> <a href="JavaScript:void(0);" class="fusion-panel-description<?php echo esc_attr( $descriptions_class ); ?>"><i class="fusiona-question-circle" aria-hidden="true"></i></a> <span class="fusion-elements-option-tooltip fusion-tooltip-description">{{ fusionBuilderText.fusion_panel_desciption_toggle }}</span></li>
 							<# } #>
 							<# if ( 'undefined' !== param.default_option && '' !== param.default_option && param.default_option ) { #>
 								<li><a href="JavaScript:void(0);"><span class="fusion-panel-shortcut" data-fusion-option="{{ param.default_option }}"><i class="fusiona-cog" aria-hidden="true"></i></a><span class="fusion-elements-option-tooltip fusion-tooltip-global-settings"><?php esc_html_e( 'Global Options', 'fusion-builder' ); ?></span></li>
@@ -1347,6 +1403,10 @@ function fusion_element_front_options_loop( $params ) {
 								<li><a href="JavaScript:void(0);"><span class="fusion-panel-shortcut" data-fusion-option="{{ param.to_link }}"><i class="fusiona-cog" aria-hidden="true"></i></a><span class="fusion-elements-option-tooltip fusion-tooltip-global-settings"><?php esc_html_e( 'Global Options', 'fusion-builder' ); ?></span></li>
 							<# } #>
 							<# if ( 'undefined' !== typeof param.description && 'undefined' !== typeof param.default && -1 !== param.description.indexOf( 'fusion-builder-default-reset' ) ) { #>
+								<li class="fusion-builder-default-reset"> <a href="JavaScript:void(0);" class="fusion-range-default" data-default="{{ param.default }}"><i class="fusiona-undo" aria-hidden="true"></i></a> <span class="fusion-elements-option-tooltip fusion-tooltip-reset-defaults"><?php esc_html_e( 'Reset To Default', 'fusion-builder' ); ?></span></li>
+							<# } #>
+
+							<# if ( 'undefined' !== typeof param.description && -1 === param.description.indexOf( 'fusion-builder-default-reset' ) && 'image_focus_point' === param.type ) { #>
 								<li class="fusion-builder-default-reset"> <a href="JavaScript:void(0);" class="fusion-range-default" data-default="{{ param.default }}"><i class="fusiona-undo" aria-hidden="true"></i></a> <span class="fusion-elements-option-tooltip fusion-tooltip-reset-defaults"><?php esc_html_e( 'Reset To Default', 'fusion-builder' ); ?></span></li>
 							<# } #>
 							<# if ( 'undefined' !== typeof param.preview ) { #>
@@ -1372,12 +1432,16 @@ function fusion_element_front_options_loop( $params ) {
 							<# if ( supportsDynamic ) { #>
 								<li><a class="option-dynamic-content" href="JavaScript:void(0);" aria-label="<?php esc_attr_e( 'Dynamic Content', 'fusion-builder' ); ?>"><i class="fusiona-dynamic-data" aria-hidden="true"></i></a><span class="fusion-elements-option-tooltip fusion-tooltip-preview"><?php esc_html_e( 'Dynamic Content', 'fusion-builder' ); ?></span></li>
 							<# } #>
+
+							<# if ( supportsGlobal ) { #>
+								<li><a class="option-global-typography awb-quick-set" href="JavaScript:void(0);" aria-label="<?php esc_attr_e( 'Global Typography', 'fusion-builder' ); ?>"><i class="fusiona-globe" aria-hidden="true"></i></a><span class="fusion-elements-option-tooltip fusion-tooltip-preview"><?php esc_html_e( 'Global Typography', 'fusion-builder' ); ?></span></li>
+							<# } #>
 						</ul>
 					<# }; #>
 				</div>
 
 				<# if ( 'undefined' !== typeof param.description ) { #>
-					<p class="description">{{{ param.description }}}</p>
+					<p class="description"<?php echo $descriptions_css; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>{{{ param.description }}}</p>
 				<# }; #>
 			</div>
 
@@ -1414,10 +1478,10 @@ function fusion_element_front_options_loop( $params ) {
 					'sortable_text',
 					'connected_sortable',
 					'info',
-					'font_family',
 					'form_options',
 					'fusion_logics',
 					'ajax_select',
+					'image_focus_point',
 				];
 				?>
 				<?php

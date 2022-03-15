@@ -118,12 +118,6 @@
 .fusion-carousel-border .fusion-image-wrapper.hover-type-liftup {
   box-sizing: content-box;
 }
-.fusion-image-carousel-fixed .fusion-carousel .fusion-carousel-wrapper {
-  height: 115px !important;
-}
-.fusion-image-carousel-fixed .fusion-carousel .fusion-carousel-holder {
-  line-height: 115px !important;
-}
 .fusion-image-carousel-fixed .fusion-carousel .fusion-carousel-item-wrapper {
   text-align: center;
 }
@@ -137,6 +131,12 @@
 .fusion-image-carousel-fixed .fusion-carousel .fusion-image-wrapper img {
   max-height: 115px;
   width: auto;
+}
+.fusion-image-carousel-fixed:not(.awb-image-carousel-top-below-caption) .fusion-carousel .fusion-carousel-wrapper {
+  height: 115px !important;
+}
+.fusion-image-carousel-fixed:not(.awb-image-carousel-top-below-caption) .fusion-carousel .fusion-carousel-holder {
+  line-height: 115px !important;
 }
 @media all and (max-width: 1024px) {
   .fusion-carousel-wrapper.fusion-carousel-swipe .fusion-carousel-holder .fusion-image-wrapper > a {

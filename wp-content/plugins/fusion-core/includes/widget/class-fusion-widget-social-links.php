@@ -184,7 +184,6 @@ class Fusion_Widget_Social_Links extends WP_Widget {
 
 		$social_networks = [];
 		foreach ( $instance as $name => $value ) {
-
 			if ( false !== strpos( $name, '_link' ) && $value ) {
 				$new_value = str_replace( '_link', '', $name );
 				$new_value = ( 'facebook' === $new_value ) ? 'fb' : $new_value;
@@ -249,8 +248,15 @@ class Fusion_Widget_Social_Links extends WP_Widget {
 						'network_icon'        => $to_social_networks['custom_source'][ $index ]['url'],
 						'network_icon_height' => $network_icon_height,
 						'network_icon_width'  => $network_icon_width,
+						'network_icon_mark'   => isset( $to_social_networks['icon_mark'][ $index ] ) ? $to_social_networks['icon_mark'][ $index ] : '',
 						'network_link'        => $network_link,
 					];
+				}
+
+				foreach ( $social_networks_ordered as $index => $value ) {
+					if ( is_integer( $index ) ) {
+						unset( $social_networks[ 'custom_' . $index . '_link' ] );
+					}
 				}
 			}
 		}
@@ -286,7 +292,6 @@ class Fusion_Widget_Social_Links extends WP_Widget {
 			<div class="fusion-social-networks-wrapper">
 				<?php $icon_color_count = 0; ?>
 				<?php $box_color_count = 0; ?>
-
 				<?php foreach ( $social_networks_ordered as $name => $value ) : ?>
 					<?php
 					if ( is_string( $value ) ) {
@@ -384,7 +389,12 @@ class Fusion_Widget_Social_Links extends WP_Widget {
 								<?php $value['network_link'] = 'mailto:' . antispambot( $value['network_link'] ); ?>
 							<?php endif; ?>
 						<?php endif; ?>
-						<a class="fusion-social-network-icon fusion-tooltip" target="<?php echo esc_attr( $instance['linktarget'] ); ?>" href="<?php echo esc_url_raw( $value['network_link'] ); ?>" rel="<?php esc_attr( $nofollow ); ?>" <?php echo $tooltip_params; // phpcs:ignore WordPress.Security.EscapeOutput ?> title="" style="<?php echo esc_attr( $style . $box_style ); ?>"><img src="<?php echo esc_url_raw( $value['network_icon'] ); ?>" height="<?php echo esc_attr( $value['network_icon_height'] ); ?>" width="<?php echo esc_attr( $value['network_icon_width'] ); ?>" alt="<?php echo esc_attr( $value['network_name'] ); ?>" /></a>
+
+						<?php if ( '' !== $value['network_icon_mark'] ) : ?>
+							<a class="fusion-social-network-icon fusion-tooltip <?php echo esc_attr( str_replace( 'fusion-prefix-', '', $value['network_icon_mark'] ) ); ?>" target="<?php echo esc_attr( $instance['linktarget'] ); ?>" href="<?php echo esc_url_raw( $value['network_link'] ); ?>" title="<?php echo esc_attr( $tooltip ); ?>" aria-label="<?php echo esc_attr( ucwords( $tooltip ) ); ?>" rel="<?php esc_attr( $nofollow ); ?>" <?php echo $tooltip_params; // phpcs:ignore WordPress.Security.EscapeOutput ?> style="<?php echo esc_attr( $style . $icon_style . $box_style ); ?>"></a>						
+						<?php else : ?>
+							<a class="fusion-social-network-icon fusion-tooltip" target="<?php echo esc_attr( $instance['linktarget'] ); ?>" href="<?php echo esc_url_raw( $value['network_link'] ); ?>" rel="<?php esc_attr( $nofollow ); ?>" <?php echo $tooltip_params; // phpcs:ignore WordPress.Security.EscapeOutput ?> title="" style="<?php echo esc_attr( $style . $box_style ); ?>"><img src="<?php echo esc_url_raw( $value['network_icon'] ); ?>" height="<?php echo esc_attr( $value['network_icon_height'] ); ?>" width="<?php echo esc_attr( $value['network_icon_width'] ); ?>" alt="<?php echo esc_attr( $value['network_name'] ); ?>" /></a>
+						<?php endif; ?>
 					<?php endif; ?>
 
 					<?php $icon_color_count++; ?>
@@ -429,6 +439,7 @@ class Fusion_Widget_Social_Links extends WP_Widget {
 		$instance['fb_link']            = isset( $new_instance['fb_link'] ) ? $new_instance['fb_link'] : '';
 		$instance['flickr_link']        = isset( $new_instance['flickr_link'] ) ? $new_instance['flickr_link'] : '';
 		$instance['rss_link']           = isset( $new_instance['rss_link'] ) ? $new_instance['rss_link'] : '';
+		$instance['telegram_link']      = isset( $new_instance['telegram_link'] ) ? $new_instance['telegram_link'] : '';
 		$instance['tiktok_link']        = isset( $new_instance['tiktok_link'] ) ? $new_instance['tiktok_link'] : '';
 		$instance['twitter_link']       = isset( $new_instance['twitter_link'] ) ? $new_instance['twitter_link'] : '';
 		$instance['twitch_link']        = isset( $new_instance['twitch_link'] ) ? $new_instance['twitch_link'] : '';
@@ -443,6 +454,7 @@ class Fusion_Widget_Social_Links extends WP_Widget {
 		$instance['linkedin_link']      = isset( $new_instance['linkedin_link'] ) ? $new_instance['linkedin_link'] : '';
 		$instance['blogger_link']       = isset( $new_instance['blogger_link'] ) ? $new_instance['blogger_link'] : '';
 		$instance['skype_link']         = isset( $new_instance['skype_link'] ) ? $new_instance['skype_link'] : '';
+		$instance['teams_link']         = isset( $new_instance['teams_link'] ) ? $new_instance['teams_link'] : '';
 		$instance['forrst_link']        = isset( $new_instance['forrst_link'] ) ? $new_instance['forrst_link'] : '';
 		$instance['myspace_link']       = isset( $new_instance['myspace_link'] ) ? $new_instance['myspace_link'] : '';
 		$instance['deviantart_link']    = isset( $new_instance['deviantart_link'] ) ? $new_instance['deviantart_link'] : '';
@@ -509,8 +521,10 @@ class Fusion_Widget_Social_Links extends WP_Widget {
 			'reddit_link'        => '',
 			'rss_link'           => '',
 			'skype_link'         => '',
+			'teams_link'         => '',
 			'soundcloud_link'    => '',
 			'spotify_link'       => '',
+			'telegram_link'      => '',
 			'tiktok_link'        => '',
 			'tumblr_link'        => '',
 			'twitter_link'       => '',

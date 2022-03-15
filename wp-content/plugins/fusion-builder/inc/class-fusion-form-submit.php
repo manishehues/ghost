@@ -38,6 +38,22 @@ class Fusion_Form_Submit {
 	public $has_error = false;
 
 	/**
+	 * Array of uploaded files, used to add email attachments.
+	 *
+	 * @access protected
+	 * @var array
+	 */
+	protected $uploads = [];
+
+	/**
+	 * Email errors.
+	 *
+	 * @access public
+	 * @var string
+	 */
+	public $mail_error = false;
+
+	/**
 	 * Initializes hooks, filters and administrative functions.
 	 *
 	 * @since 3.1
@@ -122,6 +138,13 @@ class Fusion_Form_Submit {
 			$data = $this->get_submit_data();
 		}
 
+		// Email errors.
+		if ( $this->mail_error ) {
+			$data['submission']['data']['email_errors'] = wp_json_encode( $this->mail_error );
+		}
+
+		$data['submission']['data'] = isset( $data['submission']['data'] ) && is_array( $data['submission']['data'] ) ? wp_json_encode( $data['submission']['data'] ) : null;
+
 		$fusion_forms  = new Fusion_Form_DB_Forms();
 		$submission    = new Fusion_Form_DB_Submissions();
 		$submission_id = $submission->insert( $data['submission'] );
@@ -167,7 +190,11 @@ class Fusion_Form_Submit {
 			die( wp_json_encode( $this->get_results_from_message( 'success', 'email_sent' ) ) );
 		}
 
-		die( wp_json_encode( $this->get_results_from_message( 'error', 'email_failed' ) ) );
+		if ( is_user_logged_in() && current_user_can( 'publish_posts' ) && $this->mail_error ) {
+			die( wp_json_encode( $this->get_results_from_message( 'error', $this->mail_error ) ) );
+		} else {
+			die( wp_json_encode( $this->get_results_from_message( 'error', 'email_failed' ) ) );
+		}
 	}
 
 	/**
@@ -185,28 +212,49 @@ class Fusion_Form_Submit {
 		}
 
 		$form_post_id   = isset( $_POST['form_id'] ) ? absint( sanitize_text_field( wp_unslash( $_POST['form_id'] ) ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification
-		$to             = $data['data']['fusion_form_email'];
-		$reply_to_email = fusion_data()->post_meta( $form_post_id )->get( 'email_reply_to' );
-		$from_name      = ( isset( $data['data']['fusion_form_email_from'] ) && '' !== trim( $data['data']['fusion_form_email_from'] ) ) ? $data['data']['fusion_form_email_from'] : 'WordPress';
-		$from_id        = ( isset( $data['data']['fusion_form_email_from_id'] ) && '' !== trim( $data['data']['fusion_form_email_from_id'] ) ) ? $data['data']['fusion_form_email_from_id'] : 'wordpress@' . home_url();
-		$subject        = ( isset( $data['data']['fusion_form_email_subject'] ) && '' !== trim( $data['data']['fusion_form_email_subject'] ) ) ? $data['data']['fusion_form_email_subject'] : sprintf(
+		$form_meta      = Fusion_Builder_Form_Helper::fusion_form_get_form_meta( $form_post_id );
+		$to             = ! empty( $form_meta['email'] ) ? $form_meta['email'] : get_option( 'admin_email' );
+		$reply_to_email = ! empty( $form_meta['email_reply_to'] ) ? $form_meta['email_reply_to'] : '';
+		$from_name      = ! empty( $form_meta['email_from'] ) ? $form_meta['email_from'] : 'WordPress';
+		$site_host_name = preg_replace( '(^https?://)', '', home_url() );
+		$from_id        = ! empty( $form_meta['email_from_id'] ) ? $form_meta['email_from_id'] : 'wordpress@' . $site_host_name;
+		$subject        = ! empty( $form_meta['email_subject'] ) ? $form_meta['email_subject'] : sprintf(
 			/* Translators: The form-ID. */
 			esc_html__( '%d form submissions received!', 'fusion-builder' ),
 			$form_post_id
 		);
-		$subject_encode = ( isset( $data['data']['fusion_form_email_subject_encode'] ) ) ? $data['data']['fusion_form_email_subject_encode'] : 0;
+
+		$subject_encode     = ! empty( $form_meta['email_subject_encode'] ) ? $form_meta['email_subject_encode'] : 0;
+		$attachments        = [];
+		$use_attachments    = 'yes' === fusion_data()->post_meta( $form_post_id )->get( 'email_attachments' ) ? true : false;
+		$hidden_field_names = isset( $data['hidden_field_names'] ) && is_array( $data['hidden_field_names'] ) ? $data['hidden_field_names'] : [];
 
 		// We don't want internal email fields to sent in email.
 		$data = $this->remove_internal_email_fields( $data );
 
 		$email_data = '';
 		foreach ( $data['data'] as $field => $value ) {
+
+			// Don't add fields which are hidden by form logic.
+			if ( in_array( $field, $hidden_field_names, true ) ) {
+				continue;
+			}
+
+			// Don't add attachments to email body.
+			if ( true === $use_attachments && isset( $this->uploads[ $field ] ) ) {
+				continue;
+			}
+
 			$value       = is_array( $value ) ? implode( ' | ', $value ) : $value;
-			$field_label = isset( $data['field_labels'][ $field ] ) && '' !== $data['field_labels'][ $field ] ? $data['field_labels'][ $field ] : $field;
+			$field_label = isset( $data['field_labels'][ $field ] ) && '' !== $data['field_labels'][ $field ] ? $data['field_labels'][ $field ] : Fusion_Builder_Form_Helper::fusion_name_to_label( $field );
 
 			$email_data .= '<tr>';
 			$email_data .= '<th align="left">' . htmlentities( $field_label, ENT_COMPAT, 'UTF-8' ) . '</th>';
-			$email_data .= '<td>' . htmlentities( $value, ENT_COMPAT, 'UTF-8' ) . '</td>';
+			if ( 'textarea' === $field ) {
+				$email_data .= '<td>' . nl2br( htmlentities( $value, ENT_COMPAT, 'UTF-8' ) ) . '</td>';
+			} else {
+				$email_data .= '<td>' . htmlentities( $value, ENT_COMPAT, 'UTF-8' ) . '</td>';
+			}
 			$email_data .= '</tr>';
 
 			// Replace placholders.
@@ -246,24 +294,39 @@ class Fusion_Form_Submit {
 			$subject = '=?utf-8?B?' . base64_encode( $subject ) . '?=';
 		}
 
+		// Add attachments if there are uploaded files.
+		if ( true === $use_attachments && ! empty( $this->uploads ) ) {
+			foreach ( $this->uploads as $field_name ) {
+				foreach ( $field_name as $upload ) {
+					$attachments[] = $upload['file'];
+				}
+			}
+		}
+
 		$sendmail_args = apply_filters(
 			'fusion_form_send_mail_args',
 			[
-				'to'      => $to,
-				'subject' => $subject,
-				'message' => $message,
-				'headers' => $headers,
+				'to'          => $to,
+				'subject'     => $subject,
+				'message'     => $message,
+				'headers'     => $headers,
+				'attachments' => $attachments,
 			],
 			$data['submission']['form_id'],
 			$data
 		);
 
+		add_action( 'wp_mail_failed', [ $this, 'mail_failed_error' ] );
+
 		$sendmail = wp_mail(
 			$sendmail_args['to'],
 			$sendmail_args['subject'],
 			$sendmail_args['message'],
-			$sendmail_args['headers']
+			$sendmail_args['headers'],
+			$sendmail_args['attachments']
 		);
+
+		remove_action( 'wp_mail_failed', [ $this, 'mail_failed_error' ] );
 
 		return $sendmail;
 	}
@@ -408,12 +471,17 @@ class Fusion_Form_Submit {
 	 * @return array
 	 */
 	public function get_submit_data() {
-		$form_data    = wp_unslash( $_POST['formData'] ); // phpcs:ignore WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput
-		$files        = isset( $_FILES ) && ! empty( $_FILES ) ? $_FILES : [];
-		$uploads      = ! empty( $files ) ? $this->handle_upload( $files ) : [];
-		$field_labels = (array) json_decode( stripcslashes( $_POST['field_labels'] ), true ); // phpcs:ignore WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput
+
+		$form_data          = wp_unslash( $_POST['formData'] ); // phpcs:ignore WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput
+		$files              = isset( $_FILES ) && ! empty( $_FILES ) ? $_FILES : [];
+		$uploads            = ! empty( $files ) ? $this->handle_upload( $files ) : [];
+		$field_labels       = (array) json_decode( stripcslashes( $_POST['field_labels'] ), true ); // phpcs:ignore WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput
+		$hidden_field_names = (array) json_decode( stripcslashes( $_POST['hidden_field_names'] ), true ); // phpcs:ignore WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput
 
 		parse_str( $form_data, $form_data_array ); // phpcs:ignore WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput
+
+		// Sanitize user input.
+		$form_data_array = map_deep( $form_data_array, 'Fusion_Builder_Form_Helper::fusion_form_sanitize' );
 
 		if ( ! empty( $uploads ) && is_array( $uploads ) ) {
 			foreach ( $uploads as $upload_name => $upload_url ) {
@@ -449,7 +517,7 @@ class Fusion_Form_Submit {
 		);
 
 		$data = [
-			'submission'   => [
+			'submission'         => [
 				'form_id'            => absint( $form_id ),
 				'time'               => gmdate( 'Y-m-d H:i:s' ),
 				'source_url'         => sanitize_text_field( $source_url ),
@@ -461,8 +529,9 @@ class Fusion_Form_Submit {
 				'privacy_scrub_date' => gmdate( 'Y-m-d' ),
 				'on_privacy_scrub'   => 'anonymize',
 			],
-			'data'         => $form_data_array,
-			'field_labels' => $field_labels,
+			'data'               => $form_data_array,
+			'field_labels'       => $field_labels,
+			'hidden_field_names' => $hidden_field_names,
 		];
 
 		// Allow filtering the submission data.
@@ -492,10 +561,15 @@ class Fusion_Form_Submit {
 		// HubSpot data options.  Add do_action here for further extensions.
 		if ( class_exists( 'Fusion_Hubspot' ) && 'contact' === fusion_data()->post_meta( $form_post_id )->get( 'hubspot_action' ) ) {
 			if ( '' !== get_post_meta( $form_post_id, 'form_hubspot_map', true ) ) {
-				Fusion_Hubspot()->submit_form( $data, fusion_data()->post_meta( $form_post_id )->get( 'hubspot_map' ), $field_labels, $form_post_id );
+				$data['submission']['data']['hubspot_response'] = Fusion_Hubspot()->submit_form( $data, $field_labels, $form_post_id );
 			} else {
-				Fusion_Hubspot()->create_contact( $data, fusion_data()->post_meta( $form_post_id )->get( 'hubspot_map' ), $field_labels );
+				$data['submission']['data']['hubspot_response'] = Fusion_Hubspot()->create_contact( $data, fusion_data()->post_meta( $form_post_id )->get( 'hubspot_map' ), $field_labels );
 			}
+		}
+
+		// Mailchimp data options.  Add do_action here for further extensions.
+		if ( class_exists( 'Fusion_Mailchimp' ) && 'contact' === fusion_data()->post_meta( $form_post_id )->get( 'mailchimp_action' ) ) {
+			$data['submission']['data']['mailchimp_response'] = Fusion_Mailchimp()->create_contact( $data, $form_post_id, $field_labels );
 		}
 
 		do_action( 'fusion_form_submission_data', $data, $form_post_id );
@@ -642,6 +716,14 @@ class Fusion_Form_Submit {
 				die( wp_json_encode( $this->get_results_from_message( 'error', 'upload_failed' ) ) );
 			}
 			$moved_files[ $field_name ] = $move_file['url'];
+
+			// Build uploads, used for email attachments.
+			$upload_name = explode( '@|@', $field_name );
+
+			if ( ! isset( $this->uploads[ $upload_name[0] ] ) ) {
+				$this->uploads[ $upload_name[0] ] = [];
+			}
+			$this->uploads[ $upload_name[0] ][] = $move_file;
 		}
 
 		remove_filter( 'sanitize_file_name', [ $this, 'randomize_name' ] );
@@ -673,7 +755,8 @@ class Fusion_Form_Submit {
 	 */
 	public function randomize_name( $filename = '' ) {
 		$ext = empty( pathinfo( $filename, PATHINFO_EXTENSION ) ) ? '' : '.' . pathinfo( $filename, PATHINFO_EXTENSION );
-		return uniqid() . $ext;
+
+		return apply_filters( 'awb_forms_upload_file_name', uniqid() . $ext, $filename );
 	}
 
 	/**
@@ -710,5 +793,18 @@ class Fusion_Form_Submit {
 			'status' => $type,
 			'info'   => $info,
 		];
+	}
+
+	/**
+	 * Adds mail failure error.
+	 *
+	 * @access protected
+	 * @param object $wp_error WordPress error object.
+	 * @return void
+	 */
+	public function mail_failed_error( $wp_error ) {
+		if ( is_wp_error( $wp_error ) && isset( $wp_error->errors ) ) {
+			$this->mail_error = isset( $wp_error->errors['wp_mail_failed'] ) ? $wp_error->errors['wp_mail_failed'] : false;
+		}
 	}
 }

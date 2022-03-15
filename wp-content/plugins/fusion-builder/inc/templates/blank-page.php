@@ -9,31 +9,28 @@
 <script type="text/template" id="fusion-builder-blank-page-template">
 	<div class="fusion-builder-blank-page-content fusion-builder-data-cid" data-cid="{{ cid }}">
 		<h3 class="title">
-			<?php if ( 'fusion_tb_section' === get_post_type() && 'page_title_bar' === wp_get_post_terms( get_the_ID(), 'fusion_tb_category' )[0]->slug ) : ?>
+			<?php
+			$post_temrs = wp_get_post_terms( get_the_ID(), 'fusion_tb_category' );
+			if ( 'fusion_tb_section' === get_post_type() && ! is_wp_error( $post_temrs ) && is_array( $post_temrs ) && isset( $post_temrs[0] ) ) :
+				?>
+				<?php if ( 'page_title_bar' === $post_temrs[0]->slug ) : ?>
 				{{ fusionBuilderText.to_get_started_ptb }}
-			<?php elseif ( 'fusion_tb_section' === get_post_type() && 'footer' === wp_get_post_terms( get_the_ID(), 'fusion_tb_category' )[0]->slug ) : ?>
+			<?php elseif ( 'footer' === $post_temrs[0]->slug ) : ?>
 				{{ fusionBuilderText.to_get_started_footer }}
-			<?php elseif ( 'fusion_tb_section' === get_post_type() && 'header' === wp_get_post_terms( get_the_ID(), 'fusion_tb_category' )[0]->slug ) : ?>
+			<?php elseif ( 'header' === $post_temrs[0]->slug ) : ?>
 				{{ fusionBuilderText.to_get_started_header }}
-				<?php elseif ( 'fusion_tb_section' === get_post_type() && 'content' === wp_get_post_terms( get_the_ID(), 'fusion_tb_category' )[0]->slug ) : ?>
-				{{ fusionBuilderText.to_get_started_content }}				
+				<?php elseif ( 'content' === $post_temrs[0]->slug ) : ?>
+				{{ fusionBuilderText.to_get_started_content }}
+			<?php endif; ?>
+			<?php elseif ( 'awb_off_canvas' === get_post_type() ) : ?>
+				{{ fusionBuilderText.to_get_started_off_canvas }}
 			<?php else : ?>
 				{{ fusionBuilderText.to_get_started }}
 			<?php endif; ?>
 		</h3>
 		<h4 class="subtitle">{{ fusionBuilderText.to_get_started_sub }}</h4>
 		<a href="#" class="fusion-builder-new-section-add fusion-builder-submit-button"><span class="fusiona-plus"></span> {{ fusionBuilderText.full_width_section }}</a>
-		<?php if ( 'fusion_tb_section' !== get_post_type() || Fusion_Template_Builder()->is_template( 'header' ) || Fusion_Template_Builder()->is_template( 'content' ) ) : ?>
-			<#
-			var btnLabel = 'pre_built_page';
-			<?php if ( Fusion_Template_Builder()->is_template( 'header' ) ) : ?>
-				btnLabel = 'pre_built_header';
-			<?php elseif ( Fusion_Template_Builder()->is_template( 'content' ) ) : ?>
-				btnLabel = 'pre_built_content';
-			<?php endif; ?>
-			#>
-			<a href="#" id="fusion-load-template-dialog" class="fusion-builder-submit-button <?php echo Fusion_Template_Builder()->is_template( 'header' ) ? 'prebuilt-headers' : ''; ?>"><span class="fusiona-plus"></span> {{ fusionBuilderText[ btnLabel ] }}</a>
-		<?php endif; ?>
+		<a href="#" id="fusion-load-studio-dialog" data-target="#fusion-builder-fusion_template-studio" class="fusion-builder-module-control fusion-builder-submit-button" data-target="#fusion-builder-fusion_template-studio"><i class="fusiona-avada-logo"></i>{{ fusionBuilderText.avada_studio }}</a>
 	</div>
 
 	<div class="fusion-builder-blank-page-info fusion-builder-blank-page-icons">

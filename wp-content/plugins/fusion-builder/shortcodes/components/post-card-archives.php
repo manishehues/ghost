@@ -66,7 +66,7 @@ if ( fusion_is_element_enabled( 'fusion_post_cards' ) ) {
 				 * @return void
 				 */
 				public function set_is_archive() {
-					$this->is_archive = is_search() || is_archive();
+					$this->is_archive = is_search() || is_archive() || isset( $_GET['awb-studio-content'] ); // phpcs:ignore WordPress.Security.NonceVerification
 				}
 
 				/**
@@ -89,7 +89,10 @@ if ( fusion_is_element_enabled( 'fusion_post_cards' ) ) {
 				 * @return array $defaults Updated params array.
 				 */
 				public function archives_type( $defaults ) {
-					return Fusion_Template_Builder()->archives_type( $defaults );
+					$defaults = Fusion_Template_Builder()->archives_type( $defaults );
+
+					// Check for taxonomy type.
+					return Fusion_Template_Builder()->taxonomy_type( $defaults );
 				}
 
 				/**
@@ -154,6 +157,33 @@ if ( fusion_is_element_enabled( 'fusion_post_cards' ) ) {
 				public function render_card() {
 					global $shortcode_tags;
 
+					$this->args['post_card_archives'] = true;
+
+					if ( 'terms' === $this->args['source'] ) {
+						$queried                          = get_queried_object();
+						$this->args['post_card_archives'] = false;
+						if ( 'WP_Term' === get_class( $queried ) ) {
+							$terms = get_terms(
+								[
+									'taxonomy'   => $queried->taxonomy,
+									'hide_empty' => false,
+									'parent'     => $queried->term_id,
+									'fields'     => 'ids',
+									'number'     => max( (int) $this->args['number_posts'], 0 ),
+								]
+							);
+							if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
+								$this->args[ 'include_term_' . $queried->taxonomy ] = implode( ',', $terms );
+								$this->args = wp_parse_args(
+									[
+										'terms_by' => $queried->taxonomy,
+									],
+									$this->args
+								);
+							}
+						}
+					}
+
 					return call_user_func( $shortcode_tags['fusion_post_cards'], $this->args, '', 'fusion_post_cards' );
 				}
 
@@ -168,6 +198,10 @@ if ( fusion_is_element_enabled( 'fusion_post_cards' ) ) {
 				public function fusion_post_cards_shortcode_query_override( $query ) {
 					global $wp_query;
 
+					// If post card display = terms then don't override the query.
+					if ( 'terms' === $this->args['source'] ) {
+						return $query;
+					}
 					return $wp_query;
 				}
 
@@ -193,18 +227,18 @@ if ( fusion_is_element_enabled( 'fusion_post_cards' ) ) {
 					if ( ! fusion_is_preview_frame() && ! $post ) {
 						$html .= apply_filters( 'fusion_shortcode_content', '<h2 class="fusion-nothing-found">' . $content . '</h2>', $this->shortcode_handle, $args );
 
-					} elseif ( fusion_is_preview_frame() && ! in_array( $option, [ 'search', 'archives' ], true ) ) {
+					} elseif ( fusion_is_preview_frame() && ! in_array( $option, [ 'search', 'archives', 'term' ], true ) ) {
 
 						// Invalid source selection, return empty so view placeholder shows.
 						return '';
 
-					} elseif ( ! fusion_is_preview_frame() && $this->should_render() ) {
+					} elseif ( ! fusion_is_preview_frame() && ! isset( $_GET['awb-studio-content'] ) && $this->should_render() ) { // phpcs:ignore WordPress.Security.NonceVerification
 
 						// Pass main query to fusion-blog.
 						add_filter( 'fusion_post_cards_shortcode_query_override', [ $this, 'fusion_post_cards_shortcode_query_override' ] );
 						$html .= $this->render_card();
 						remove_filter( 'fusion_post_cards_shortcode_query_override', [ $this, 'fusion_post_cards_shortcode_query_override' ] );
-					} elseif ( fusion_is_preview_frame() ) {
+					} elseif ( fusion_is_preview_frame() || isset( $_GET['awb-studio-content'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 						add_filter( 'fusion_post_cards_shortcode_query_args', [ $this, 'archives_type' ] );
 						$cards = $this->render_card();
 						remove_filter( 'fusion_post_cards_shortcode_query_args', [ $this, 'archives_type' ] );
@@ -367,6 +401,22 @@ if ( fusion_is_element_enabled( 'fusion_post_cards' ) ) {
 							],
 						],
 						[
+							'type'        => 'radio_button_set',
+							'heading'     => esc_attr__( 'Post Cards Display', 'fusion-builder' ),
+							'description' => esc_attr__( 'Choose what to display on post cards page.', 'fusion-builder' ),
+							'param_name'  => 'source',
+							'callback'    => [
+								'function' => 'fusion_ajax',
+								'action'   => 'get_fusion_tb_post_card_archives',
+								'ajax'     => true,
+							],
+							'value'       => [
+								'posts' => esc_attr__( 'Posts', 'fusion-builder' ),
+								'terms' => esc_attr__( 'Terms', 'fusion-builder' ),
+							],
+							'default'     => 'posts',
+						],
+						[
 							'type'        => 'range',
 							'heading'     => esc_attr__( 'Posts Per Page', 'fusion-builder' ),
 							'description' => sprintf(
@@ -397,6 +447,13 @@ if ( fusion_is_element_enabled( 'fusion_post_cards' ) ) {
 								'infinite'         => esc_html__( 'Infinite Scroll', 'fusion-builder' ),
 								'load_more_button' => esc_html__( 'Load More Button', 'fusion-builder' ),
 							],
+							'dependency'  => [
+								[
+									'element'  => 'source',
+									'value'    => 'terms',
+									'operator' => '!=',
+								],
+							],
 						],
 						[
 							'type'         => 'tinymce',
@@ -406,6 +463,13 @@ if ( fusion_is_element_enabled( 'fusion_post_cards' ) ) {
 							'value'        => esc_html__( 'Nothing Found', 'fusion-builder' ),
 							'placeholder'  => true,
 							'dynamic_data' => true,
+							'dependency'   => [
+								[
+									'element'  => 'source',
+									'value'    => 'terms',
+									'operator' => '!=',
+								],
+							],
 						],
 						[
 							'type'        => 'checkbox_button_set',

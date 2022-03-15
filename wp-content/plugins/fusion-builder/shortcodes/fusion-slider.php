@@ -470,7 +470,7 @@ function fusion_element_media_slider() {
 				'preview'       => FUSION_BUILDER_PLUGIN_DIR . 'inc/templates/previews/fusion-media-slider-preview.php',
 				'preview_id'    => 'fusion-builder-block-module-media-slider-preview-template',
 				'child_ui'      => true,
-				'help_url'      => 'https://theme-fusion.com/documentation/fusion-builder/elements/slider-element/',
+				'help_url'      => 'https://theme-fusion.com/documentation/avada/elements/slider-element/',
 				'sortable'      => false,
 				'params'        => [
 					[
@@ -695,7 +695,7 @@ function fusion_element_slide() {
 					],
 					[
 						'type'        => 'radio_button_set',
-						'heading'     => esc_attr__( 'Lighbox', 'fusion-builder' ),
+						'heading'     => esc_attr__( 'Lightbox', 'fusion-builder' ),
 						'description' => esc_attr__( 'Show image in lightbox. Lightbox must be enabled in Global Options or the image will open up in the same tab by itself.', 'fusion-builder' ),
 						'param_name'  => 'lightbox',
 						'value'       => [

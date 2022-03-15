@@ -871,7 +871,7 @@ class Avada_Layout {
 	 * @return bool
 	 */
 	public function is_current_wrapper_hundred_percent() {
-		if ( $this->is_hundred_percent_template() ) {
+		if ( apply_filters( 'fusion_is_hundred_percent_template', false ) ) {
 			global $fusion_fwc_type;
 
 			if ( ! isset( $fusion_fwc_type ) || ( isset( $fusion_fwc_type ) && is_array( $fusion_fwc_type ) && ( empty( $fusion_fwc_type ) || 'fullwidth' === $fusion_fwc_type['content'] ) ) ) {

@@ -63,7 +63,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			self.collectDependencyIds();
 
 			if ( 'undefined' !== typeof self.dependencyIds && self.dependencyIds.length ) {
-				this.$targetEl.on( 'change paste keyup fusion-change', self.dependencyIds.substring( 2 ), function() {
+				this.$targetEl.find( self.dependencyIds.substring( 2 ) ).on( 'change paste keyup fusion-change', function() {
 					self.processDependencies( jQuery( this ).attr( 'id' ), view );
 				} );
 
@@ -128,11 +128,20 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					operator    = dependency[ self.operatorKey ],
 					value       = dependency.value,
 					hasParent   = -1 !== setting.indexOf( 'parent_' ),
-					parentValue = self.repeaterFields && hasParent ? self.$parentEl.find( '#' + setting.replace( 'parent_', '' ) ).val() : self.$targetEl.find( '#' + setting ).val(),
 					element     = self.repeaterFields && hasParent ? self.$parentEl.find( '.fusion-builder-module-settings' ).data( 'element' ) : self.$targetEl.find( '.fusion-builder-module-settings' ).data( 'element' ),
 					result      = false,
+					parentValue,
 					containerView,
 					containerParams;
+
+				if ( self.repeaterFields && hasParent ) {
+					parentValue = self.$parentEl.find( '#' + setting.replace( 'parent_', '' ) ).val();
+				} else if ( 0 < self.$targetEl.find( '#' + setting ).closest( '.dynamic-param-fields' ).length ) {
+					// Check and exclude for dynamic data fields.
+					parentValue = self.$targetEl.find( '#' + setting ).closest( '[data-dynamic]' ).siblings().find( '#' + setting ).val();
+				} else {
+					parentValue = self.$targetEl.find( '#' + setting ).val();
+				}
 
 				if ( 'undefined' === typeof parentValue ) {
 					if ( 'TO' === self.type ) {
@@ -468,6 +477,11 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			var show = false,
 				arr,
 				media;
+
+			// If dependencies are disabled, always show the option.
+			if ( 'undefined' !== FusionApp.settings.dependencies_status && 0 === parseInt( FusionApp.settings.dependencies_status ) ) {
+				return true;
+			}
 
 			switch ( operation ) {
 			case '=':

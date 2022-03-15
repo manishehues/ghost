@@ -14,7 +14,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 * @since 3.2
 			 * @return {Object}
 			 */
-			bgImageSeparators: [ 'grunge', 'music', 'waves_brush', 'paper', 'squares', 'circles', 'paint', 'grass' ],
+			bgImageSeparators: [ 'grunge', 'music', 'waves_brush', 'paper', 'squares', 'circles', 'paint', 'grass', 'splash', 'custom' ],
 
 			/**
 			 * Runs after view DOM is patched.
@@ -62,6 +62,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				attributes.attrButton       = this.buildButtonAtts( atts.values );
 				attributes.attrRoundedSplit = this.buildRoundedSplitAtts( atts.values );
 				attributes.values           = atts.values;
+				attributes.custom_svg       = atts.values.custom_svg ? this.getCustomSvg( atts.values ).svg : '';
+				attributes.spacerHeight		= this.spacerHeight( atts.values );
 
 				return attributes;
 			},
@@ -89,6 +91,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				} else if ( 'waves_opacity' === values.divider_type ) {
 					values.yMin = 'top' === values.divider_candy ? '0' : '1';
 				}
+
+				values.add_boxed_markup = false;
 			},
 
 			/**
@@ -157,7 +161,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					columnOuterWidth      = jQuery( parentColumnView.$el ).width(),
 					columnWidth           = jQuery( parentColumnView.$el ).children( '.fusion-column-wrapper' ).width(),
 					dividerHeightArr      = [],
-					selectors;
+					selectors,
+					margin,
+					scale;
 
 					if ( 'triangle' === values.divider_type ) {
 						if ( '' !== values.bordercolor ) {
@@ -180,19 +186,42 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					if ( _.isObject( parentColumnValues ) ) {
 						if ( FusionPageBuilderApp.$el.find( '#main' ).hasClass( 'width-100' ) && '1_1' === parentColumnValues.type ) {
 							if ( 'boxed' === extras.layout && _.isObject( parentContainerValues ) ) {
+								values.add_boxed_markup = true;
 								_.each( [ 'large', 'medium', 'small' ], function( size ) {
 									if ( 'large' === size ) {
 										values.additional_styles += '.fusion-section-separator-' + self.model.get( 'cid' ) + ' .fusion-section-separator-svg {';
 										values.additional_styles += 'position: relative;';
-										values.additional_styles += 'margin-left:-' + parentContainerValues.padding_left + ';';
-										values.additional_styles += 'margin-right:-' + parentContainerValues.padding_right + ';';
+
+										if ( ! _.isEmpty( parentContainerValues.padding_left ) && ! _.isEmpty( parentContainerValues.padding_right ) && -1 !== parentContainerValues.padding_left.indexOf( '%' ) && -1 !== parentContainerValues.padding_right.indexOf( '%' ) ) {
+											margin = parseFloat( parentContainerValues.padding_left ) + parseFloat( parentContainerValues.padding_right );
+											scale  = ( 100 - margin ) / 100;
+
+											values.additional_styles += 'margin-left:-' + ( parseFloat( parentContainerValues.padding_left ) / scale ) + '% !important;';
+											values.additional_styles += 'margin-right:-' + ( parseFloat( parentContainerValues.padding_right ) / scale ) + '% !important;';
+										} else {
+											values.additional_styles += 'margin-left:-' + parentContainerValues.padding_left + ';';
+											values.additional_styles += 'margin-right:-' + parentContainerValues.padding_right + ';';
+										}
+
 										values.additional_styles += '}';
+
+
 									} else if ( ( 'undefined' !== typeof parentContainerValues[ 'padding_left_' + size ] && ! _.isEmpty( parentContainerValues[ 'padding_left_' + size ] ) ) || ( 'undefined' !== typeof parentContainerValues[ 'padding_right_' + size ] && ! _.isEmpty( parentContainerValues[ 'padding_right_' + size ] ) ) ) {
 										// Medium and Small size screen styles.
 										values.additional_styles += '@media only screen and (max-width:' + extras[ 'visibility_' + size ] + 'px) {';
 										values.additional_styles += '.fusion-section-separator-' + self.model.get( 'cid' ) + ' .fusion-section-separator-svg {';
-										values.additional_styles += 'margin-left:-' + parentContainerValues[ 'padding_left_' + size ] + ';';
-										values.additional_styles += 'margin-right:-' + parentContainerValues[ 'padding_right_' + size ] + ';';
+
+										if ( 'undefined' !== typeof parentContainerValues[ 'padding_left_' + size ] && ! _.isEmpty( parentContainerValues[ 'padding_left_' + size ] ) && 'undefined' !== typeof parentContainerValues[ 'padding_right_' + size ] && ! _.isEmpty( parentContainerValues[ 'padding_right_' + size ] ) && -1 !== parentContainerValues[ 'padding_left_' + size ].indexOf( '%' ) && -1 !== parentContainerValues[ 'padding_right_' + size ].indexOf( '%' ) ) {
+											margin = parseFloat( parentContainerValues[ 'padding_left_' + size ] ) + parseFloat( parentContainerValues[ 'padding_right_' + size ] );
+											scale  = ( 100 - margin ) / 100;
+
+											values.additional_styles += 'margin-left:-' + ( parseFloat( parentContainerValues[ 'padding_left_' + size ] ) / scale ) + '% !important;';
+											values.additional_styles += 'margin-right:-' + ( parseFloat( parentContainerValues[ 'padding_right_' + size ] ) / scale ) + '% !important;';
+										} else {
+											values.additional_styles += 'margin-left:-' + parentContainerValues[ 'padding_left_' + size ] + ';';
+											values.additional_styles += 'margin-right:-' + parentContainerValues[ 'padding_right_' + size ] + ';';
+										}
+
 										values.additional_styles += '}';
 										values.additional_styles += '}';
 									}
@@ -427,11 +456,26 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				} else if ( 'waves' === values.divider_type ) {
 					attrSpacerHeight.style = 'padding-top:' + ( 162 / 1024 * 100 ) + '%;';
 				} else if ( -1 !== jQuery.inArray( values.divider_type, this.bgImageSeparators ) ) {
-					height = '' === values.divider_height && 1 < values.divider_repeat ? ( parseInt( this._getDefaultSepHeight()[ values.divider_type ] ) / values.divider_repeat ) + 'px' : this._getDefaultSepHeight()[ values.divider_type ]; // Aspect ratio height.
+					const defaultSepHeight = 'custom' === values.divider_type && values.custom_svg ? this.getCustomSvg( values ).height : this._getDefaultSepHeight()[ values.divider_type ];
+					height = '' === values.divider_height && 1 < values.divider_repeat ? ( parseInt( defaultSepHeight ) / values.divider_repeat ) + 'px' : defaultSepHeight; // Aspect ratio height.
 					attrSpacerHeight.style = 'height:' + height + ';';
 				}
 				return attrSpacerHeight;
 
+			},
+
+			/**
+			 * Spacer height.
+			 *
+			 * @since 3.6
+			 * @param {Object} values - The values.
+			 * @return {String} Spacer height.
+			 */
+			spacerHeight( values ) {
+				const defaultSepHeight = 'custom' === values.divider_type && values.custom_svg ? this.getCustomSvg( values ).height : this._getDefaultSepHeight()[ values.divider_type ];
+				const height = '' === values.divider_height && 1 < values.divider_repeat ? ( parseInt( defaultSepHeight ) / values.divider_repeat ) + 'px' : defaultSepHeight; // Aspect ratio height.
+
+				return height;
 			},
 
 			/**
@@ -507,15 +551,13 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				};
 
 				if ( 'bigtriangle' === values.divider_type || 'slant' === values.divider_type || 'big-half-circle' === values.divider_type || 'clouds' === values.divider_type || 'curved' === values.divider_type ) {
-					attrSVG.style = 'fill:' + values.backgroundcolor + ';padding:0;';
+					attrSVG.style = 'padding:0;';
 				}
 				if ( 'slant' === values.divider_type && 'bottom' === values.divider_candy ) {
-					attrSVG.style = 'fill:' + values.backgroundcolor + ';padding:0;margin-bottom:-3px;display:block';
+					attrSVG.style = 'padding:0;margin-bottom:-3px;display:block';
 				}
 
-				if ( 'horizon' === values.divider_type || 'hills' === values.divider_type || 'hills_opacity' === values.divider_type || 'waves' === values.divider_type || 'waves_opacity' === values.divider_type ) {
-					attrSVG.style = 'fill:' + values.backgroundcolor;
-				}
+				attrSVG.fill = jQuery.AWB_Color( values.backgroundcolor ).toRgbaString();
 
 				return attrSVG;
 			},
@@ -629,17 +671,55 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					circles: '164px',
 					squares: '140px',
 					paint: '80px',
-					grass: '195px'
+					grass: '195px',
+					splash: '65px'
 				};
 			},
 
 			getDividerHeightResponsive: function( key, hash ) {
-				var keys = hash.keys();
-				var found_index = _.contains( keys, key );
+				var keys = hash.keys(),
+					found_index = _.contains( keys, key );
 				if ( false === found_index || 0 === found_index ) {
 					return '';
 				}
 				return keys[ found_index - 1 ];
+			},
+
+			/**
+			 * Get custom svg
+			 *
+			 * @since 7.6
+			 * @param {Object} values - The values.
+			 * @return {Object}
+			 */
+			getCustomSvg: function( values ) {
+				var svg = '';
+				const url = values.custom_svg;
+				if ( !url ) {
+					return {};
+				}
+
+				jQuery.ajax( {
+					url: url,
+					type: 'get',
+					dataType: 'html',
+					async: false,
+					success: function( data ) {
+						svg = data;
+					}
+				} );
+
+				svg = svg.replace( /fill="(.*?)"/ig, `fill="${jQuery.AWB_Color( values.backgroundcolor ).toRgbaString()}"` );
+
+				//get the default height
+				const rx = /viewBox="(.*?)"/g;
+				const matches = rx.exec( svg );
+
+				const height = matches ? matches[ 1 ].split( ' ' )[ 3 ] + 'px' : '65px';
+
+
+				return { svg, height };
+
 			}
 
 		} );

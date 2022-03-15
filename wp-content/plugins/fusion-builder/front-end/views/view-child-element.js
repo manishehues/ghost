@@ -69,6 +69,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					this.$el.removeClass( 'fusion-global-child-element' ).addClass( 'fusion-global-child-element' );
 				}
 
+				this.model.set( 'show_ui', 'undefined' === typeof fusionAllElements[ this.model.get( 'element_type' ) ].show_ui ? true : fusionAllElements[ this.model.get( 'element_type' ) ].show_ui );
+
 				if ( ! parentModel.get( 'sortable' ) ) {
 					this.$el.attr( 'data-fusion-no-dragging', true );
 				}

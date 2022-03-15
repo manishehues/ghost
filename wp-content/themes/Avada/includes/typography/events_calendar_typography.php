@@ -75,22 +75,15 @@ add_filter( 'avada_h2_typography_elements', 'avada_events_calendar_h2_typography
  */
 function avada_events_calendar_h3_typography( $typography_elements ) {
 	if ( class_exists( 'Tribe__Events__Main' ) ) {
+		$typography_elements['size'][]   = '.single-tribe_events .fusion-events-featured-image .fusion-events-single-title-content .tribe-events-schedule';
 		$typography_elements['size'][]   = '.single-tribe_events .fusion-events-featured-image .fusion-events-single-title-content .tribe-events-schedule h3';
-		$typography_elements['size'][]   = '.single-tribe_events .fusion-events-featured-image .recurringinfo .event-is-recurring';
-		$typography_elements['size'][]   = '.single-tribe_events .fusion-events-featured-image .recurringinfo .tribe-events-divider';
-		$typography_elements['size'][]   = '.single-tribe_events .fusion-events-featured-image .recurringinfo .tribe-events-cost';
-		$typography_elements['size'][]   = '.single-tribe_events .fusion-events-featured-image .tribe-events-divider';
-		$typography_elements['size'][]   = '.single-tribe_events .fusion-events-featured-image .tribe-events-cost';
 		$typography_elements['size'][]   = '.single-tribe_events .tribe-block__venue .tribe-block__venue__meta .tribe-block__venue__name h3';
 		$typography_elements['size'][]   = '.single-tribe_events #tribe-events-content .tribe-events-event-meta .tribe-events-single-section-title';
 		$typography_elements['size'][]   = '.fusion-body #main .tribe-events .tribe-events-calendar-month__header-column-title';
 		$typography_elements['size'][]   = '.fusion-body #main .tribe-events .tribe-events-calendar-month__body .tribe-events-calendar-month__day-date';
 		$typography_elements['size'][]   = '.fusion-body #main .tribe-events .tribe-events-calendar-month__body .tribe-events-calendar-month__day';
 		$typography_elements['size'][]   = '.fusion-body .tooltipster-base h3';
-		$typography_elements['family'][] = '.single-tribe_events .fusion-events-featured-image .recurringinfo .tribe-events-divider';
-		$typography_elements['family'][] = '.single-tribe_events .fusion-events-featured-image .recurringinfo .tribe-events-cost';
-		$typography_elements['family'][] = '.single-tribe_events .fusion-events-featured-image .tribe-events-divider';
-		$typography_elements['family'][] = '.single-tribe_events .fusion-events-featured-image .tribe-events-cost';
+		$typography_elements['family'][] = '.single-tribe_events .fusion-events-featured-image .fusion-events-single-title-content .tribe-events-schedule';
 		$typography_elements['family'][] = '.single-tribe_events .tribe-block__venue .tribe-block__venue__meta .tribe-block__venue__name h3';
 		$typography_elements['family'][] = '.single-tribe_events #tribe-events-content .tribe-events-event-meta .tribe-events-single-section-title';
 		$typography_elements['family'][] = '.fusion-body #main .tribe-events .tribe-events-calendar-month__header-column-title';
@@ -115,7 +108,7 @@ function avada_events_calendar_h4_typography( $typography_elements ) {
 		$typography_elements['size'][]   = '.fusion-content-widget-area .tribe-events-single-section-title';
 		$typography_elements['size'][]   = '#tribe-events-content .tribe-events-tooltip .entry-title';
 		$typography_elements['size'][]   = '#tribe-events-content .tribe-events-tooltip .tribe-event-title';
-		$typography_elements['size'][]   = '.tribe-block__tickets__registration__tickets__header';      
+		$typography_elements['size'][]   = '.tribe-block__tickets__registration__tickets__header';
 		$typography_elements['color'][]  = '.fusion-content-widget-area .tribe-events-single-section-title';
 		$typography_elements['family'][] = '.fusion-content-widget-area .tribe-events-single-section-title';
 		$typography_elements['family'][] = '#tribe-events-content .tribe-events-tooltip .entry-title';
@@ -167,7 +160,7 @@ function avada_events_post_title_typography_elements( $typography_elements ) {
 		$typography_elements['color'][] = '.fusion-body .fusion-wrapper #main .tribe-events .tribe-events-pro-photo__event-title';
 		$typography_elements['color'][] = '.fusion-body .fusion-wrapper #main .tribe-events .tribe-events-pro-map__event-title';
 		$typography_elements['color'][] = '.fusion-body .fusion-wrapper #main .tribe-events-calendar-month-mobile-events__mobile-event-title';
-	
+
 		$typography_elements['family'][] = '#wrapper .fusion-events-shortcode .fusion-events-meta h2';
 		$typography_elements['family'][] = '#wrapper .fusion-events-shortcode .fusion-events-meta h1';
 		$typography_elements['family'][] = '.fusion-body .fusion-wrapper #main .tribe-events.tribe-events-view article header h3';

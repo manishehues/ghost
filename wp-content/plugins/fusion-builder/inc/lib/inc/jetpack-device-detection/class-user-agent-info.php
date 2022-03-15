@@ -1,4 +1,6 @@
 <?php
+// phpcs:ignoreFile
+
 /**
  * User agent detection for Jetpack.
  *

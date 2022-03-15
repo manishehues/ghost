@@ -56,8 +56,10 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					data.upload_size = ' data-size="' + values.upload_size + '"';
 				}
 
-				if ( 'undefined' !== typeof values.required && 'yes' === values.required ) {
-					data.required             = ' required="true" aria-required="true"';
+				if ( 'undefined' !== typeof values.required && ( 'yes' === values.required || 'selection' === values.required ) ) {
+					if ( 'selection' !== values.required ) {
+						data.required             = ' required="true" aria-required="true"';
+					}
 					data.required_label       = ' <abbr class="fusion-form-element-required" title="' + fusionBuilderText.required + '">*</abbr>';
 					data.required_placeholder = '*';
 				}

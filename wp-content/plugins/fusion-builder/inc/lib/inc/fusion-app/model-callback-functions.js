@@ -1,4 +1,4 @@
-/* global FusionApp */
+/* global FusionApp, fusionSanitize */
 /* eslint no-unused-vars: 0 */
 
 var FusionPageBuilder = FusionPageBuilder || {};

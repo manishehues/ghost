@@ -9,6 +9,24 @@ var FusionPageBuilder = FusionPageBuilder || {};
 		// Woo Rating Component View.
 		FusionPageBuilder.fusion_tb_woo_reviews = FusionPageBuilder.ElementView.extend( {
 
+			onInit: function() {
+				var params = this.model.get( 'params' );
+
+				// Check for newer margin params.  If unset but regular is, copy from there.
+				if ( 'object' === typeof params ) {
+
+					// Split border width into 4.
+					if ( 'undefined' === typeof params.button_border_top && 'undefined' !== typeof params.button_border_width && '' !== params.button_border_width ) {
+						params.button_border_top    = parseInt( params.button_border_width ) + 'px';
+						params.button_border_right  = params.button_border_top;
+						params.button_border_bottom = params.button_border_top;
+						params.button_border_left   = params.button_border_top;
+						delete params.button_border_width;
+					}
+					this.model.set( 'params', params );
+				}
+			},
+
 			/**
 			 * Runs during render() call.
 			 *
@@ -127,7 +145,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					button,
 					button_hover,
 					button_size_map,
-					button_dimensions;
+					button_dimensions,
+					hasBorder = false;
 
 				this.baseSelector = '.fusion-woo-reviews-tb.fusion-woo-reviews-tb-' + this.model.get( 'cid' );
 				this.dynamic_css  = {};
@@ -223,10 +242,25 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					  this.addCssProperty( button, 'width', '100%' );
 					}
 
-					if (  !  this.isDefault( 'button_border_width' ) ) {
-					  this.addCssProperty( button, 'border-width', _.fusionGetValueWithUnit( this.values.button_border_width ) );
-					  this.addCssProperty( button, 'border-style', 'solid' );
+					if (  !  this.isDefault( 'button_border_top' ) ) {
+						hasBorder = true;
+					   this.addCssProperty( button, 'border-top-width',  _.fusionGetValueWithUnit( this.values.button_border_top ) );
 					}
+					if (  !  this.isDefault( 'button_border_right' ) ) {
+						hasBorder = true;
+						this.addCssProperty( button, 'border-right-width',  _.fusionGetValueWithUnit( this.values.button_border_right ) );
+					}
+					if (  !  this.isDefault( 'button_border_bottom' ) ) {
+						hasBorder = true;
+					this.addCssProperty( button, 'border-bottom-width',  _.fusionGetValueWithUnit( this.values.button_border_bottom ) );
+					}
+					if (  !  this.isDefault( 'button_border_left' ) ) {
+						hasBorder = true;
+						this.addCssProperty( button, 'border-left-width',  _.fusionGetValueWithUnit( this.values.button_border_left ) );
+					}
+					if ( hasBorder ) {
+ 						this.addCssProperty( button, 'border-style', 'solid' );
+ 					}
 
 					if (  !  this.isDefault( 'button_color' ) ) {
 					  this.addCssProperty( button, 'color',  this.values.button_color );

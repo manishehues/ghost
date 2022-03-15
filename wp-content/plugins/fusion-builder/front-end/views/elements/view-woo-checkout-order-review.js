@@ -197,6 +197,11 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					this.addCssProperty( this.baseSelector + ' thead', 'display', 'none' );
 				}
 
+				if ( 'show' !== this.values.display_product_images ) {
+					this.addCssProperty( this.baseSelector + ' .product-thumbnail', 'display', 'none' );
+					this.addCssProperty( this.baseSelector + ' .shop_table tbody tr', 'height', 'auto' );
+				}
+
 				css = this.parseCSS();
 				return ( css ) ? '<style>' + css + '</style>' : '';
 

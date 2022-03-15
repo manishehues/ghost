@@ -71,9 +71,9 @@ if ( ! $wp_api_plugins ) {
 	</section>
 	<?php if ( ! Avada()->registration->should_show( 'plugins' ) ) : ?>
 		<div class="avada-db-card avada-db-notice">
-			<h2><?php esc_html_e( 'Premium Plugins Can Only Be Installed And Updated With A Valid Token Registration', 'Avada' ); ?></h2>
+			<h2><?php esc_html_e( 'Premium Plugins Can Only Be Installed And Updated With Valid Product Registration', 'Avada' ); ?></h2>
 			<?php /* translators: "Product Registration" link. */ ?>
-			<p><?php printf( esc_html__( 'Please visit the %s page and enter a purchase code to to install or update the premium plugins: Avada Core, Avada Builder, Avada Custom Branding, Convert Plus, ACF Pro, Slider Revolution & Layer Slider.', 'Avada' ), '<a href="' . esc_url_raw( admin_url( 'admin.php?page=avada#avada-db-registration' ) ) . '">' . esc_attr__( 'Product Registration', 'Avada' ) . '</a>' ); ?></p>
+			<p><?php printf( esc_html__( 'Please visit the %s page and enter a purchase code to install or update the premium plugins: Avada Core, Avada Builder, Avada Custom Branding, Convert Plus, ACF Pro, Slider Revolution & Layer Slider.', 'Avada' ), '<a href="' . esc_url_raw( admin_url( 'admin.php?page=avada#avada-db-registration' ) ) . '">' . esc_attr__( 'Product Registration', 'Avada' ) . '</a>' ); ?></p>
 		</div>
 	<?php endif; ?>
 

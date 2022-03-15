@@ -164,8 +164,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				FusionPageBuilderApp.activeModal = '';
 
 				// Close colorpickers before saving
-				this.$el.find( '.wp-color-picker' ).each( function() {
-					$( this ).wpColorPicker( 'close' );
+				this.$el.find( '.awb-color-picker' ).each( function() {
+					$( this ).awbColorPicker( 'close' );
 				} );
 
 				// Destroy CodeMirror editor instance
@@ -302,8 +302,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				}
 
 				// Close colorpickers before saving
-				this.$el.find( '.wp-color-picker' ).each( function() {
-					$( this ).wpColorPicker( 'close' );
+				this.$el.find( '.awb-color-picker' ).each( function() {
+					$( this ).awbColorPicker( 'close' );
 				} );
 
 				// Destroy CodeMirror editor instance
@@ -343,7 +343,6 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						settingValue              = self.getSettingValue( $thisEl, false );
 						attributes.params[ name ] = settingValue;
 					}
-
 				} );
 
 				// Get dynamic values and store.
@@ -546,6 +545,10 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					return;
 				}
 
+				if ( 'string' == typeof $thisEl.attr( 'data-subset' ) ) {
+					return $thisEl.attr( 'name' );
+				}
+
 				// Multi element
 				if ( $thisEl.is( '#generator_element_content' ) ||
 					$thisEl.is( '#fusion_builder_content_main' ) ||
@@ -730,7 +733,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					if ( $( this ).val() ) {
 						value = $( this ).val().toLowerCase();
 
-						thisEl.find( '.fusion-builder-all-modules li' ).each( function() {
+						thisEl.find( '.fusion-builder-all-modules li, .studio-imports li' ).each( function() {
 							var shortcode = jQuery( this ).find( '.fusion_module_label' ).length ? jQuery( this ).find( '.fusion_module_label' ).text().trim().toLowerCase() : '';
 
 							name = $( this ).find( '.fusion_module_title' ).text().trim().toLowerCase();
@@ -756,6 +759,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					} else {
 
 						thisEl.find( '.fusion-builder-all-modules li' ).show();
+						thisEl.find( '.studio-imports li' ).show();
 					}
 				} );
 			}

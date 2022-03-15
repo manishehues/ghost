@@ -86,7 +86,7 @@ window.hubspotOption = {
 
 		// Filter map to only get form elements.
 		formElements = _.filter( FusionPageBuilderApp.simplifiedMap, function( element ) {
-			return element.type.includes( 'fusion_form' ) && 'fusion_form_submit' !== element.type && 'string' === typeof element.params.label && 'string' === typeof element.params.name;
+			return element.type.includes( 'fusion_form' ) && 'fusion_form_submit' !== element.type && ( 'string' === typeof element.params.label || 'string' === typeof element.params.name );
 		} );
 
 		// Add entries.

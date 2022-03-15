@@ -55,6 +55,7 @@ function avada_set_builder_classes( $default_elements, $class ) {
 		$elements[] = ' .price_slider_amount button';
 		$elements[] = ' .woocommerce .single_add_to_cart_button';
 		$elements[] = '.woocommerce button.button';
+		$elements[] = ' .woocommerce button.button';
 		$elements[] = ' .woocommerce .avada-shipping-calculator-form .button';
 		$elements[] = ' .woocommerce .login .button';
 		$elements[] = ' .woocommerce .register .button';
@@ -112,6 +113,13 @@ function avada_set_builder_classes( $default_elements, $class ) {
 		'.single-product .product .summary .cart .quantity .qty',
 	];
 	$element_map['.fusion-button-quantity'] = $elements;
+
+	if ( class_exists( 'GFForms' ) ) {
+		$elements[] = ' .gform_wrapper .gform_validation_errors';
+		$elements[] = ' .gform_wrapper .gfield_error .gfield_validation_message';
+
+		$element_map['.alert-danger'] = $elements;
+	}
 
 	if ( isset( $element_map[ $class ] ) ) {
 		return array_merge( $element_map[ $class ], $default_elements );
@@ -449,23 +457,39 @@ function avada_add_fb_styling( $css ) {
 		$elements = [ '.review blockquote q' ];
 		$css['global'][ $dynamic_css_helpers->implode( $elements ) ]['color'] = 'var(--testimonial_text_color)';
 
-		$css['global']['i.fontawesome-icon.circle-yes']['background-color'] = 'var(--icon_circle_color)';
+		$css['global']['.fontawesome-icon']['color'] = 'var(--icon_color)';
+
 		$elements = [
-			'.fontawesome-icon.circle-yes',
-			'.content-box-shortcode-timeline',
-		];
-		$css['global'][ $dynamic_css_helpers->implode( $elements ) ]['border-color'] = 'var(--icon_border_color)';
-		$elements = [
-			'.fontawesome-icon',
 			'.fontawesome-icon.circle-yes',
 		];
 		if ( class_exists( 'WooCommerce' ) ) {
+			$elements[] = '.woocommerce .social-share li a i';
 			$elements[] = '.avada-myaccount-data .digital-downloads li:before';
 			$elements[] = '.avada-myaccount-data .digital-downloads li:after';
 			$elements[] = '.avada-thank-you .order_details li:before';
 			$elements[] = '.avada-thank-you .order_details li:after';
 		}
-		$css['global'][ $dynamic_css_helpers->implode( $elements ) ]['color'] = 'var(--icon_color)';
+		$css['global'][ $dynamic_css_helpers->implode( $elements ) ]['color']            = 'var(--icon_color)';
+		$css['global'][ $dynamic_css_helpers->implode( $elements ) ]['background-color'] = 'var(--icon_circle_color)';
+		$css['global'][ $dynamic_css_helpers->implode( $elements ) ]['border-color']     = 'var(--icon_border_color)';
+
+		$icon_border_radius = Avada()->settings->get( 'icon_border_radius' );
+		if ( is_array( $icon_border_radius ) ) {
+			$css['global'][ $dynamic_css_helpers->implode( $elements ) ]['border-radius'] = implode( ' ', $icon_border_radius );
+		}
+
+		$css['global']['.fontawesome-icon:hover']['color'] = 'var(--icon_color_hover)';
+
+		$elements = [
+			'.fontawesome-icon.circle-yes:hover',
+		];
+		if ( class_exists( 'WooCommerce' ) ) {
+			$elements[] = '.woocommerce .social-share li a:hover i';
+		}
+		$css['global'][ $dynamic_css_helpers->implode( $elements ) ]['color']            = 'var(--icon_color_hover)';
+		$css['global'][ $dynamic_css_helpers->implode( $elements ) ]['background-color'] = 'var(--icon_circle_color_hover)';
+		$css['global'][ $dynamic_css_helpers->implode( $elements ) ]['border-color']     = 'var(--icon_border_color_hover)';
+
 		$elements = [
 			'.search-page-search-form',
 			'.ls-avada',

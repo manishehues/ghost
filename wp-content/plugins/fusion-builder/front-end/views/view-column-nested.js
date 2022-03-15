@@ -691,7 +691,22 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			getColumnContent: function() {
 				var columnParams   = {},
 					shortcode      = '',
+					self           = this,
+					plugins        = 'object' === typeof FusionApp.data.plugins_active ? FusionApp.data.plugins_active : false,
+					metaValue      = 'undefined' !== typeof FusionApp.data.postMeta._fusion.studio_replace_params ? FusionApp.data.postMeta._fusion.studio_replace_params : '',
+					elementType    = this.model.get( 'element_type' ),
 					columnAttributesCheck;
+
+				// If studio active.
+				if ( false !== plugins && true === plugins.awb_studio  && 'undefined' !== elementType && 'yes' === metaValue ) {
+
+					// remove BC param.
+					if ( 'undefined' !== typeof fusionAllElements[ elementType ].defaults.padding ) {
+						delete fusionAllElements[ elementType ].defaults.padding;
+					}
+
+					this.model.set( 'params', jQuery.extend( true, {}, fusionAllElements[ elementType ].defaults, _.fusionCleanParameters( this.model.get( 'params' ) ) ) );
+				}
 
 				_.each( this.model.get( 'params' ), function( value, name ) {
 					columnParams[ name ] = ( 'undefined' === value || 'undefined' === typeof value ) ? '' : value;
@@ -712,11 +727,13 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					}
 				} );
 
+				this.beforeGenerateShortcode();
+
 				// Build column shortcdoe
 				shortcode += '[fusion_builder_column_inner type="' + columnParams.type + '"';
 
 				_.each( columnParams, function( value, name ) {
-					shortcode += ' ' + name + '="' + value + '"';
+					shortcode += ' ' + name + '="' + FusionPageBuilderApp.getParamValue( name, value, self.model ) + '"';
 				} );
 
 				shortcode += ']';

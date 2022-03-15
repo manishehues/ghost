@@ -34,8 +34,10 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				// Update isotope layout
 				setTimeout( function() {
-					parentView.fusionIsotope.append( self.$el );
-					parentView.checkVerticalImages();
+					if ( 'undefined' !== typeof parentView.fusionIsotope ) {
+						parentView.fusionIsotope.append( self.$el );
+						parentView.checkVerticalImages();
+					}
 				}, 50 );
 
 				this.initLightbox();
@@ -56,16 +58,32 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 * @since 2.0.3
 			 * @return {void}
 			 */
-			initLightbox: function() {
-				var link = jQuery( '#fb-preview' )[ 0 ].contentWindow.jQuery( this.$el.find( '.fusion-lightbox' ) );
+			initLightbox: function( remove ) {
+				var parentCid           = this.model.get( 'parent' ),
+					galleryLightboxName = 'iLightbox[awb_gallery_' + parentCid + ']',
+					galleryLightbox,
+					elements,
+					link;
+
+				if ( 'object' !== typeof jQuery( '#fb-preview' )[ 0 ].contentWindow.$ilInstances ) {
+					return;
+				}
+
+				galleryLightbox = jQuery( '#fb-preview' )[ 0 ].contentWindow.$ilInstances[ galleryLightboxName ];
+
+				if ( 'undefined' !== typeof remove && remove ) {
+					elements = this.$el.closest( '.fusion-gallery' ).find( '.fusion-builder-live-child-element:not([data-cid="' + this.model.get( 'cid' ) + '"]' ).find( '[data-rel="' + galleryLightboxName + '"]' );
+				} else {
+					elements = this.$el.closest( '.fusion-gallery' ).find( '[data-rel="' + galleryLightboxName + '"]' );
+				}
+
+				link = jQuery( '#fb-preview' )[ 0 ].contentWindow.jQuery( elements );
 
 				if ( 'object' === typeof jQuery( '#fb-preview' )[ 0 ].contentWindow.avadaLightBox ) {
-					if ( 'undefined' !== typeof this.iLightbox ) {
-						this.iLightbox.destroy();
-					}
+					if ( 'undefined' !== typeof galleryLightbox ) {
+						galleryLightbox.destroy();
 
-					if ( link.length && ! link.find( '.fusion-builder-placeholder' ).length ) {
-						this.iLightbox = link.iLightBox( jQuery( '#fb-preview' )[ 0 ].contentWindow.avadaLightBox.prepare_options( 'single' ) );
+						link.iLightBox( jQuery( '#fb-preview' )[ 0 ].contentWindow.avadaLightBox.prepare_options( galleryLightboxName ) );
 					}
 				}
 			},
@@ -77,13 +95,25 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 * @return {void}
 			 */
 			beforeRemove: function() {
-				var parentView = FusionPageBuilderViewManager.getView( this.model.get( 'parent' ) );
-				parentView.fusionIsotope.remove( self.$el );
-				parentView.checkVerticalImages();
+				var self = this,
+parentCid           = this.model.get( 'parent' ),
+					parentView          = FusionPageBuilderViewManager.getView( parentCid );
+
+				if ( 'undefined' !== typeof parentView.fusionIsotope ) {
+					parentView.fusionIsotope.remove( self.$el );
+				}
+
+				if ( 'function' === typeof parentView.checkVerticalImages ) {
+					parentView.checkVerticalImages();
+				}
 
 				setTimeout( function() {
-					parentView.fusionIsotope.reloadItems();
+					if ( 'undefined' !== typeof parentView.fusionIsotope ) {
+						parentView.fusionIsotope.reloadItems();
+					}
 				}, 100 );
+
+				self.initLightbox( true );
 			},
 
 			/**
@@ -120,7 +150,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			filterTemplateAtts: function( atts ) {
 				var attributes   = {},
 					parentView   = FusionPageBuilderViewManager.getView( this.model.get( 'parent' ) ),
-					imageData    = parentView.imageMap.images[ this.model.attributes.params.image_id ],
+					imageData    = 'undefined' !== typeof parentView.imageMap ? parentView.imageMap.images[ this.model.attributes.params.image_id ] : undefined,
 					parentValues = atts.parentValues,
 					orientation  = '';
 
@@ -128,7 +158,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				this.validateValues( atts.values );
 				this.validateValues( atts.parentValues );
 
-				attributes.values     = atts.values;
+				attributes.values       = atts.values;
+				attributes.parentValues = atts.parentValues;
 
 				// Added
 				attributes.imageData        = imageData;
@@ -137,6 +168,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				attributes.galleryColumns   = parentValues.columns;
 				attributes.imageWrapperAttr = this.buildImageWrapperAttr( parentValues );
 				attributes.counter          = this.model.get( 'counter' );
+				attributes.captionHtml      = this.generateCaption( parentValues, atts.values );
 
 				// Create attribute objects.
 				attributes.imagesAttr = this.buildImagesAttr( atts.values );
@@ -148,6 +180,12 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				}
 
 				this.$el.addClass( 'fusion-grid-column fusion-gallery-column ' + orientation );
+
+				if ( -1 !== jQuery.inArray( parentValues.caption_style, [ 'above', 'below' ] ) ) {
+					this.$el.addClass( 'awb-imageframe-style awb-imageframe-style-' + parentValues.caption_style + ' awb-imageframe-style-' + this.model.get( 'parent' ) );
+				} else {
+					this.$el.removeClass( 'awb-imageframe-style awb-imageframe-style-above awb-imageframe-style-below' );
+				}
 
 				return attributes;
 			},
@@ -217,8 +255,13 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					}
 				}
 
-				if ( 'liftup' === values.hover_type ) {
-					imageWrapperAttr[ 'class' ] = ' fusion-gallery-image-liftup';
+				if ( 'liftup' === values.hover_type && -1 !== jQuery.inArray( values.caption_style, [ 'off', 'above', 'below' ] ) ) {
+					imageWrapperAttr[ 'class' ] += ' fusion-gallery-image-liftup';
+				}
+
+				// Caption style.
+				if ( -1 === jQuery.inArray( values.caption_style, [ 'off', 'above', 'below' ] ) ) {
+					imageWrapperAttr[ 'class' ] += ' awb-imageframe-style awb-imageframe-style-' + values.caption_style;
 				}
 
 				return imageWrapperAttr;
@@ -234,10 +277,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 */
 			buildImagesAttr: function( values ) {
 				var imagesAttr = {},
-					cid        = this.model.get( 'cid' ),
 					imageId    = this.model.attributes.params.image_id,
 					parentView = FusionPageBuilderViewManager.getView( this.model.get( 'parent' ) ),
-					image      = parentView.imageMap.images[ imageId ],
+					image      = 'undefined' !== typeof parentView.imageMap ? parentView.imageMap.images[ imageId ] : undefined,
 					columnSpacing,
 					isPortrait,
 					isLandscape,
@@ -250,7 +292,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				columnSpacing = 0;
 				isPortrait    = false;
 				isLandscape   = false;
-				borderColor   = jQuery.Color( values.bordercolor );
+				borderColor   = jQuery.AWB_Color( values.bordercolor );
 
 				imagesAttr = {};
 
@@ -319,7 +361,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						class: 'fusion-lightbox'
 					};
 
-					imagesAttr.link[ 'data-rel' ] = 'iLightbox[gallery-' + cid + ']';
+					imagesAttr.link[ 'data-rel' ] = 'iLightbox[awb_gallery_' + this.model.get( 'parent' ) + ']';
 
 					// TODO: fix
 					// if ( 'undefined' !== typeof image.image_data ) {
@@ -335,6 +377,63 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				}
 
 				return imagesAttr;
+			},
+
+			/**
+			 * Generate caption markup.
+			 *
+			 * @since 3.5
+			 * @param {string} values - The values object.
+			 * @return {string}
+			 */
+			generateCaption: function( values, childValues ) {
+				var content = '<div class="awb-imageframe-caption-container"><div class="awb-imageframe-caption">',
+					imageId,
+					parentView,
+					image,
+					title = '',
+					caption = '',
+					title_tag = '';
+
+				if ( 'off' === values.caption_style ) {
+					return '';
+				}
+
+				imageId    = this.model.attributes.params.image_id,
+				parentView = FusionPageBuilderViewManager.getView( this.model.get( 'parent' ) ),
+				image      = 'undefined' !== typeof parentView.imageMap ? parentView.imageMap.images[ imageId ] : undefined;
+
+				if ( 'undefined' === typeof image ) {
+					return '';
+				}
+
+				// from image data.
+				if ( image.image_data.title ) {
+					title = image.image_data.title;
+				}
+				if ( image.image_data.caption ) {
+					caption = image.image_data.caption;
+				}
+
+				// from element data.
+				if ( '' !== childValues.image_title ) {
+					title = childValues.image_title;
+				}
+				if ( '' !== childValues.image_caption ) {
+					caption = childValues.image_caption;
+				}
+
+				if ( '' !== title ) {
+					title_tag = 'div' === values.caption_title_tag ? 'div' : 'h' + values.caption_title_tag;
+					content += '<' + title_tag + ' class="awb-imageframe-caption-title">' + title + '</' + title_tag + '>';
+				}
+
+				if ( '' !== caption ) {
+					content += '<p class="awb-imageframe-caption-text">' + caption + '</p>';
+				}
+				content += '</div></div>';
+
+				return content;
 			}
 		} );
 	} );

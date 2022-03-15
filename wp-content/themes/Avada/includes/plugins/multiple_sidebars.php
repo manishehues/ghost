@@ -162,7 +162,7 @@ class Sidebar_Generator {
 		$sidebars[ $id ] = $name;
 		self::update_sidebars( $sidebars );
 
-		$id = 'fusion-' . strtolower( self::name_to_class( $name ) );
+		$id = 'fusion-' . strtolower( self::name_to_class( $id ) );
 		$js = "
 		var tbl = document.getElementById('sbg_table');
 		var lastRow = tbl.rows.length;
@@ -180,14 +180,10 @@ class Sidebar_Generator {
 		var textNode = document.createTextNode('$id');
 		cellLeft.appendChild(textNode);
 
-		//var cellLeft = row.insertCell(2);
-		//var textNode = document.createTextNode('[<a href=\'javascript:void(0);\' onclick=\'return remove_sidebar_link($name);\'>Remove</a>]');
-		//cellLeft.appendChild(textNode)
-
 		var cellLeft = row.insertCell(2);
 		removeLink = document.createElement('a');
 		linkText = document.createTextNode('remove');
-		removeLink.setAttribute('onclick', 'remove_sidebar_link(\'$name\', $counter)');
+		removeLink.setAttribute('onclick', 'remove_sidebar_link(\'$id\', \'$name\', $counter)');
 		removeLink.setAttribute('href', 'javascript:void(0)');
 
 		removeLink.appendChild(linkText);
@@ -261,10 +257,10 @@ class Sidebar_Generator {
 		?>
 
 		<script>
-		function remove_sidebar_link( name, num ) {
+		function remove_sidebar_link( handle, name, num ) {
 			answer = confirm( '<?php esc_attr_e( 'Are you sure you want to remove', 'Avada' ); ?> ' + name + '?\n<?php esc_attr_e( 'This will remove any widgets you have assigned to this widget area.', 'Avada' ); ?>' );
 			if ( answer ) {
-				remove_sidebar( name, num );
+				remove_sidebar( handle, num );
 			} else {
 				return false;
 			}
@@ -293,12 +289,12 @@ class Sidebar_Generator {
 					<?php $sidebars = self::get_sidebars(); ?>
 					<?php if ( is_array( $sidebars ) && ! empty( $sidebars ) ) : ?>
 						<?php $cnt = 0; ?>
-						<?php foreach ( $sidebars as $sidebar ) : ?>
+						<?php foreach ( $sidebars as $sidebar_handle => $sidebar_name ) : ?>
 							<?php $alt = ( 0 === $cnt % 2 ) ? 'alternate' : ''; ?>
 							<tr class="<?php echo esc_attr( $alt ); ?>">
-								<td><?php echo esc_html( $sidebar ); ?></td>
-								<td><?php echo 'fusion-' . strtolower( self::name_to_class( $sidebar ) ); // phpcs:ignore WordPress.Security.EscapeOutput ?></td>
-								<td><a href="javascript:void(0);" onclick="return remove_sidebar_link('<?php echo self::name_to_class( $sidebar ); // phpcs:ignore WordPress.Security.EscapeOutput ?>',<?php echo intval( $cnt + 1 ); ?>);" title="<?php esc_attr_e( 'Remove This Widget Area', 'Avada' ); ?>"><?php esc_html_e( 'remove', 'Avada' ); ?></a></td>
+								<td><?php echo esc_html( $sidebar_name ); ?></td>
+								<td><?php echo 'fusion-' . strtolower( self::name_to_class( $sidebar_name ) ); // phpcs:ignore WordPress.Security.EscapeOutput ?></td>
+								<td><a href="javascript:void(0);" onclick="return remove_sidebar_link('<?php echo self::name_to_class( $sidebar_handle ); // phpcs:ignore WordPress.Security.EscapeOutput ?>','<?php echo esc_js( $sidebar_name ); ?>', <?php echo intval( $cnt + 1 ); ?>);" title="<?php esc_attr_e( 'Remove This Widget Area', 'Avada' ); ?>"><?php esc_html_e( 'remove', 'Avada' ); ?></a></td>
 							</tr>
 							<?php $cnt++; ?>
 						<?php endforeach; ?>

@@ -123,7 +123,10 @@ if ( fusion_is_element_enabled( 'fusion_tb_woo_checkout_payment' ) ) {
 					'button_size'                         => '',
 					'button_stretch'                      => 'no',
 					'button_alignment'                    => '',
-					'button_border_width'                 => '',
+					'button_border_top'                   => '',
+					'button_border_right'                 => '',
+					'button_border_bottom'                => '',
+					'button_border_left'                  => '',
 					'button_color'                        => '',
 					'button_gradient_top'                 => $fusion_settings->get( 'button_gradient_top_color' ),
 					'button_gradient_bottom'              => $fusion_settings->get( 'button_gradient_bottom_color' ),
@@ -184,6 +187,14 @@ if ( fusion_is_element_enabled( 'fusion_tb_woo_checkout_payment' ) ) {
 				$this->params   = $args;
 				$this->defaults = self::get_element_defaults();
 				$this->args     = FusionBuilder::set_shortcode_defaults( $this->defaults, $args, 'fusion_tb_woo_checkout_payment' );
+
+				// Legacy single border width.
+				if ( isset( $args['button_border_width'] ) && ! isset( $args['button_border_top'] ) ) {
+					$this->args['button_border_top']    = $args['button_border_width'];
+					$this->args['button_border_right']  = $this->args['button_border_top'];
+					$this->args['button_border_bottom'] = $this->args['button_border_top'];
+					$this->args['button_border_left']   = $this->args['button_border_top'];
+				}
 
 				$html  = $this->get_styles();
 				$html .= '<div ' . FusionBuilder::attributes( 'fusion_tb_woo_checkout_payment-shortcode' ) . '>' . $this->get_woo_checkout_payment_content() . '</div>';
@@ -288,7 +299,7 @@ if ( fusion_is_element_enabled( 'fusion_tb_woo_checkout_payment' ) ) {
 				}
 
 				// Labels.
-				$selector = $this->base_selector . ' .woocommerce-checkout-payment ul.wc_payment_methods li label';
+				$selector = $this->base_selector . ' .woocommerce-checkout-payment ul.wc_payment_methods li > label';
 
 				if ( ! $this->is_default( 'label_padding_top' ) ) {
 					$this->add_css_property( $selector, 'padding-top', $this->args['label_padding_top'] );
@@ -319,7 +330,7 @@ if ( fusion_is_element_enabled( 'fusion_tb_woo_checkout_payment' ) ) {
 					$this->add_css_property( $this->base_selector . ' ul li input:checked+label', 'color', $this->args['label_hover_color'] );
 				}
 
-				$selector = $this->base_selector . ' .woocommerce-checkout-payment ul.wc_payment_methods li:hover label';
+				$selector = $this->base_selector . ' .woocommerce-checkout-payment ul.wc_payment_methods li:hover > label';
 
 				if ( ! $this->is_default( 'label_bg_hover_color' ) ) {
 					$this->add_css_property( $selector, 'background', $this->args['label_bg_hover_color'] );
@@ -401,8 +412,17 @@ if ( fusion_is_element_enabled( 'fusion_tb_woo_checkout_payment' ) ) {
 					}
 
 					// Button border width.
-					if ( ! $this->is_default( 'button_border_width' ) ) {
-						$this->add_css_property( $button, 'border-width', fusion_library()->sanitize->get_value_with_unit( $this->args['button_border_width'] ) );
+					if ( ! $this->is_default( 'button_border_top' ) ) {
+						$this->add_css_property( $button, 'border-top-width', fusion_library()->sanitize->get_value_with_unit( $this->args['button_border_top'] ) );
+					}
+					if ( ! $this->is_default( 'button_border_right' ) ) {
+						$this->add_css_property( $button, 'border-right-width', fusion_library()->sanitize->get_value_with_unit( $this->args['button_border_right'] ) );
+					}
+					if ( ! $this->is_default( 'button_border_bottom' ) ) {
+						$this->add_css_property( $button, 'border-bottom-width', fusion_library()->sanitize->get_value_with_unit( $this->args['button_border_bottom'] ) );
+					}
+					if ( ! $this->is_default( 'button_border_left' ) ) {
+						$this->add_css_property( $button, 'border-left-width', fusion_library()->sanitize->get_value_with_unit( $this->args['button_border_left'] ) );
 					}
 
 					// Button text color.
@@ -484,35 +504,36 @@ function fusion_component_woo_checkout_payment() {
 		fusion_builder_frontend_data(
 			'FusionTB_Woo_Checkout_Payment',
 			[
-				'name'      => esc_attr__( 'Woo Checkout Payment', 'fusion-builder' ),
-				'shortcode' => 'fusion_tb_woo_checkout_payment',
-				'icon'      => 'fusiona-checkout-payment',
-				'params'    => [
+				'name'         => esc_attr__( 'Woo Checkout Payment', 'fusion-builder' ),
+				'shortcode'    => 'fusion_tb_woo_checkout_payment',
+				'icon'         => 'fusiona-checkout-payment',
+				'subparam_map' => [
+					'fusion_font_family_text_typography'  => 'main_typography',
+					'fusion_font_variant_text_typography' => 'main_typography',
+					'text_font_size'                      => 'main_typography',
+				],
+				'params'       => [
 					[
-						'type'        => 'textfield',
-						'heading'     => esc_attr__( 'Text Font Size', 'fusion-builder' ),
-						'description' => esc_html__( 'Controls the font size of the payments text. Enter value including any valid CSS unit, ex: 20px.', 'fusion-builder' ),
-						'param_name'  => 'text_font_size',
-						'value'       => '',
-						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
-						'callback'    => [
-							'function' => 'fusion_style_block',
+						'type'             => 'typography',
+						'heading'          => esc_attr__( 'Typography', 'fusion-builder' ),
+						'description'      => esc_html__( 'Controls the typography of the payments text. Leave empty for the global font family.', 'fusion-builder' ),
+						'param_name'       => 'main_typography',
+						'choices'          => [
+							'font-family'    => 'text_typography',
+							'font-size'      => 'text_font_size',
+							'line-height'    => false,
+							'letter-spacing' => false,
+							'text-transform' => false,
 						],
-					],
-					[
-						'type'             => 'font_family',
+						'default'          => [
+							'font-family' => '',
+							'variant'     => '400',
+						],
 						'remove_from_atts' => true,
-						'heading'          => esc_attr__( 'Text Font Family', 'fusion-builder' ),
-						/* translators: URL for the link. */
-						'description'      => esc_html__( 'Controls the font family of the payments text.  Leave empty for the global font family.', 'fusion-builder' ),
-						'param_name'       => 'text_typography',
+						'global'           => true,
 						'group'            => esc_attr__( 'Design', 'fusion-builder' ),
 						'callback'         => [
 							'function' => 'fusion_style_block',
-						],
-						'default'          => [
-							'font-family'  => '',
-							'font-variant' => '400',
 						],
 					],
 					[
@@ -741,24 +762,26 @@ function fusion_component_woo_checkout_payment() {
 						],
 					],
 					[
-						'type'        => 'range',
-						'heading'     => esc_attr__( 'Button Border Size', 'fusion-builder' ),
-						'param_name'  => 'button_border_width',
-						'description' => esc_attr__( 'Controls the border size. In pixels.', 'fusion-builder' ),
-						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
-						'dependency'  => [
+						'type'             => 'dimension',
+						'remove_from_atts' => true,
+						'heading'          => esc_attr__( 'Button Border Size', 'fusion-builder' ),
+						'param_name'       => 'button_border_width',
+						'description'      => esc_attr__( 'Controls the border size. In pixels.', 'fusion-builder' ),
+						'group'            => esc_attr__( 'Design', 'fusion-builder' ),
+						'dependency'       => [
 							[
 								'element'  => 'button_style',
 								'value'    => 'custom',
 								'operator' => '==',
 							],
 						],
-						'min'         => '0',
-						'max'         => '20',
-						'step'        => '1',
-						'value'       => '',
-						'default'     => $fusion_settings->get( 'button_border_width' ),
-						'callback'    => [
+						'value'            => [
+							'button_border_top'    => '',
+							'button_border_right'  => '',
+							'button_border_bottom' => '',
+							'button_border_left'   => '',
+						],
+						'callback'         => [
 							'function' => 'fusion_style_block',
 							'args'     => [
 
@@ -1000,7 +1023,7 @@ function fusion_component_woo_checkout_payment() {
 						'preview_selector' => '.fusion-woo-checkout-payment-tb',
 					],
 				],
-				'callback'  => [
+				'callback'     => [
 					'function' => 'fusion_ajax',
 					'action'   => 'get_fusion_tb_woo_checkout_payment',
 					'ajax'     => true,

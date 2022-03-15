@@ -1,4 +1,4 @@
-/* global FusionPageBuilderApp */
+/* global fusionAllElements, FusionApp, FusionPageBuilderApp, fusionAppConfig */
 var FusionPageBuilder = FusionPageBuilder || {};
 
 ( function() {
@@ -91,11 +91,13 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				attributes.attr      = this.buildAttr( atts.values );
 
 				// Any extras that need passed on.
-				attributes.cid        = this.model.get( 'cid' );
-				attributes.alignment  = atts.values.alignment;
-				attributes.output     = atts.values.element_content;
-				attributes.hasLink    = 'string' === typeof atts.values.link && '' !==  atts.values.link;
-				attributes.styleBlock = this.styleBlock( atts.values );
+				attributes.cid              = this.model.get( 'cid' );
+				attributes.alignment        = atts.values.alignment;
+				attributes.alignment_medium = atts.values.alignment_medium;
+				attributes.alignment_small  = atts.values.alignment_small;
+				attributes.output           = atts.values.element_content;
+				attributes.hasLink          = 'string' === typeof atts.values.link && '' !==  atts.values.link;
+				attributes.styleBlock       = this.styleBlock( atts.values );
 
 				return attributes;
 			},
@@ -135,12 +137,12 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				}
 
 				html  = '<style>';
-				html += tag + '.fontawesome-icon.fb-icon-element-' + cid + '{ color: ' + values.iconcolor + ';' + backgroundColor + borderColor + '}';
-				html += tag + '.fontawesome-icon.fb-icon-element-' + cid + ':hover, .fontawesome-icon.fb-icon-element-' + cid + '.hover { color: ' + values.iconcolor_hover + ';' + backgroundHover + borderHover + '}';
+				html += tag + '.fb-icon-element.fontawesome-icon.fb-icon-element-live-' + cid + '{ color: ' + values.iconcolor + ';' + backgroundColor + borderColor + '}';
+				html += tag + '.fb-icon-element.fontawesome-icon.fb-icon-element-live-' + cid + ':hover, .fb-icon-element.fontawesome-icon.fb-icon-element-live-' + cid + '.hover { color: ' + values.iconcolor_hover + ';' + backgroundHover + borderHover + '}';
 
 				// Pulsate effect color for outershadow.
 				if ( 'pulsate' === values.icon_hover_type ) {
-					html += tag + '.fontawesome-icon.fb-icon-element-' + cid + '.icon-hover-animation-pulsate:after {';
+					html += tag + '.fb-icon-element.fontawesome-icon.fb-icon-element-live-' + cid + '.icon-hover-animation-pulsate:after {';
 					html += '-webkit-box-shadow:0 0 0 2px rgba(255,255,255,0.1), 0 0 10px 10px ' + values.circlecolor_hover + ', 0 0 0 10px rgba(255,255,255,0.5);';
 					html += '-moz-box-shadow:0 0 0 2px rgba(255,255,255,0.1), 0 0 10px 10px ' + values.circlecolor_hover + ', 0 0 0 10px rgba(255,255,255,0.5);';
 					html += 'box-shadow: 0 0 0 2px rgba(255,255,255,0.1), 0 0 10px 10px ' + values.circlecolor_hover + ', 0 0 0 10px rgba(255,255,255,0.5);';
@@ -158,7 +160,22 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 * @return {void}
 			 */
 			validateValues: function( values ) {
+				var corners = [
+					'top_left',
+					'top_right',
+					'bottom_right',
+					'bottom_left'
+				];
+
 				values.font_size = _.fusionValidateAttrValue( this.convertDeprecatedSizes( values.size ), '' );
+
+				_.each( corners, function( corner ) {
+					if ( 'undefined' !== typeof values[ 'border_radius_' + corner ] && '' !== values[ 'border_radius_' + corner ] ) {
+						values[ 'border_radius_' + corner ] = _.fusionGetValueWithUnit( values[ 'border_radius_' + corner ] );
+					} else {
+						values[ 'border_radius_' + corner ] = '0px';
+					}
+				} );
 			},
 
 			/**
@@ -192,6 +209,12 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			buildAttr: function( values ) {
 				var legacyIcon              =  false;
 				var attr                    = {};
+				var corners                 = [
+					'top_left',
+					'top_right',
+					'bottom_right',
+					'bottom_left'
+				];
 				values.circle_yes_font_size = 'undefined' !== values.bg_size && '-1' !== values.bg_size ? values.font_size : values.font_size * 0.88;
 				values.height               = 'undefined' !== values.bg_size && '-1' !== values.bg_size ? parseInt( values.bg_size ) : values.font_size * 1.76;
 				values.line_height          = values.height - ( 2 * parseInt( values.circlebordersize ) );
@@ -203,7 +226,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					legacyIcon = true;
 				}
 				attr = {
-					class: 'fb-icon-element-' + this.model.get( 'cid' ) + ' fb-icon-element fontawesome-icon ' + _.fusionFontAwesome( values.icon ) + ' circle-' + values.circle,
+					class: 'fb-icon-element-live-' + this.model.get( 'cid' ) + ' fb-icon-element fontawesome-icon ' + _.fusionFontAwesome( values.icon ) + ' circle-' + values.circle,
 					'aria-hidden': 'true'
 				};
 				attr = _.fusionVisibilityAtts( values.hide_on_mobile, attr );
@@ -217,6 +240,12 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					attr.style += 'font-size:' + values.circle_yes_font_size + 'px;';
 					attr.style += 'line-height:' + values.line_height + 'px;height:' + values.height + 'px;width:' + values.height + 'px;';
 					attr.style += 'border-width:' + values.circlebordersize + ';';
+
+					_.each( corners, function( corner ) {
+						if ( values[ 'border_radius_' + corner ] ) {
+							attr.style += 'border-' + corner.replace( '_', '-' ) + '-radius:' + values[ 'border_radius_' + corner ] + ';';
+						}
+					} );
 				} else {
 					attr.style += 'font-size:' + values.font_size + 'px;';
 				}
@@ -295,6 +324,43 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				attr = _.fusionAnimations( values, attr );
 
 				return attr;
+			},
+
+			/**
+			 * Runs just after render on cancel.
+			 *
+			 * @since 3.5
+			 * @return null
+			 */
+			beforeGenerateShortcode: function() {
+				var elementType = this.model.get( 'element_type' ),
+					options     = fusionAllElements[ elementType ].params,
+					values      = jQuery.extend( true, {}, fusionAllElements[ elementType ].defaults, _.fusionCleanParameters( this.model.get( 'params' ) ) ),
+					iconWithoutFusionPrefix;
+
+				if ( 'object' !== typeof options ) {
+					return;
+				}
+
+				// If images needs replaced lets check element to see if we have media being used to add to object.
+				if ( 'undefined' !== typeof FusionApp.data.replaceAssets && FusionApp.data.replaceAssets && ( 'undefined' !== typeof FusionApp.data.fusion_element_type || 'fusion_template' === FusionApp.getPost( 'post_type' ) ) ) {
+
+					this.mapStudioImages( options, values );
+
+				if ( '' !== values.icon && 'fusion-prefix-' === values.icon.substr( 0, 14 ) ) {
+						if ( undefined !== typeof fusionAppConfig.customIcons ) {
+							iconWithoutFusionPrefix = values.icon.substr( 14 );
+
+							// TODO: try to optimize this check.
+							jQuery.each( fusionAppConfig.customIcons, function( iconPostName, iconSet ) {
+								if ( 0 === iconWithoutFusionPrefix.indexOf( iconSet.css_prefix ) ) {
+									FusionPageBuilderApp.mediaMap.icons[ iconSet.post_id ] = iconSet.css_prefix;
+									return false;
+								}
+							} );
+						}
+					}
+				}
 			}
 		} );
 	} );

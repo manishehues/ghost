@@ -1,7 +1,7 @@
+/* global fusionAllElements, FusionApp, FusionPageBuilderApp, builderConfig */
 var FusionPageBuilder = FusionPageBuilder || {};
 
 ( function() {
-
 	jQuery( document ).ready( function() {
 
 		// Image Frame Element View.
@@ -59,20 +59,29 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					// Validate values.
 					this.validateValues( atts.values );
 					// Create attribute objects
-					atts.isFlex  	  	= this.isFlex;
-					atts.attr         	= this.buildAttr( atts.values );
-					atts.contentAttr  	= this.buildContentAttr( atts.values );
-					atts.linkAttr     	= this.buildLinktAttr( atts.values );
-					atts.borderRadius 	= this.buildBorderRadius( atts.values );
-					atts.imgStyles    	= this.buildImgStyles( atts.values );
+					this.values       = atts.values;
+					this.extras       = atts.extras;
+					atts.isFlex       = this.isFlex;
+					atts.attr         = this.buildAttr( atts.values );
+					atts.contentAttr  = this.buildContentAttr( atts.values );
+					atts.linkAttr     = this.buildLinktAttr( atts.values );
+					atts.borderRadius = this.buildBorderRadius( atts.values );
+					atts.imgStyles    = this.buildImgStyles( atts.values );
 					if ( this.isFlex ) {
 						atts.responsiveAttr = this.buildResponsiveAttr( atts.values );
 					}
 
 					this.buildElementContent( atts );
 
-					atts.liftupClasses      = this.buildLiftupClasses( atts );
-					atts.liftupStyles       = this.buildLiftupStyles( atts );
+
+					atts.liftupClasses = this.buildLiftupClasses( atts );
+					atts.liftupStyles  = this.buildLiftupStyles( atts );
+					atts.captionHtml   = this.generateCaption( atts );
+
+					//styles
+					atts.maskStyles        = this.buildMaskStyles( atts );
+					atts.aspectRatioStyles = this.buildAspectRatioStyles( atts );
+					atts.marginStyles      = this.buildMarginStyles( atts );
 
 					// Add min height sticky.
 					atts.stickyStyles = '' !== atts.values.sticky_max_width ? '<style>.fusion-sticky-container.fusion-sticky-transition .imageframe-cid' + this.model.get( 'cid' ) + '{ max-width:' + _.fusionGetValueWithUnit( atts.values.sticky_max_width ) + ' !important; }</style>' : false;
@@ -97,6 +106,16 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				values.margin_left   = _.fusionValidateAttrValue( values.margin_left, 'px' );
 				values.margin_right  = _.fusionValidateAttrValue( values.margin_right, 'px' );
 				values.margin_top    = _.fusionValidateAttrValue( values.margin_top, 'px' );
+
+				// If caption style used then disable style type.
+				if ( -1 === jQuery.inArray( values.caption_style, [ 'off', 'above', 'below' ] ) ) {
+					values.style_type = 'none';
+				}
+
+				// If mask used disable style type.
+				if ( values.mask ) {
+					values.style_type = 'none';
+				}
 
 				if ( ! values.style ) {
 					values.style = values.style_type;
@@ -123,9 +142,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					style: '',
 					class: ''
 				},
-				alignLarge = values.align && 'none' !== values.align ? values.align : false,
+				alignLarge  = values.align && 'none' !== values.align ? values.align : false,
 				alignMedium = values.align_medium && 'none' !== values.align_medium ? values.align_medium : false,
-				alignSmall = values.align_small && 'none' !== values.align_small ? values.align_small : false;
+				alignSmall  = values.align_small && 'none' !== values.align_small ? values.align_small : false;
 
 				if ( alignLarge ) {
 					attr.style += 'text-align:' + alignLarge + ';';
@@ -137,6 +156,10 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				if ( alignSmall && alignLarge !== alignSmall ) {
 					attr[ 'class' ] += ' sm-text-align-' + alignSmall;
+				}
+
+				if ( -1 !== jQuery.inArray( values.caption_style, [ 'above', 'below' ] ) ) {
+					attr[ 'class' ] += ' awb-imageframe-style awb-imageframe-style-' + values.caption_style + ' awb-imageframe-style-' + this.model.get( 'cid' );
 				}
 
 				return attr;
@@ -158,7 +181,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					} ),
 					imgStyles,
 					styleColorVal = values.stylecolor ? values.stylecolor : '',
-					styleColor    = ( 0 === styleColorVal.indexOf( '#' ) ) ? jQuery.Color( styleColorVal ).alpha( 0.3 ).toRgbaString() : jQuery.Color( styleColorVal ).toRgbaString(),
+					styleColor    = ( 0 === styleColorVal.indexOf( '#' ) ) ? jQuery.AWB_Color( styleColorVal ).alpha( 0.3 ).toRgbaString() : jQuery.AWB_Color( styleColorVal ).toRgbaString(),
 					blur          = values.blur,
 					blurRadius    = ( parseInt( blur, 10 ) + 4 ) + 'px';
 
@@ -174,15 +197,18 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				imgStyles   = '';
 
-				if ( '' != values.bordersize && '0' != values.bordersize && '0px' !== values.bordersize ) {
-					imgStyles += 'border:' + values.bordersize + ' solid ' + values.bordercolor + ';';
-				}
+				// Border style only if not using mask.
+				if ( '' === values.mask ) {
+					if ( '' != values.bordersize && '0' != values.bordersize && '0px' !== values.bordersize ) {
+						imgStyles += 'border:' + values.bordersize + ' solid ' + values.bordercolor + ';';
+					}
 
-				if ( '0' != values.borderradius && '0px' !== values.borderradius ) {
-					imgStyles += '-webkit-border-radius:' + values.borderradius + ';-moz-border-radius:' + values.borderradius + ';border-radius:' + values.borderradius + ';';
+					if ( '0' != values.borderradius && '0px' !== values.borderradius ) {
+						imgStyles += '-webkit-border-radius:' + values.borderradius + ';-moz-border-radius:' + values.borderradius + ';border-radius:' + values.borderradius + ';';
 
-					if ( '50%' === values.borderradius || 100 < parseFloat( values.borderradius ) ) {
-						imgStyles += '-webkit-mask-image: -webkit-radial-gradient(circle, white, black);';
+						if ( '50%' === values.borderradius || 100 < parseFloat( values.borderradius ) ) {
+							imgStyles += '-webkit-mask-image: -webkit-radial-gradient(circle, white, black);';
+						}
 					}
 				}
 
@@ -202,7 +228,14 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					attr[ 'class' ] += ' element-bottomshadow';
 				}
 
-				if ( 'liftup' !== values.hover_type ) {
+				if ( '' !== values.mask ) {
+					attr[ 'class' ] += ' has-mask';
+				}
+				if ( '' !== values.aspect_ratio ) {
+					attr[ 'class' ] += ' has-aspect-ratio';
+				}
+
+				if ( 'liftup' !== values.hover_type && -1 !== jQuery.inArray( values.caption_style, [ 'off', 'above', 'below' ] ) ) {
 					if ( ! this.isFlex ) {
 						if ( 'left' === values.align ) {
 							attr.style += 'margin-right:25px;float:left;';
@@ -214,26 +247,18 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					attr[ 'class' ] += ' hover-type-' + values.hover_type;
 				}
 
-				if ( 'liftup' !== values.hover_type && 'bottomshadow' !== values.style ) {
-					if ( '' !== values.margin_top ) {
-						attr.style += 'margin-top:' + values.margin_top + ';';
-					}
-
-					if ( '' !== values.margin_right ) {
-						attr.style += 'margin-right:' + values.margin_right + ';';
-					}
-
-					if ( '' !== values.margin_bottom ) {
-						attr.style += 'margin-bottom:' + values.margin_bottom + ';';
-					}
-
-					if ( '' !== values.margin_left ) {
-						attr.style += 'margin-left:' + values.margin_left + ';';
-					}
+				if ( '' !== values.max_width && '' === values.aspect_ratio ) {
+					attr.style += 'max-width:' + _.fusionGetValueWithUnit( values.max_width ) + '';
 				}
 
-				if ( '' !== values.max_width ) {
-					attr.style += 'max-width:' + values.max_width + '';
+				// Caption style.
+				if ( -1 === jQuery.inArray( values.caption_style, [ 'off', 'above', 'below' ] ) ) {
+					attr[ 'class' ] += ' awb-imageframe-style awb-imageframe-style-' + values.caption_style;
+				}
+
+				// Caption style.
+				if ( -1 === jQuery.inArray( values.caption_style, [ 'off', 'above', 'below' ] ) ) {
+					attr[ 'class' ] += ' awb-imageframe-style awb-imageframe-style-' + values.caption_style;
 				}
 
 				if ( 'undefined' !== typeof values[ 'class' ] && '' !== values[ 'class' ] ) {
@@ -299,14 +324,15 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					title       = '',
 					src         = '';
 
-				values.image_id = '';
+				// values.image_id = '';
 
 				// Could add JS to get image dimensions if necessary.
 				if ( ! values.element_content ) {
-					return 'No Image Set';
+					return 'no_image_set';
 				}
 				// eslint-disable-next-line no-useless-escape
 				src = values.element_content.match( /(src=["\'](.*?)["\'])/ );
+
 				if ( src && 1 < src.length ) {
 					src = src[ 2 ];
 				} else if ( -1 === values.element_content.indexOf( '<img' ) && '' !== values.element_content ) {
@@ -314,7 +340,6 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				}
 
 				if ( 'undefined' !== typeof src && src && '' !== src ) {
-
 					src             = src.replace( '&#215;', 'x' );
 					contentAttr.src = src;
 					values.pic_link = src;
@@ -326,6 +351,36 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					}
 
 					contentAttr.alt = values.alt;
+				}
+
+				if ( '' !== values.aspect_ratio ) {
+					contentAttr[ 'class' ] = 'img-with-aspect-ratio';
+				}
+
+				let imageIdSize, imageId, imageSize;
+				if ( 'undefined' !== typeof values.image_id && '' !== values.image_id ) {
+					const self = this;
+					if ( -1 !== values.image_id.indexOf( '|' ) ) {
+						imageIdSize = values.image_id.split( '|' );
+						imageId     = imageIdSize[ 0 ];
+						imageSize   = imageIdSize[ 1 ];
+					} else {
+						imageId = values.image_id;
+					}
+
+					const media = wp.media.attachment( imageId );
+					if ( _.isUndefined( media.get( 'title' ) ) ) {
+						media.fetch().then( function() {
+							self.reRender();
+							self._refreshJs();
+						} );
+					} else if ( imageSize ) {
+						contentAttr.width  = media.attributes.sizes[ imageSize ].width;
+						contentAttr.height = media.attributes.sizes[ imageSize ].height;
+					} else {
+						contentAttr.width  = media.attributes.width;
+						contentAttr.height = media.attributes.height;
+					}
 				}
 
 				return contentAttr;
@@ -342,7 +397,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				var borderRadius = '';
 
 				if ( values.borderradius && '' !== values.borderradius && 0 !== values.borderradius && '0' !== values.borderradius && '0px' !== values.borderradius ) {
-					borderRadius += '-webkit-border-radius:{' + values.borderradius + '};-moz-border-radius:{' + values.borderradius + '};border-radius:{' + values.borderradius + '};';
+					borderRadius += '-webkit-border-radius:' + values.borderradius + ';-moz-border-radius:' + values.borderradius + ';border-radius:' + values.borderradius + ';';
 				}
 
 				return borderRadius;
@@ -357,7 +412,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 */
 			buildImgStyles: function( atts ) {
 				var imgStyles = '';
-				if ( '' !== atts.borderRadius ) {
+				if ( atts.borderRadius ) {
 					imgStyles = ' style="' + atts.borderRadius + '"';
 				}
 
@@ -372,12 +427,17 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 */
 			buildElementContent: function( atts ) {
 				var imgClasses = 'img-responsive',
-					classes = '';
+					classes    = '',
+					imageAtts  = '';
 
-				if ( _.FusionIsValidJSON( atts.contentAttr.src ) ) {
+				if ( 'no_image_set' === atts.contentAttr ) {
+					return;
+				} else if ( _.FusionIsValidJSON( atts.contentAttr.src ) ) {
 					atts.values.element_content = this.getLogoImages( atts );
 				} else {
-					atts.values.element_content = '<img ' + _.fusionGetAttributes( atts.contentAttr ) + ' />';
+					imageAtts =  _.fusionGetAttributes( atts.contentAttr );
+					imageAtts = -1 === imageAtts.indexOf( 'alt=' ) ? imageAtts + ' alt' : imageAtts;
+					atts.values.element_content = '<img ' + imageAtts + ' />';
 				}
 
 				if ( '' !== atts.values.image_id ) {
@@ -406,9 +466,14 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					atts.values.pic_link = atts.values.lightbox_image;
 				}
 
+				if ( -1 === jQuery.inArray( atts.values.caption_style, [ 'off', 'above', 'below' ] ) ) {
+					atts.values.element_content += this.generateCaption( atts );
+				}
+
 				if ( 'yes' === atts.values.lightbox || atts.values.link ) {
 					atts.values.element_content = '<a ' + _.fusionGetAttributes( atts.linkAttr ) + '>' + atts.values.element_content + '</a>';
 				}
+
 			},
 
 			/**
@@ -425,6 +490,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				if ( 'liftup' === atts.values.hover_type || ( 'bottomshadow' === atts.values.style_type && ( 'none' === atts.values.hover_type || 'zoomin' === atts.values.hover_type || 'zoomout' === atts.values.hover_type ) ) ) {
 					if ( 'liftup' === atts.values.hover_type ) {
 						liftupClasses = 'imageframe-liftup';
+						if ( '' !== atts.values.aspect_ratio ) {
+							liftupClasses += ' liftup-with-aspect-ratio';
+						}
 						if ( ! this.isFlex ) {
 							if ( 'left' === atts.values.align ) {
 								liftupClasses += ' fusion-imageframe-liftup-left';
@@ -436,6 +504,11 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						if ( atts.borderRadius ) {
 							liftupClasses += ' imageframe-cid' + cid;
 						}
+
+						if ( '' !== atts.values.hover_type && '' !== atts.values.mask ) {
+							liftupClasses += ' awb-image-frame hover-with-mask';
+						}
+
 					} else {
 						liftupClasses += 'fusion-image-frame-bottomshadow image-frame-shadow-cid' + cid;
 					}
@@ -444,6 +517,123 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				}
 
 				return liftupClasses;
+			},
+
+			/**
+			 * Builds mask styles.
+			 *
+			 * @since 7.6
+			 * @param {Object} atts - The atts object.
+			 * @return {string}
+			 */
+			buildMaskStyles: function( atts ) {
+				var maskStyles = '',
+					cid = this.model.get( 'cid' );
+
+
+				if ( atts.values.mask ) {
+					const maskUrl = 'custom' === atts.values.mask ? atts.values.custom_mask
+									: `${builderConfig.fusion_builder_plugin_dir + '/assets/images/masks/'}${atts.values.mask}.svg`;
+
+					let maskStyle = hoverMaskStyle = '';
+					if ( atts.values.mask_size ) {
+						const maskSize = atts.values.mask_size;
+						if ( 'fit' === maskSize ) {
+							maskStyle += '-webkit-mask-size: contain;';
+							maskStyle += 'mask-size: contain;';
+
+							if ( 'liftup' ===  atts.values.hover_type ) {
+								hoverMaskStyle += 'background-size: contain;';
+							}
+						}
+						if ( 'fill' === maskSize ) {
+							maskStyle += '-webkit-mask-size: cover;';
+							maskStyle += 'mask-size: cover;';
+
+							if ( 'liftup' === atts.values.hover_type ) {
+								hoverMaskStyle += 'background-size: cover;';
+							}
+						}
+						if ( 'custom' === maskSize ) {
+							maskStyle += '-webkit-mask-size: ' + atts.values.mask_custom_size + ';';
+							maskStyle += 'mask-size: ' + atts.values.mask_custom_size + ';';
+
+							if ( 'liftup' === atts.values.hover_type ) {
+								hoverMaskStyle += 'background-size: ' + atts.values.mask_custom_size + ';';
+							}
+						}
+					}
+
+					if ( atts.values.mask_position ) {
+						const maskPosition = 'custom' !== atts.values.mask_position ? atts.values.mask_position.replace( '-', ' ' ) : atts.values.mask_custom_position;
+							maskStyle += '-webkit-mask-position: ' + maskPosition + ';';
+							maskStyle += 'mask-position: ' + maskPosition + ';';
+
+							if ( 'liftup' === atts.values.hover_type ) {
+								hoverMaskStyle += 'background-position: ' + maskPosition + ';';
+							}
+					}
+
+					if ( atts.values.mask_repeat ) {
+							maskStyle += '-webkit-mask-repeat: ' + atts.values.mask_repeat + ';';
+							maskStyle += 'mask-repeat: ' + atts.values.mask_repeat + ';';
+
+							if ( 'liftup' === atts.values.hover_type ) {
+								hoverMaskStyle += 'background-repeat: ' + atts.values.mask_repeat + ';';
+							}
+					}
+					maskStyles += maskUrl ? `.fusion-imageframe.imageframe-cid${cid} img {
+						-webkit-mask-image: url(${maskUrl});
+						mask-image: url(${maskUrl});
+						${maskStyle}
+					}` : '';
+
+					maskStyles += maskUrl && 'liftup' ===  atts.values.hover_type ? `.imageframe-liftup.imageframe-cid${cid}:before {
+						background-image: url(${maskUrl});
+						${hoverMaskStyle}
+					}` : '';
+				}
+
+				return maskStyles;
+			},
+
+			/**
+			 * Builds aspect ratio styles.
+			 *
+			 * @since 7.6
+			 * @param {Object} atts - The atts object.
+			 * @return {string}
+			 */
+			buildAspectRatioStyles: function() {
+				var selectors, aspectRatio, width, height;
+
+				if ( '' ===  this.values.aspect_ratio ) {
+					return '';
+				}
+
+				this.dynamic_css = {};
+				this.baseSelector = '.fusion-imageframe.imageframe-cid' +  this.model.get( 'cid' );
+				selectors = [ this.baseSelector + ' img' ];
+
+				// Calc Ratio
+				if ( 'custom' ===  this.values.aspect_ratio && '' !==  this.values.custom_aspect_ratio ) {
+					this.addCssProperty( selectors, 'aspect-ratio', `100 / ${this.values.custom_aspect_ratio}` );
+				} else {
+					aspectRatio = this.values.aspect_ratio.split( '-' );
+					width 		= aspectRatio[ 0 ] || '';
+					height 		= aspectRatio[ 1 ] || '';
+
+					this.addCssProperty( selectors, 'aspect-ratio', `${width} / ${height}` );
+				}
+
+				//Ratio Position
+				if ( '' !==  this.values.aspect_ratio_position ) {
+					this.addCssProperty( selectors, 'object-position', this.values.aspect_ratio_position );
+				}
+
+				const css = this.parseCSS();
+
+				return css;
 			},
 
 			/**
@@ -462,28 +652,12 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					liftupStyles += '.imageframe-liftup.imageframe-cid' + cid + ':before{' + atts.borderRadius + '}';
 				}
 
-				if ( '' !== atts.values.max_width ) {
-					liftupStyles += '.imageframe-cid' + cid + '{max-width:' + atts.values.max_width + '}';
-				}
-
-				if ( '' !== atts.values.margin_top ) {
-					liftupStyles += 'div.imageframe-cid' + cid + '{margin-top:' + atts.values.margin_top + ' !important;}';
-				}
-
-				if ( '' !== atts.values.margin_right ) {
-					liftupStyles += 'div.imageframe-cid' + cid + '{margin-right:' + atts.values.margin_right + ' !important;}';
-				}
-
-				if ( '' !== atts.values.margin_bottom ) {
-					liftupStyles += 'div.imageframe-cid' + cid + '{margin-bottom:' + atts.values.margin_bottom + ' !important;}';
-				}
-
-				if ( '' !== atts.values.margin_left ) {
-					liftupStyles += 'div.imageframe-cid' + cid + '{margin-left:' + atts.values.margin_left + ' !important;}';
+				if ( '' !== atts.values.max_width && '' === atts.values.aspect_ratio ) {
+					liftupStyles += '.imageframe-cid' + cid + '{max-width:' + _.fusionGetValueWithUnit( atts.values.max_width ) + '}';
 				}
 
 				if ( 'liftup' === atts.values.hover_type || ( 'bottomshadow' === atts.values.style_type && ( 'none' === atts.values.hover_type || 'zoomin' === atts.values.hover_type || 'zoomout' === atts.values.hover_type ) ) ) {
-					styleColor = ( 0 === atts.values.stylecolor.indexOf( '#' ) ) ? jQuery.Color( atts.values.stylecolor ).alpha( 0.4 ).toRgbaString() : jQuery.Color( atts.values.stylecolor ).toRgbaString();
+					styleColor = ( 0 === atts.values.stylecolor.indexOf( '#' ) ) ? jQuery.AWB_Color( atts.values.stylecolor ).alpha( 0.4 ).toRgbaString() : jQuery.AWB_Color( atts.values.stylecolor ).toRgbaString();
 
 					if ( 'liftup' === atts.values.hover_type ) {
 						if ( 'bottomshadow' === atts.values.style_type ) {
@@ -500,6 +674,241 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				liftupStyles += '</style>';
 
 				return liftupStyles;
+			},
+
+			/**
+			 * Builds margin styles.
+			 *
+			 * @since 3.5
+			 * @param {Object} atts - The atts object.
+			 * @return {string}
+			 */
+			buildMarginStyles: function( atts ) {
+				var extras = jQuery.extend( true, {}, fusionAllElements.fusion_imageframe.extras ),
+					elementSelector = 'div.imageframe-cid' + this.model.get( 'cid' ),
+					responsiveStyles = '';
+
+				if ( 'liftup' !== atts.values.hover_type && 'bottomshadow' !== atts.values.style ) {
+					elementSelector = 'span.imageframe-cid' + this.model.get( 'cid' );
+				}
+
+				_.each( [ 'large', 'medium', 'small' ], function( size ) {
+					var marginStyles = '',
+						marginKey;
+
+					_.each( [ 'top', 'right', 'bottom', 'left' ], function( direction ) {
+
+						// Margin.
+						marginKey = 'margin_' + direction + ( 'large' === size ? '' : '_' + size );
+						if ( '' !== atts.values[ marginKey ] ) {
+							marginStyles += 'margin-' + direction + ' : ' + _.fusionGetValueWithUnit( atts.values[ marginKey ] ) + ';';
+						}
+
+					} );
+
+					if ( '' === marginStyles ) {
+						return;
+					}
+
+					// Wrap CSS selectors
+					if ( '' !== marginStyles ) {
+						marginStyles = elementSelector + ' {' + marginStyles + '}';
+					}
+
+					// Large styles, no wrapping needed.
+					if ( 'large' === size ) {
+						responsiveStyles += marginStyles;
+					} else {
+						// Medium and Small size screen styles.
+						responsiveStyles += '@media only screen and (max-width:' + extras[ 'visibility_' + size ] + 'px) {' + marginStyles + '}';
+					}
+				} );
+
+				responsiveStyles += this.buildCaptionStyles( atts );
+
+
+				return responsiveStyles;
+			},
+
+			/**
+			 * Builds caption styles.
+			 *
+			 * @since 3.5
+			 * @param {Object} atts - The atts object.
+			 * @return {string}
+			 */
+			buildCaptionStyles: function( atts ) {
+				var css, media,
+				responsive = '',
+				selectors, font_styles, sides, marginName;
+
+				this.dynamic_css  = {};
+				this.baseSelector = '.fusion-imageframe.imageframe-cid' + this.model.get( 'cid' );
+
+				if ( 'off' === atts.values.caption_style ) {
+					return '';
+				}
+
+				if ( -1 !== jQuery.inArray( atts.values.caption_style, [ 'above', 'below' ] ) ) {
+					this.baseSelector = '.awb-imageframe-style.awb-imageframe-style-' + this.model.get( 'cid' );
+				}
+
+				selectors = [ this.baseSelector + ' .awb-imageframe-caption-container .awb-imageframe-caption-title' ];
+				// title color.
+				if ( ! this.isDefault( 'caption_title_color' ) ) {
+					this.addCssProperty( selectors, 'color', atts.values.caption_title_color, true );
+				}
+				// title size.
+				if ( ! this.isDefault( 'caption_title_size' ) ) {
+					this.addCssProperty( selectors, 'font-size', _.fusionGetValueWithUnit( atts.values.caption_title_size ), true );
+				}
+				// title font.
+				font_styles = _.fusionGetFontStyle( 'caption_title_font', atts.values, 'object' );
+				for ( rule in font_styles ) { // eslint-disable-line
+					var value = font_styles[ rule ]; // eslint-disable-line
+
+					this.addCssProperty( selectors, rule, value, true ); // eslint-disable-line
+				}
+				// title transform.
+				if ( ! this.isDefault( 'caption_title_transform' ) ) {
+					this.addCssProperty( selectors, 'text-transform', atts.values.caption_title_transform );
+				}
+
+				selectors = [ this.baseSelector + ' .awb-imageframe-caption-container .awb-imageframe-caption-text' ];
+				// text color.
+				if ( ! this.isDefault( 'caption_text_color' ) ) {
+					this.addCssProperty( selectors, 'color', atts.values.caption_text_color );
+				}
+				// text size.
+				if ( ! this.isDefault( 'caption_text_size' ) ) {
+					this.addCssProperty( selectors, 'font-size', _.fusionGetValueWithUnit( atts.values.caption_text_size ) );
+				}
+				// text font.
+				font_styles = _.fusionGetFontStyle( 'caption_text_font', atts.values, 'object' );
+				for ( rule in font_styles ) { // eslint-disable-line
+					var value = font_styles[ rule ]; // eslint-disable-line
+
+					this.addCssProperty( selectors, rule, value, true ); // eslint-disable-line
+				}
+				// text transform.
+				if ( ! this.isDefault( 'caption_text_transform' ) ) {
+					this.addCssProperty( selectors, 'text-transform', atts.values.caption_text_transform );
+				}
+
+				// Border color.
+				if ( 'resa' === atts.values.caption_style && ! this.isDefault( 'caption_border_color' ) ) {
+					selectors = [ this.baseSelector + ' .awb-imageframe-caption-container:before' ];
+					this.addCssProperty( selectors, 'border-top-color', atts.values.caption_border_color );
+					this.addCssProperty( selectors, 'border-bottom-color', atts.values.caption_border_color );
+					selectors = [ this.baseSelector + ' .awb-imageframe-caption-container:after' ];
+					this.addCssProperty( selectors, 'border-right-color', atts.values.caption_border_color );
+					this.addCssProperty( selectors, 'border-left-color', atts.values.caption_border_color );
+				}
+
+				if ( 'dario' === atts.values.caption_style && ! this.isDefault( 'caption_border_color' ) ) {
+					selectors = [ this.baseSelector + ' .awb-imageframe-caption .awb-imageframe-caption-title:after' ];
+					this.addCssProperty( selectors, 'background', atts.values.caption_border_color );
+				}
+
+				// Overlay color.
+				if ( -1 !== jQuery.inArray( atts.values.caption_style, [ 'dario', 'resa', 'schantel', 'dany', 'navin' ] ) ) {
+					selectors = [ this.baseSelector ];
+					this.addCssProperty( selectors, 'background', atts.values.caption_overlay_color );
+				}
+
+				// Background color.
+				if ( -1 !== jQuery.inArray( atts.values.caption_style, [ 'schantel', 'dany' ] ) && ! this.isDefault( 'caption_background_color' ) ) {
+					selectors = [ this.baseSelector + ' .awb-imageframe-caption-container .awb-imageframe-caption-text' ];
+					this.addCssProperty( selectors, 'background', atts.values.caption_background_color );
+				}
+
+				// Caption margin.
+				if ( -1 !== jQuery.inArray( atts.values.caption_style, [ 'above', 'below' ] ) ) {
+					sides     = [ 'top', 'right', 'bottom', 'left' ];
+					selectors = [ this.baseSelector + ' .awb-imageframe-caption-container' ];
+
+					_.each( sides, function( side ) {
+						marginName = 'caption_margin_' + side;
+
+						if ( ! this.isDefault( marginName ) ) {
+							this.addCssProperty( selectors, 'margin-' + side, _.fusionGetValueWithUnit( atts.values[ marginName ] ) );
+						}
+					}, this );
+
+
+					if ( ! this.isDefault( 'caption_title' ) ) {
+						selectors = [ this.baseSelector + ' .awb-imageframe-caption-container .awb-imageframe-caption-text' ];
+						this.addCssProperty( selectors, 'margin-top', '0.5em' );
+					}
+				}
+
+				css = this.parseCSS();
+
+				if ( -1 !== jQuery.inArray( atts.values.caption_style, [ 'above', 'below' ] ) ) {
+					_.each( [ '', 'medium', 'small' ], function( size ) {
+						var key = 'caption_align' + ( '' === size ? '' : '_' + size );
+
+						// Check for default value.
+						if ( this.isDefault( key ) ) {
+							return;
+						}
+
+						this.dynamic_css  = {};
+
+						// Build responsive alignment.
+						selectors = [ this.baseSelector + ' .awb-imageframe-caption-container' ];
+						this.addCssProperty( selectors, 'text-align', atts.values[ key ] );
+
+						if ( '' === size ) {
+							responsive += this.parseCSS();
+						} else {
+							media       = '@media only screen and (max-width:' + this.extras[ 'visibility_' + size ] + 'px)';
+							responsive += media + '{' + this.parseCSS() + '}';
+						}
+					}, this );
+					css += responsive;
+				}
+
+				// when image max-width applied.
+				if ( -1 !== jQuery.inArray( atts.values.caption_style, [ 'above', 'below' ] ) && '' !== atts.values.max_width ) {
+					_.each( [ '', 'medium', 'small' ], function( size ) {
+						var key = 'align' + ( '' === size ? '' : '_' + size ),
+							align, props, styles;
+
+						// Check for default value.
+						if ( this.isDefault( key ) ) {
+							return;
+						}
+
+						align = atts.values[ key ];
+						if ( 'left' === align ) {
+							align = 'right';
+						} else if ( 'right' === align ) {
+							align = 'left';
+						}
+
+						if ( 'center' === align ) {
+							props = 'margin: 0 auto;';
+						} else {
+							props  = 'margin-' + align + ': auto;';
+						}
+						if ( 'small' === size ) {
+							props = 'margin: 0;';
+						}
+
+						// Build responsive alignment.
+						styles = this.baseSelector + ' .awb-imageframe-caption-container {' + props + '}';
+
+						if ( '' === size ) {
+							css += styles;
+						} else {
+							media       = '@media only screen and (max-width:' + this.extras[ 'visibility_' + size ] + 'px)';
+							css += media + '{' + styles + '}';
+						}
+					}, this );
+				}
+
+				return css;
 			},
 
 			/**
@@ -586,7 +995,125 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				content = '<img ' + _.fusionGetAttributes( logoData ) + ' />';
 
 				return content;
+			},
+
+			/**
+			 * Generate caption markup.
+			 *
+			 * @since 3.5
+			 * @param {string} atts - The atts object.
+			 * @return {string}
+			 */
+			generateCaption: function( atts ) {
+				var self = this,
+					content = '<div ' + _.fusionGetAttributes( this.buildCaptionAttr( atts.values ) ) + '><div class="awb-imageframe-caption">',
+					title = '',
+					caption = '',
+					title_tag = '',
+					image_id,
+					media;
+
+				if ( 'off' === atts.values.caption_style ) {
+					return '';
+				}
+
+				// Get image title & caption from attachment attribute.
+				if ( 'undefined' !== typeof atts.values.image_id && '' !== atts.values.image_id ) {
+					if ( -1 !== atts.values.image_id.indexOf( '|' ) ) {
+						image_id = atts.values.image_id.split( '|' )[ 0 ];
+					} else {
+						image_id = atts.values.image_id;
+					}
+					media = wp.media.attachment( image_id );
+					if ( _.isUndefined( media.get( 'title' ) ) ) {
+						media.fetch().then( function() {
+							self.reRender();
+							self._refreshJs();
+						} );
+					} else {
+						title = media.get( 'title' );
+						caption = media.get( 'caption' );
+					}
+				}
+
+				// Otherwise get title & caption from custom option.
+				if ( '' !== atts.values.caption_title ) {
+					title = atts.values.caption_title;
+				}
+				if ( '' !== atts.values.caption_text ) {
+					caption = atts.values.caption_text;
+				}
+
+				if ( '' !== title ) {
+					title_tag = 'div' === atts.values.caption_title_tag ? 'div' : 'h' + atts.values.caption_title_tag;
+					content += '<' + title_tag + ' class="awb-imageframe-caption-title">' + title + '</' + title_tag + '>';
+				}
+				if ( '' !== caption ) {
+					content += '<p class="awb-imageframe-caption-text">' + caption + '</p>';
+				}
+				content += '</div></div>';
+
+				return content;
+			},
+
+			/**
+			 * Runs just after render on cancel.
+			 *
+			 * @since 3.5
+			 * @return null
+			 */
+			beforeGenerateShortcode: function() {
+				var elementType = this.model.get( 'element_type' ),
+					options     = fusionAllElements[ elementType ].params,
+					values      = jQuery.extend( true, {}, fusionAllElements[ elementType ].defaults, _.fusionCleanParameters( this.model.get( 'params' ) ) );
+
+				if ( 'object' !== typeof options ) {
+					return;
+				}
+
+				// If images needs replaced lets check element to see if we have media being used to add to object.
+				if ( 'undefined' !== typeof FusionApp.data.replaceAssets && FusionApp.data.replaceAssets && ( 'undefined' !== typeof FusionApp.data.fusion_element_type || 'fusion_template' === FusionApp.getPost( 'post_type' ) ) ) {
+
+					this.mapStudioImages( options, values );
+
+					if ( '' !== values.element_content ) {
+						// If its not within object already, add it.
+						if ( 'undefined' === typeof FusionPageBuilderApp.mediaMap.images[ values.element_content ] ) {
+								FusionPageBuilderApp.mediaMap.images[ values.element_content ] = true;
+							}
+
+						// Check if we have an image ID for this param.
+						if ( 'undefined' !== typeof values.image_id && '' !== values.image_id )	{
+							if ( 'object' !== typeof FusionPageBuilderApp.mediaMap.images[ values.element_content ] ) {
+								FusionPageBuilderApp.mediaMap.images[ values.element_content ] = {};
+							}
+							FusionPageBuilderApp.mediaMap.images[ values.element_content ].image_id = values.image_id;
+						}
+					}
+				}
+			},
+
+			/**
+			 * Builds caption attributes.
+			 *
+			 * @since 2.0
+			 * @param {Object} values - The values object.
+			 * @return {Object}
+			 */
+			buildCaptionAttr: function( values ) {
+				// Caption Attributes.
+				var attr = {
+					'class': 'awb-imageframe-caption-container',
+					'style': ''
+				};
+
+				if ( '' !== values.max_width && -1 !== jQuery.inArray( values.caption_style, [ 'above', 'below' ] ) && '' === values.aspect_ratio ) {
+					attr.style += 'max-width:' + _.fusionGetValueWithUnit( values.max_width ) + ';';
+				}
+
+				return attr;
 			}
+
 		} );
 	} );
 }( jQuery ) );

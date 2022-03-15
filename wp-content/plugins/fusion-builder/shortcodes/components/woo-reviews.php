@@ -117,7 +117,10 @@ if ( fusion_is_element_enabled( 'fusion_tb_woo_reviews' ) ) {
 					'button_style'                  => '',
 					'button_size'                   => '',
 					'button_stretch'                => 'no',
-					'button_border_width'           => '',
+					'button_border_top'             => '',
+					'button_border_right'           => '',
+					'button_border_bottom'          => '',
+					'button_border_left'            => '',
 					'button_color'                  => '',
 					'button_gradient_top'           => $fusion_settings->get( 'button_gradient_top_color' ),
 					'button_gradient_bottom'        => $fusion_settings->get( 'button_gradient_bottom_color' ),
@@ -171,16 +174,16 @@ if ( fusion_is_element_enabled( 'fusion_tb_woo_reviews' ) ) {
 
 					$this->emulate_product();
 
+					if ( ! $this->is_product() ) {
+						echo wp_json_encode( $return_data );
+						wp_die();
+					}
+
 					// Needed in order to bypass early exit in comments_template function.
 					$withcomments = true;
 
 					// We need to set global $post because Woo template expects it.
 					$post = get_post( $product->get_id() );
-
-					if ( ! $this->is_product() ) {
-						echo wp_json_encode( $return_data );
-						wp_die();
-					}
 
 					$return_data['woo_reviews'] = $this->get_woo_reviews_content( $defaults, $post_id );
 					$this->restore_product();
@@ -213,6 +216,14 @@ if ( fusion_is_element_enabled( 'fusion_tb_woo_reviews' ) ) {
 					return;
 				}
 
+				// Legacy single border width.
+				if ( isset( $args['button_border_width'] ) && ! isset( $args['button_border_top'] ) ) {
+					$this->args['button_border_top']    = $args['button_border_width'];
+					$this->args['button_border_right']  = $this->args['button_border_top'];
+					$this->args['button_border_bottom'] = $this->args['button_border_top'];
+					$this->args['button_border_left']   = $this->args['button_border_top'];
+				}
+
 				$html  = $this->get_styles();
 				$html .= '<div ' . FusionBuilder::attributes( 'fusion_tb_woo_reviews-shortcode' ) . '>' . $this->get_woo_reviews_content( $this->args ) . '</div>';
 
@@ -240,7 +251,7 @@ if ( fusion_is_element_enabled( 'fusion_tb_woo_reviews' ) ) {
 			 * @return string
 			 */
 			public function get_woo_reviews_content( $args ) {
-				global $product;
+				global $woocommerce, $product;
 
 				$content = '';
 				if ( is_object( $product ) ) {
@@ -368,8 +379,25 @@ if ( fusion_is_element_enabled( 'fusion_tb_woo_reviews' ) ) {
 					}
 
 					// Button border width.
-					if ( ! $this->is_default( 'button_border_width' ) ) {
-						$this->add_css_property( $button, 'border-width', fusion_library()->sanitize->get_value_with_unit( $this->args['button_border_width'] ) );
+					$border_set = false;
+					if ( ! $this->is_default( 'button_border_top' ) ) {
+						$border_set = true;
+						$this->add_css_property( $button, 'border-top-width', fusion_library()->sanitize->get_value_with_unit( $this->args['button_border_top'] ) );
+					}
+					if ( ! $this->is_default( 'button_border_right' ) ) {
+						$border_set = true;
+						$this->add_css_property( $button, 'border-right-width', fusion_library()->sanitize->get_value_with_unit( $this->args['button_border_right'] ) );
+					}
+					if ( ! $this->is_default( 'button_border_bottom' ) ) {
+						$border_set = true;
+						$this->add_css_property( $button, 'border-bottom-width', fusion_library()->sanitize->get_value_with_unit( $this->args['button_border_bottom'] ) );
+					}
+					if ( ! $this->is_default( 'button_border_left' ) ) {
+						$border_set = true;
+						$this->add_css_property( $button, 'border-left-width', fusion_library()->sanitize->get_value_with_unit( $this->args['button_border_left'] ) );
+					}
+
+					if ( $border_set ) {
 						$this->add_css_property( $button, 'border-style', 'solid' );
 					}
 
@@ -483,6 +511,11 @@ function fusion_component_woo_reviews() {
 				'component'               => true,
 				'templates'               => [ 'content' ],
 				'components_per_template' => 1,
+				'subparam_map'            => [
+					'fusion_font_family_text_font'  => 'main_typography',
+					'fusion_font_variant_text_font' => 'main_typography',
+					'text_font_size'                => 'main_typography',
+				],
 				'params'                  => [
 					[
 						'type'        => 'radio_button_set',
@@ -557,28 +590,25 @@ function fusion_component_woo_reviews() {
 						],
 					],
 					[
-						'type'             => 'font_family',
-						'remove_from_atts' => true,
-						'heading'          => esc_attr__( 'Text Font Family', 'fusion-builder' ),
-						'description'      => esc_html__( 'Controls the font family of the text.', 'fusion-builder' ),
-						'param_name'       => 'text_font',
-						'default'          => [
-							'font-family'  => '',
-							'font-variant' => '',
+						'type'             => 'typography',
+						'heading'          => esc_attr__( 'Content Typography', 'fusion-builder' ),
+						'description'      => esc_html__( 'Controls the typography of the text. Leave empty for the global font family.', 'fusion-builder' ),
+						'param_name'       => 'main_typography',
+						'choices'          => [
+							'font-family'    => 'text_font',
+							'font-size'      => 'text_font_size',
+							'line-height'    => false,
+							'letter-spacing' => false,
+							'text-transform' => false,
 						],
+						'default'          => [
+							'font-family' => '',
+							'variant'     => '400',
+						],
+						'remove_from_atts' => true,
+						'global'           => true,
 						'group'            => esc_attr__( 'Design', 'fusion-builder' ),
 						'callback'         => [
-							'function' => 'fusion_style_block',
-						],
-					],
-					[
-						'type'        => 'textfield',
-						'heading'     => esc_attr__( 'Content Text Font Size', 'fusion-builder' ),
-						'description' => esc_html__( 'Controls the font size of the content text. Enter value including any valid CSS unit, ex: 20px.', 'fusion-builder' ),
-						'param_name'  => 'text_font_size',
-						'value'       => '',
-						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
-						'callback'    => [
 							'function' => 'fusion_style_block',
 						],
 					],
@@ -736,24 +766,26 @@ function fusion_component_woo_reviews() {
 						],
 					],
 					[
-						'type'        => 'range',
-						'heading'     => esc_attr__( 'Button Border Size', 'fusion-builder' ),
-						'param_name'  => 'button_border_width',
-						'description' => esc_attr__( 'Controls the border size. In pixels.', 'fusion-builder' ),
-						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
-						'dependency'  => [
+						'type'             => 'dimension',
+						'remove_from_atts' => true,
+						'heading'          => esc_attr__( 'Button Border Size', 'fusion-builder' ),
+						'description'      => esc_attr__( 'Controls the border size. In pixels or percentage, ex: 10px or 10%.', 'fusion-builder' ),
+						'param_name'       => 'button_border_width',
+						'value'            => [
+							'button_border_top'    => '',
+							'button_border_right'  => '',
+							'button_border_bottom' => '',
+							'button_border_left'   => '',
+						],
+						'group'            => esc_attr__( 'Design', 'fusion-builder' ),
+						'dependency'       => [
 							[
 								'element'  => 'button_style',
 								'value'    => 'custom',
 								'operator' => '==',
 							],
 						],
-						'min'         => '0',
-						'max'         => '20',
-						'step'        => '1',
-						'value'       => '',
-						'default'     => $fusion_settings->get( 'button_border_width' ),
-						'callback'    => [
+						'callback'         => [
 							'function' => 'fusion_style_block',
 							'args'     => [
 

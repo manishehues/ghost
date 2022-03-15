@@ -1,7 +1,6 @@
-/* global Fuse, fusionIconSearch, fusionBuilderText */
+/* global Fuse, FusionApp, fusionIconSearch, fusionBuilderText */
 var FusionPageBuilder = FusionPageBuilder || {},
-	FusionDelay,
-	FusionApp;
+	FusionDelay;
 
 FusionPageBuilder.options = FusionPageBuilder.options || {};
 
@@ -37,7 +36,9 @@ FusionPageBuilder.options.fusionIconPicker = {
 				$container.append( output ).before( '<div class="fusion-icon-picker-nav-wrapper"><a href="#" class="fusion-icon-picker-nav-left fusiona-arrow-left"></a><div class="fusion-icon-picker-nav">' + outputNav + '</div><a href="#" class="fusion-icon-picker-nav-right fusiona-arrow-right"></a></div>' );
 
 				if ( '' !== value && -1 === value.indexOf( ' ' ) ) {
-					value = FusionApp.checkLegacyAndCustomIcons( value );
+					if ( 'undefined' !== typeof FusionApp ) {
+						value = FusionApp.checkLegacyAndCustomIcons( value );
+					}
 
 					// If custom icon we don't need to update input, just value needs converted for below.
 					if ( ! customIcon ) {

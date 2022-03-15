@@ -247,6 +247,7 @@ class Fusion_Product_Registration {
 	 *
 	 * @access public
 	 * @since 3.4
+	 * @param array $registration_data Registration data.
 	 * @return void
 	 */
 	public function cli_update_data( $registration_data ) {
@@ -276,7 +277,7 @@ class Fusion_Product_Registration {
 	 *
 	 * @access public
 	 * @since 3.4
-	 * @return void
+	 * @return null|object
 	 */
 	public function get_errors() {
 		return $this->errors;

@@ -73,11 +73,11 @@ class Fusion_Builder_Conditional_Render_Helper {
 					],
 					[
 						'id'          => 'get_var',
-						'title'       => esc_html__( 'Get Variable', 'fusion-builder' ),
+						'title'       => esc_html__( 'GET Variable', 'fusion-builder' ),
 						'type'        => 'text',
 						'additionals' => [
 							'type'        => 'text',
-							'title'       => esc_html__( 'Get', 'fusion-builder' ),
+							'title'       => esc_html__( 'GET', 'fusion-builder' ),
 							'placeholder' => esc_html__( 'Variable Name', 'fusion-builder' ),
 						],
 						'comparisons' => [
@@ -123,12 +123,30 @@ class Fusion_Builder_Conditional_Render_Helper {
 							'not-equal' => esc_attr__( 'Not Equal To', 'fusion-builder' ),
 						],
 					],
+					[
+						'id'          => 'custom_field',
+						'title'       => esc_html__( 'Custom Field', 'fusion-builder' ),
+						'type'        => 'text',
+						'additionals' => [
+							'type'        => 'text',
+							'title'       => esc_html__( 'Field Name', 'fusion-builder' ),
+							'placeholder' => esc_html__( 'Field Name', 'fusion-builder' ),
+						],
+						'comparisons' => [
+							'equal'        => esc_attr__( 'Equal To', 'fusion-builder' ),
+							'not-equal'    => esc_attr__( 'Not Equal To', 'fusion-builder' ),
+							'greater-than' => esc_attr__( 'Greater Than', 'fusion-builder' ),
+							'less-than'    => esc_attr__( 'Less Than', 'fusion-builder' ),
+							'contains'     => esc_attr__( 'Contains', 'fusion-builder' ),
+						],
+					],
 				],
 			],
 		];
 
 		$params = self::maybe_add_woo_options( $params );
 		$params = self::maybe_add_ec_options( $params );
+		$params = self::maybe_add_acf_options( $params );
 
 		// Override params.
 		foreach ( $args as $key => $value ) {
@@ -253,6 +271,43 @@ class Fusion_Builder_Conditional_Render_Helper {
 	}
 
 	/**
+	 * Adds ACF Options.
+	 *
+	 * @since 3.5
+	 * @param array $params The existing params.
+	 * @return array.
+	 */
+	public static function maybe_add_acf_options( $params ) {
+		if ( ! class_exists( 'ACF' ) ) {
+			return $params;
+		}
+
+		$options = [
+			[
+				'id'          => 'acf_field',
+				'title'       => esc_html__( 'ACF Field', 'fusion-builder' ),
+				'type'        => 'text',
+				'additionals' => [
+					'type'        => 'text',
+					'title'       => esc_html__( 'Field Name', 'fusion-builder' ),
+					'placeholder' => esc_html__( 'Field Name', 'fusion-builder' ),
+				],
+				'comparisons' => [
+					'equal'        => esc_attr__( 'Equal To', 'fusion-builder' ),
+					'not-equal'    => esc_attr__( 'Not Equal To', 'fusion-builder' ),
+					'greater-than' => esc_attr__( 'Greater Than', 'fusion-builder' ),
+					'less-than'    => esc_attr__( 'Less Than', 'fusion-builder' ),
+					'contains'     => esc_attr__( 'Contains', 'fusion-builder' ),
+				],
+			],
+		];
+
+		$params[0]['choices'] = array_merge( $params[0]['choices'], $options );
+
+		return $params;
+	}
+
+	/**
 	 * Checks if element should render or not.
 	 *
 	 * @since 3.3
@@ -307,8 +362,9 @@ class Fusion_Builder_Conditional_Render_Helper {
 	public static function get_value( $name, $value, $additionals ) {
 		$woo_options   = [ 'cart_status', 'sale_status', 'stock_quantity' ];
 		$event_options = [ 'event_status' ];
+		$acf_options   = [ 'acf_field' ];
 
-		if ( in_array( $name, $woo_options, true ) && ! class_exists( 'WooCommerce' ) || in_array( $name, $event_options, true ) && ! class_exists( 'Tribe__Events__Main' ) ) {
+		if ( in_array( $name, $woo_options, true ) && ! class_exists( 'WooCommerce' ) || in_array( $name, $event_options, true ) && ! class_exists( 'Tribe__Events__Main' ) || in_array( $name, $acf_options, true ) && ! class_exists( 'ACF' ) ) {
 			return '';
 		}
 
@@ -397,6 +453,14 @@ class Fusion_Builder_Conditional_Render_Helper {
 
 			case 'get_var':
 				return isset( $_GET[ $additionals ] ) ? sanitize_text_field( wp_unslash( $_GET[ $additionals ] ) ) : null; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+			case 'custom_field':
+				$post_meta = get_post_meta( get_the_ID(), $additionals, true );
+				return ! empty( $post_meta ) ? $post_meta : null;
+
+			case 'acf_field':
+				$acf_field = get_field( $additionals );
+				return ! empty( $acf_field ) ? $acf_field : null;
 		}
 	}
 

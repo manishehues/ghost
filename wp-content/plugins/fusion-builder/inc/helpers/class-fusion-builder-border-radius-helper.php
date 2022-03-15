@@ -39,7 +39,7 @@ class Fusion_Builder_Border_Radius_Helper {
 	 */
 	public static function get_params( $args ) {
 
-		return [
+		$params = [
 			[
 				'type'             => 'dimension',
 				'remove_from_atts' => true,
@@ -55,6 +55,18 @@ class Fusion_Builder_Border_Radius_Helper {
 				],
 			],
 		];
+
+		// Override params.
+		foreach ( $args as $key => $value ) {
+			if ( 'fusion_remove_param' === $value && isset( $params[0][ $key ] ) ) {
+				unset( $params[0][ $key ] );
+				continue;
+			}
+
+			$params[0][ $key ] = $value;
+		}
+
+		return $params;
 	}
 
 	/**

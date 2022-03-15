@@ -16187,7 +16187,9 @@ var VirtualRenderer = function(container, theme) {
         function afterLoad(module) {
             if (_self.$themeId != theme)
                 return cb && cb();
-            if (!module.cssClass)
+
+                // ThemeFusion edit: fix module being undefined.
+            if ('undefined' === typeof module || !module.cssClass)
                 return;
             dom.importCssString(
                 module.cssText,

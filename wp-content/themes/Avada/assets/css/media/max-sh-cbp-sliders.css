@@ -70,7 +70,7 @@
 .ls-container .fusion-button .button-icon-divider-right img,
 .rev_slider .fusion-button .button-icon-divider-right img {
   top: 50%;
-  margin-top: -6px;
+  transform: translateY(-50%);
   display: block;
 }
 .ls-container .button.button-3d:active,

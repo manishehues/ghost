@@ -79,6 +79,15 @@ function avada_options_section_advanced( $sections ) {
 							],
 						],
 					],
+					'status_avada_studio'                => [
+						'label'       => esc_html__( 'Avada Studio', 'Avada' ),
+						'description' => esc_html__( 'Turn on to enable Avada studio.', 'Avada' ),
+						'id'          => 'status_avada_studio',
+						'default'     => '1',
+						'type'        => 'switch',
+						// No need to refresh the page.
+						'transport'   => 'postMessage',
+					],
 					'avada_rev_styles'                   => [
 						'label'       => esc_html__( 'Avada Styles For Slider Revolution', 'Avada' ),
 						'description' => esc_html__( 'Turn on to enable the Avada styles and use the default Slider Revolution styles.', 'Avada' ),
@@ -587,6 +596,15 @@ function avada_options_section_advanced( $sections ) {
 						'label'       => esc_html__( 'Avada Forms', 'Avada' ),
 						'description' => esc_html__( 'Turn on to enable the Avada Forms.', 'Avada' ),
 						'id'          => 'status_fusion_forms',
+						'default'     => '1',
+						'type'        => 'switch',
+						// No need to refresh the page.
+						'transport'   => 'postMessage',
+					],
+					'status_awb_Off_Canvas'   => [
+						'label'       => esc_html__( 'Avada Off Canvas', 'Avada' ),
+						'description' => esc_html__( 'Turn on to enable the Avada Off Canvas.', 'Avada' ),
+						'id'          => 'status_awb_Off_Canvas',
 						'default'     => '1',
 						'type'        => 'switch',
 						// No need to refresh the page.

@@ -12,7 +12,7 @@ function fusionHubSpotMapOption( $element ) {
 
 	// Set reusable vars.
 	this.properties = FusionApp.data.hubspot.properties;
-	this.$el        = $element.find( '.fusion-mapping' );
+	this.$el        = $element.find( '.hubspot_map .fusion-mapping' );
 	this.options    = false;
 	this.$input     = $element.find( '#hubspot_map' );
 	this.values     = {};
@@ -66,7 +66,7 @@ fusionHubSpotMapOption.prototype.updateMap  = function() {
 		if ( 'object' !== typeof params ) {
 			return false;
 		}
-		return element.get( 'element_type' ).includes( 'fusion_form' ) && 'fusion_form_submit' !== element.get( 'element_type' ) && 'string' === typeof params.label && 'string' === typeof params.name;
+		return element.get( 'element_type' ).includes( 'fusion_form' ) && 'fusion_form_submit' !== element.get( 'element_type' ) && ( 'string' === typeof params.label || 'string' === typeof params.name );
 	} );
 
 	// Add entries.

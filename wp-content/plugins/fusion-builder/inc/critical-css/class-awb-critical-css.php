@@ -5,6 +5,12 @@
  * @package fusion-builder
  * @since 3.4
  */
+
+/**
+ * Critical CSS.
+ *
+ * @since 3.4
+ */
 class AWB_Critical_CSS {
 
 	/**
@@ -104,12 +110,12 @@ class AWB_Critical_CSS {
 		$this->table_collation = 'utf8mb4_unicode_ci';
 
 		// Create tables if needed.
-		if ( ! get_option( 'awb_critical_table' ) || ( isset( $_GET['create_tables'] ) && $_GET['create_tables'] ) ) {
+		if ( ! get_option( 'awb_critical_table' ) || ( isset( $_GET['create_tables'] ) && $_GET['create_tables'] ) ) { // phpcs:ignore WordPress.Security
 			$this->create_table();
 		}
 
 		// Critical CSS request.
-		if ( ! empty( $_GET['mcritical'] ) || ! empty( $_GET['dcritical'] ) ) {
+		if ( ! empty( $_GET['mcritical'] ) || ! empty( $_GET['dcritical'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			$this->generating_css();
 
 			add_filter( 'body_class', [ $this, 'body_classes' ] );
@@ -126,7 +132,7 @@ class AWB_Critical_CSS {
 	}
 
 	/**
-	 *
+	 * Admin init.
 	 */
 	public function admin_init() {
 		require_once FUSION_BUILDER_PLUGIN_DIR . 'inc/critical-css/class-awb-critical-css-table.php';
@@ -159,7 +165,7 @@ class AWB_Critical_CSS {
 		);
 
 		// Emulate load as if mobile.
-		if ( ! empty( $_GET['mcritical'] ) ) {
+		if ( ! empty( $_GET['mcritical'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			add_filter(
 				'wp_is_mobile',
 				function() {
@@ -423,7 +429,6 @@ class AWB_Critical_CSS {
 
 		// Run the SQL query.
 		dbDelta( "CREATE TABLE IF NOT EXISTS `{$wpdb->prefix}$table_name` ($columns_query_string) $charset_collate" );
-		return;
 	}
 
 	/**
@@ -438,7 +443,7 @@ class AWB_Critical_CSS {
 
 		$table_name  = $wpdb->prefix . $this->table_name;
 		$count_query = "select count(*) from $table_name";
-		return (int) $wpdb->get_var( $count_query );
+		return (int) $wpdb->get_var( $count_query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL
 	}
 
 	/**
@@ -496,7 +501,7 @@ class AWB_Critical_CSS {
 			$query .= ' OFFSET ' . absint( $args['offset'] );
 		}
 
-		return $wpdb->get_results( $query );
+		return $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB
 	}
 
 	/**
@@ -543,14 +548,13 @@ class AWB_Critical_CSS {
 	 * @access public
 	 * @since 3.1
 	 * @param int|array $ids       The submission ID(s).
-	 * @param string    $id_column The column to use in our WHERE query fragment.
 	 * @return void
 	 */
 	public function bulk_delete( $ids ) {
 		global $wpdb;
 
 		$ids = implode( ',', array_map( 'absint', $ids ) );
-		$wpdb->query( 'DELETE FROM ' . $wpdb->prefix . $this->table_name . " WHERE id IN ($ids)" );
+		$wpdb->query( 'DELETE FROM ' . $wpdb->prefix . $this->table_name . " WHERE id IN ($ids)" ); // phpcs:ignore WordPress.DB
 	}
 
 	/**
@@ -558,15 +562,14 @@ class AWB_Critical_CSS {
 	 *
 	 * @access public
 	 * @since 3.1
-	 * @param int|array $ids       The submission ID(s).
-	 * @param string    $id_column The column to use in our WHERE query fragment.
-	 * @return void
+	 * @param int|array $ids The submission ID(s).
+	 * @return array
 	 */
 	public function get_bulk_css_keys( $ids ) {
 		global $wpdb;
 
 		$ids    = implode( ',', array_map( 'absint', $ids ) );
-		$result = $wpdb->get_results( 'SELECT css_key FROM ' . $wpdb->prefix . $this->table_name . " WHERE id IN ($ids)", OBJECT_K );
+		$result = $wpdb->get_results( 'SELECT css_key FROM ' . $wpdb->prefix . $this->table_name . " WHERE id IN ($ids)", OBJECT_K ); // phpcs:ignore WordPress.DB
 
 		return array_keys( $result );
 	}
@@ -576,8 +579,8 @@ class AWB_Critical_CSS {
 	 *
 	 * @access public
 	 * @since 3.1
-	 * @param int|array $ids       The submission ID(s).
-	 * @param string    $id_column The column to use in our WHERE query fragment.
+	 * @param int|array $where        The where param.
+	 * @param string    $where_format The format of where clause.
 	 * @return void
 	 */
 	public function delete( $where, $where_format = null ) {
@@ -599,9 +602,9 @@ class AWB_Critical_CSS {
 	 */
 	public function output_critical_css() {
 		if ( $this->is_mobile() ) {
-			echo '<style id="awb-critical-css">' . $this->css[0]->mobile_css . '</style>';
+			echo '<style id="awb-critical-css">' . $this->css[0]->mobile_css . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		} else {
-			echo '<style id="awb-critical-css">' . $this->css[0]->desktop_css . '</style>';
+			echo '<style id="awb-critical-css">' . $this->css[0]->desktop_css . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 	}
 
@@ -614,9 +617,9 @@ class AWB_Critical_CSS {
 	 */
 	public function output_critical_preloads() {
 		if ( $this->is_mobile() ) {
-			echo wp_unslash( $this->css[0]->mobile_preloads );
+			echo wp_unslash( $this->css[0]->mobile_preloads ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		} else {
-			echo wp_unslash( $this->css[0]->desktop_preloads );
+			echo wp_unslash( $this->css[0]->desktop_preloads ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 	}
 

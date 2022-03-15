@@ -11,7 +11,7 @@
 .tribe-events .tribe-events-c-events-bar {
   align-items: center;
 }
-.fusion-body.fusion-button_span-yes .tribe-events .tribe-events-c-events-bar .tribe-events-c-search__button {
+.fusion-body.avada-ec-views-v2.fusion-button_span-yes .tribe-events .tribe-events-c-events-bar .tribe-events-c-search__button {
   width: auto;
 }
 .tribe-events .tribe-events-c-events-bar .tribe-events-c-search__input-control:before,
@@ -173,17 +173,18 @@
   width: 1em;
   height: auto;
 }
-.fusion-body .fusion-wrapper #main .tribe-events .datepicker .prev .tribe-common-svgicon:before,
-.fusion-body .fusion-wrapper #main .tribe-events .datepicker .next .tribe-common-svgicon:after {
+.fusion-body .fusion-wrapper #main .tribe-events .datepicker .prev:before,
+.fusion-body .fusion-wrapper #main .tribe-events .datepicker .next:after {
   font-family: "awb-icons";
+  font-size: 1.2em;
   transition-property: color, background-color, border-color;
   transition-duration: 200ms;
   transition-timing-function: linear;
 }
-.fusion-body .fusion-wrapper #main .tribe-events .datepicker .prev .tribe-common-svgicon:before {
+.fusion-body .fusion-wrapper #main .tribe-events .datepicker .prev:before {
   content: "\f104";
 }
-.fusion-body .fusion-wrapper #main .tribe-events .datepicker .next .tribe-common-svgicon:after {
+.fusion-body .fusion-wrapper #main .tribe-events .datepicker .next:after {
   content: "\f105";
 }
 .fusion-body .fusion-wrapper #main .tribe-events .datepicker .dow {
@@ -339,9 +340,6 @@
 .fusion-body .fusion-wrapper #main .tribe-events .tribe-events-pro-week-grid__multiday-event--past .tribe-events-pro-week-grid__multiday-event-bar-inner {
   color: inherit;
 }
-.tribe-events .tribe-events-calendar-month__day {
-  height: 2em;
-}
 .tribe-events .tribe-events-calendar-month__day--past .tribe-events-calendar-month__day-date {
   opacity: 0.7;
 }
@@ -443,6 +441,7 @@
   margin-top: -2px;
 }
 .tribe-common .tribe-common-cta--thin-alt,
+.tribe-common .tribe-common-anchor-thin-alt,
 .tribe-common .tribe-common-anchor-thin {
   border: none;
   font-size: inherit;
@@ -450,10 +449,13 @@
   line-height: inherit;
 }
 .tribe-common .tribe-common-cta--thin-alt:active,
+.tribe-common .tribe-common-anchor-thin-alt:active,
 .tribe-common .tribe-common-anchor-thin:active,
 .tribe-common .tribe-common-cta--thin-alt:focus,
+.tribe-common .tribe-common-anchor-thin-alt:focus,
 .tribe-common .tribe-common-anchor-thin:focus,
 .tribe-common .tribe-common-cta--thin-alt:hover,
+.tribe-common .tribe-common-anchor-thin-alt:hover,
 .tribe-common .tribe-common-anchor-thin:hover {
   border: none !important;
 }

@@ -1,4 +1,4 @@
-/* global FusionPageBuilderApp, FusionPageBuilderEvents, fusionAllElements, FusionPageBuilderViewManager, fusionMultiElements */
+/* global FusionPageBuilderApp, fusionBuilderConfig, FusionPageBuilderEvents, fusionAllElements, FusionPageBuilderViewManager, fusionMultiElements, fusionBuilderText */
 /* jshint -W024 */
 /* eslint no-unused-vars: 0 */
 /* eslint guard-for-in: 0 */
@@ -48,15 +48,16 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			},
 
 			events: {
-				'click .fusion-builder-add-multi-child': 'addChildElement'
+				'click .fusion-builder-add-multi-child': 'addChildElement',
+				'click .fusion-builder-add-predefined-multi-child': 'addPredefinedChildElement',
+				'click .fusion-builder-add-multi-gallery-images': 'addChildrenToGalleryAndImageCarouselElements'
 			},
 
 			render: function() {
 				return this;
 			},
 
-			addChildElement: function( event ) {
-
+			addChildElement: function( event, predefinedParams ) {
 				var params = {},
 					defaultParams,
 					value,
@@ -66,7 +67,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					event.preventDefault();
 				}
 
-				defaultParams = fusionAllElements[ this.element_type ].params;
+				defaultParams = predefinedParams ? predefinedParams : fusionAllElements[ this.element_type ].params;
 
 				allowGenerator = ( 'undefined' !== typeof fusionAllElements[ this.element_type ].allow_generator ) ? fusionAllElements[ this.element_type ].allow_generator : '';
 
@@ -99,6 +100,99 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				FusionPageBuilderEvents.trigger( 'fusion-multi-element-edited' );
 
+			},
+
+			addPredefinedChildElement: function( event ) {
+				var self = this,
+					modalView;
+
+				event.preventDefault();
+
+				if ( jQuery( '.fusion-builder-settings-bulk-dialog' ).length ) {
+					return;
+				}
+
+				modalView = new FusionPageBuilder.BulkAddView( {
+					choices: fusionBuilderConfig.predefined_choices
+				} );
+
+				jQuery( modalView.render().el ).dialog( {
+					title: ( fusionBuilderText.bulk_add + ' / ' + fusionBuilderText.bulk_add_predefined ),
+					dialogClass: 'fusion-builder-settings-bulk-dialog',
+					resizable: false,
+					width: 500,
+					draggable: false,
+					buttons: [
+						{
+							text: fusionBuilderText.cancel,
+							click: function() {
+								jQuery( this ).dialog( 'close' );
+							}
+						},
+						{
+							text: fusionBuilderText.bulk_add_insert_choices,
+							click: function() {
+								var choices = modalView.getChoices();
+
+								event.preventDefault();
+
+								_.each( choices, function( choice ) {
+									var predefinedParams = {};
+
+									if ( -1 !== choice.indexOf( '||' ) ) {
+
+										// We have multiple params in one choice.
+										_.each( choice.split( '||' ), function( param ) {
+											var paramKeyValue = param.split( '|' );
+
+											predefinedParams[ paramKeyValue[ 0 ] ] = {};
+											predefinedParams[ paramKeyValue[ 0 ] ].param_name = paramKeyValue[ 0 ].trim();
+											predefinedParams[ paramKeyValue[ 0 ] ].value      = paramKeyValue[ 1 ].trim();
+
+										} );
+									} else {
+
+										// Use choice as element_content.
+										predefinedParams = {
+											'element_content': {
+												param_name: 'element_content',
+												value: choice
+											}
+										};
+									}
+
+									self.addChildElement( null, predefinedParams );
+
+									// Update preview.
+									FusionPageBuilderEvents.trigger( 'fusion-multi-child-update-preview' );
+								} );
+
+								jQuery( this ).dialog( 'close' );
+							},
+							class: 'ui-button-blue'
+						}
+					],
+					open: function() {
+						jQuery( '.fusion-builder-modal-settings-container' ).css( 'z-index', 9998 );
+					},
+					beforeClose: function() {
+						jQuery( '.fusion-builder-modal-settings-container' ).css( 'z-index', 99999 );
+						jQuery( this ).remove();
+					}
+
+				} );
+			},
+
+			/**
+			 * Manages the "bulk add" button click of the gallery element and image carousel element.
+			 *
+			 * @since 3.5
+			 * @param {Object} event The jQuery event
+			 * @return {void}
+			 */
+			addChildrenToGalleryAndImageCarouselElements: function( event ) {
+				var btn = jQuery( event.currentTarget ).closest( '.fusion-builder-main-settings' ).find( '.fusion-multiple-upload-image input' );
+				btn.trigger( 'click' );
 			},
 
 			generateContent: function() {

@@ -100,6 +100,11 @@ if ( fusion_is_element_enabled( 'fusion_flip_boxes' ) ) {
 					'image'               => '',
 					'image_id'            => '',
 					'image_max_width'     => '',
+
+					'margin_top'          => '',
+					'margin_right'        => '',
+					'margin_bottom'       => '',
+					'margin_left'         => '',
 				];
 
 				$child = [
@@ -239,11 +244,11 @@ if ( fusion_is_element_enabled( 'fusion_flip_boxes' ) ) {
 			 * @return array
 			 */
 			public function parent_attr() {
-
 				$attr = fusion_builder_visibility_atts(
 					$this->parent_args['hide_on_mobile'],
 					[
 						'class' => 'fusion-flip-boxes flip-boxes row fusion-columns-' . $this->parent_args['columns'],
+						'style' => '',
 					]
 				);
 
@@ -261,8 +266,23 @@ if ( fusion_is_element_enabled( 'fusion_flip_boxes' ) ) {
 					$attr['id'] = $this->parent_args['id'];
 				}
 
-				return $attr;
+				if ( $this->parent_args['margin_top'] ) {
+					$attr['style'] .= 'margin-top:' . $this->parent_args['margin_top'] . ';';
+				}
 
+				if ( $this->parent_args['margin_right'] ) {
+					$attr['style'] .= 'margin-right:' . $this->parent_args['margin_right'] . ';';
+				}
+
+				if ( $this->parent_args['margin_bottom'] ) {
+					$attr['style'] .= 'margin-bottom:' . $this->parent_args['margin_bottom'] . ';';
+				}
+
+				if ( $this->parent_args['margin_left'] ) {
+					$attr['style'] .= 'margin-left:' . $this->parent_args['margin_left'] . ';';
+				}
+
+				return $attr;
 			}
 
 			/**
@@ -755,7 +775,7 @@ if ( fusion_is_element_enabled( 'fusion_flip_boxes' ) ) {
 								'label'       => esc_html__( 'Flip Box Background Color Frontside', 'fusion-builder' ),
 								'description' => esc_html__( 'Controls the color of the frontside background.', 'fusion-builder' ),
 								'id'          => 'flip_boxes_front_bg',
-								'default'     => '#212934',
+								'default'     => 'var(--awb-color7)',
 								'type'        => 'color-alpha',
 								'transport'   => 'postMessage',
 							],
@@ -763,7 +783,7 @@ if ( fusion_is_element_enabled( 'fusion_flip_boxes' ) ) {
 								'label'       => esc_html__( 'Flip Box Heading Color Frontside', 'fusion-builder' ),
 								'description' => esc_html__( 'Controls the color of the frontside heading.', 'fusion-builder' ),
 								'id'          => 'flip_boxes_front_heading',
-								'default'     => '#f9f9fb',
+								'default'     => 'var(--awb-color2)',
 								'type'        => 'color-alpha',
 								'transport'   => 'postMessage',
 							],
@@ -771,7 +791,7 @@ if ( fusion_is_element_enabled( 'fusion_flip_boxes' ) ) {
 								'label'       => esc_html__( 'Flip Box Text Color Frontside', 'fusion-builder' ),
 								'description' => esc_html__( 'Controls the color of the frontside text.', 'fusion-builder' ),
 								'id'          => 'flip_boxes_front_text',
-								'default'     => '#4a4e57',
+								'default'     => 'var(--awb-color8)',
 								'type'        => 'color-alpha',
 								'transport'   => 'postMessage',
 							],
@@ -779,7 +799,7 @@ if ( fusion_is_element_enabled( 'fusion_flip_boxes' ) ) {
 								'label'       => esc_html__( 'Flip Box Background Color Backside', 'fusion-builder' ),
 								'description' => esc_html__( 'Controls the color of the backside background.', 'fusion-builder' ),
 								'id'          => 'flip_boxes_back_bg',
-								'default'     => '#65bc7b',
+								'default'     => 'var(--awb-color5)',
 								'type'        => 'color-alpha',
 								'transport'   => 'postMessage',
 							],
@@ -787,7 +807,7 @@ if ( fusion_is_element_enabled( 'fusion_flip_boxes' ) ) {
 								'label'       => esc_html__( 'Flip Box Heading Color Backside', 'fusion-builder' ),
 								'description' => esc_html__( 'Controls the color of the backside heading.', 'fusion-builder' ),
 								'id'          => 'flip_boxes_back_heading',
-								'default'     => '#ffffff',
+								'default'     => 'var(--awb-color1)',
 								'type'        => 'color-alpha',
 								'transport'   => 'postMessage',
 							],
@@ -795,7 +815,7 @@ if ( fusion_is_element_enabled( 'fusion_flip_boxes' ) ) {
 								'label'       => esc_html__( 'Flip Box Text Color Backside', 'fusion-builder' ),
 								'description' => esc_html__( 'Controls the color of the backside text.', 'fusion-builder' ),
 								'id'          => 'flip_boxes_back_text',
-								'default'     => 'rgba(255,255,255,0.8)',
+								'default'     => 'hsla(var(--awb-color1-h),var(--awb-color1-s),var(--awb-color1-l),calc(var(--awb-color1-a) - 20%))',
 								'type'        => 'color-alpha',
 								'transport'   => 'postMessage',
 							],
@@ -888,7 +908,7 @@ function fusion_element_flip_boxes() {
 				'icon'          => 'fusiona-loop-alt2',
 				'preview'       => FUSION_BUILDER_PLUGIN_DIR . 'inc/templates/previews/fusion-flipboxes-preview.php',
 				'preview_id'    => 'fusion-builder-block-module-flipboxes-preview-template',
-				'help_url'      => 'https://theme-fusion.com/documentation/fusion-builder/elements/flip-boxes-element/',
+				'help_url'      => 'https://theme-fusion.com/documentation/avada/elements/flip-boxes-element/',
 				'params'        => [
 					[
 						'type'        => 'tinymce',
@@ -1055,6 +1075,17 @@ function fusion_element_flip_boxes() {
 						'description' => esc_attr__( 'Set the icon image max width. Leave empty to use image\'s native width. In pixels, ex: 35.', 'fusion-builder' ),
 						'param_name'  => 'image_max_width',
 						'default'     => '35',
+					],
+					'fusion_margin_placeholder' => [
+						'param_name' => 'margin',
+						'heading'    => esc_attr__( 'Margin', 'fusion-builder' ),
+						'value'      => [
+							'margin_top'    => '',
+							'margin_right'  => '',
+							'margin_bottom' => '',
+							'margin_left'   => '',
+						],
+						'group'      => esc_attr__( 'General', 'fusion-builder' ),
 					],
 					[
 						'type'        => 'checkbox_button_set',

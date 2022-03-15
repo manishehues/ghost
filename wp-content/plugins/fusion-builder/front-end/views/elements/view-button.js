@@ -9,6 +9,39 @@ var FusionPageBuilder = FusionPageBuilder || {};
 		FusionPageBuilder.fusion_button = FusionPageBuilder.ElementView.extend( {
 
 			/**
+			 * Migrate params to new format.
+			 *
+			 * @since 3.5
+			 * @return {void}
+			 */
+			onInit: function() {
+				var params = this.model.get( 'params' );
+
+				// Check for newer margin params.  If unset but regular is, copy from there.
+				if ( 'object' === typeof params ) {
+
+					// Split border width into 4.
+					if ( 'undefined' === typeof params.border_top && 'undefined' !== typeof params.border_width && '' !== params.border_width ) {
+						params.border_top    = parseInt( params.border_width ) + 'px';
+						params.border_right  = params.border_top;
+						params.border_bottom = params.border_top;
+						params.border_left   = params.border_top;
+						delete params.border_width;
+					}
+
+					// Split border radius into 4.
+					if ( 'undefined' === typeof params.border_radius_top_left && 'undefined' !== typeof params.border_radius && '' !== params.border_radius ) {
+						params.border_radius_top_left     = parseInt( params.border_radius ) + 'px';
+						params.border_radius_top_right    = params.border_radius_top_left;
+						params.border_radius_bottom_right = params.border_radius_top_left;
+						params.border_radius_bottom_left  = params.border_radius_top_left;
+						delete params.border_radius;
+					}
+					this.model.set( 'params', params );
+				}
+			},
+
+			/**
 			 * Runs on render.
 			 *
 			 * @since 2.0
@@ -69,16 +102,17 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				var attributes = {};
 
 				this.isFlex = this.flexDisplay();
+				this.values = atts.values;
+				this.extras = atts.extras;
 
 				// Validate values.
-				this.extrasCheck( atts.values, atts.extras );
-				this.buildValues( atts.values );
+				this.validateArgs();
 
 				// Create attribute objects.
 				attributes.wrapperAttr    = this.buildWrapperAttr( atts.values );
 				attributes.attr           = this.buildAttr( atts.values );
 				attributes.IconAttr       = this.buildIconAttr( atts.values );
-				attributes.buttonStyles   = this.buildButtonStyles( atts.values );
+				attributes.buttonStyles   = this.getStyles();
 				attributes.textAttr       = this.buildTextAttr( atts.values );
 
 				// Any extras that need passed on.
@@ -87,97 +121,123 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				return attributes;
 			},
 
-			extrasCheck: function( values, extras ) {
-				var schemeId,
-					customColor;
-				if ( -1 !== values.color.indexOf( 'scheme-' ) && 'object' === typeof extras && 'object' === typeof extras.custom_color_schemes ) {
-					schemeId    = values.color.replace( 'scheme-', '' );
-					customColor = extras.custom_color_schemes[ schemeId ];
-
-					// If the scheme exists and has options, use them.  Otherwise set the color scheme to default as fallback.
-					if ( 'undefined' !== typeof customColor ) {
-						values.accent_color          = 'undefined' !== typeof customColor.values.button_accent_color ? customColor.values.button_accent_color.toLowerCase() : '#ffffff';
-						values.accent_hover_color    = 'undefined' !== typeof customColor.values.button_accent_hover_color ? customColor.values.button_accent_hover_color.toLowerCase() : '#ffffff';
-						values.bevel_color           = 'undefined' !== typeof customColor.values.button_bevel_color ? customColor.values.button_bevel_color.toLowerCase() : '#54770F';
-						values.gradient_colors       =  customColor.values.button_gradient_top_color + '|' + customColor.values.button_gradient_bottom_color;
-						values.gradient_hover_colors =  customColor.values.button_gradient_top_color_hover + '|' + customColor.values.button_gradient_bottom_color_hover;
-					} else {
-						values.color = 'default';
-					}
-				}
-			},
-
 			/**
-			 * Builds the values.
+			 * Modify template attributes.
 			 *
-			 * @since 2.0
-			 * @param {Object} values - The values object.
+			 * @since 3.5
 			 * @return {void}
 			 */
-			buildValues: function( values ) {
+			validateArgs: function() {
+				// variables into current scope
+				var params, border_radius;
 
-				// BC support for old 'gradient_colors' format.
-				var buttonGradientTopColor         = values.button_gradient_top_color,
-					buttonGradientBottomColor      = values.button_gradient_bottom_color,
-					buttonGradientTopColorHover    = values.button_gradient_top_color_hover,
-					buttonGradientBottomColorHover = values.button_gradient_bottom_color_hover,
-					oldTextColor                   = '';
+				params = this.model.get( 'params' );
 
-				if ( '' === values.gradient_colors ) {
-					values.gradient_colors = values.button_gradient_top_color.toLowerCase() + '|' + values.button_gradient_bottom_color.toLowerCase();
+				this.values.default_size = false;
+				if ( ( 'undefined' !== typeof params.size && '' === params.size ) || 'undefined' === typeof params.size ) {
+					this.values.default_size = true;
 				}
 
-				if ( '' === values.gradient_hover_colors ) {
-					values.gradient_hover_colors = values.button_gradient_top_color_hover.toLowerCase() + '|' + values.button_gradient_bottom_color_hover.toLowerCase();
+				this.values.default_stretch = false;
+				if ( ( 'undefined' !== typeof params.stretch && '' === params.stretch ) || 'undefined' === typeof params.stretch ) {
+					this.values.default_stretch = true;
 				}
+
+				this.values.default_type = false;
+				if ( ( 'undefined' !== typeof params.type && ( '' === params.type || 'default' === params.type ) ) || 'undefined' === typeof params.type ) {
+					this.values.default_type = true;
+				}
+
+				this.values.margin_bottom = _.fusionGetValueWithUnit( this.values.margin_bottom );
+				this.values.margin_left   = _.fusionGetValueWithUnit( this.values.margin_left );
+				this.values.margin_right  = _.fusionGetValueWithUnit( this.values.margin_right );
+				this.values.margin_top    = _.fusionGetValueWithUnit( this.values.margin_top );
+
+				if ( 'undefined' === typeof this.values.gradient_colors || '' === this.values.gradient_colors ) {
+					this.values.gradient_colors = this.values.button_gradient_top_color.toLowerCase() + '|' + this.values.button_gradient_bottom_color.toLowerCase();
+				}
+
+				if ( 'undefined' === typeof this.values.gradient_hover_colors || '' === this.values.gradient_hover_colors ) {
+					this.values.gradient_hover_colors = this.values.button_gradient_top_color_hover.toLowerCase() + '|' + this.values.button_gradient_bottom_color_hover.toLowerCase();
+				}
+
+				this.values.old_text_color   = ( 'undefined' !== typeof this.values.text_color && '' !== this.values.text_color ) ? this.values.text_color : false;
+				this.values.text_color       = this.values.accent_color;
+				this.values.icon_color       = this.values.text_color;
+				this.values.text_hover_color = this.values.accent_hover_color;
+				this.values.icon_hover_color = this.values.text_hover_color;
+
+				if ( 'undefined' !== typeof this.values.old_text_color && '' !== this.values.old_text_color ) {
+					this.values.text_color = this.values.old_text_color;
+				}
+
+				if ( this.values.modal ) {
+					this.values.link = '#';
+				}
+
+				this.values.type = 'string' === typeof this.values.type ? this.values.type.toLowerCase() : 'flat';
 
 				// BC compatibility for button shape.
-				if ( 'undefined' !== typeof values.shape && 'undefined' === typeof values.border_radius ) {
-					if ( 'square' === values.shape ) {
-						values.border_radius = '0';
-					} else if ( 'round' === values.shape ) {
-						values.border_radius = '2';
+				if ( 'undefined' !== typeof params.shape && '' !== params.shape && 'undefined' === typeof params.border_radius && 'undefined' === typeof params.border_radius_top_left ) {
+					border_radius = '0';
+					if ( 'square' === this.values.shape ) {
+						border_radius = '0';
+					} else if ( 'round' === this.values.shape ) {
+						border_radius = '2';
 
-						if ( '3d' === values.type.toLowerCase() ) {
-							values.border_radius = '4';
+						if ( '3d' === this.values.type.toLowerCase() ) {
+							border_radius = '4';
 						}
-					} else if ( 'pill' === values.shape ) {
-						values.border_radius = '25';
-					} else if ( '' === values.shape ) {
-						values.border_radius = '';
+					} else if ( 'pill' === this.values.shape ) {
+						border_radius = '25';
 					}
+
+					this.values.border_radius_top_left     = _.fusionGetValueWithUnit( border_radius );
+					this.values.border_radius_top_right    = this.values.border_radius_top_left;
+					this.values.border_radius_bottom_right = this.values.border_radius_top_left;
+					this.values.border_radius_bottom_left  = this.values.border_radius_top_left;
+				} else if ( 'undefined' !== typeof params.border_radius && 'undefined' === typeof params.border_radius_top_left && '' !== params.border_radius ) {
+					this.values.border_radius_top_left     = params.border_radius;
+					this.values.border_radius_top_right    = this.values.border_radius_top_left;
+					this.values.border_radius_bottom_right = this.values.border_radius_top_left;
+					this.values.border_radius_bottom_left  = this.values.border_radius_top_left;
 				}
 
-				values.border_width = parseInt( values.border_width, 10 ) + 'px';
-				values.border_radius = parseInt( values.border_radius, 10 ) + 'px';
+				this.values.border_radius_top_left     = _.isEmpty( this.values.border_radius_top_left ) ? '0' : _.fusionGetValueWithUnit( this.values.border_radius_top_left );
+				this.values.border_radius_top_right    = _.isEmpty( this.values.border_radius_top_right ) ? '0' : _.fusionGetValueWithUnit( this.values.border_radius_top_right );
+				this.values.border_radius_bottom_right = _.isEmpty( this.values.border_radius_bottom_right ) ? '0' : _.fusionGetValueWithUnit( this.values.border_radius_bottom_right );
+				this.values.border_radius_bottom_left  = _.isEmpty( this.values.border_radius_bottom_left ) ? '0' : _.fusionGetValueWithUnit( this.values.border_radius_bottom_left );
+				this.values.border_radius              = this.values.border_radius_top_left + ' ' +  this.values.border_radius_top_right + ' ' + this.values.border_radius_bottom_right + ' ' +  this.values.border_radius_bottom_left;
 
-				if ( 'default' === values.color ) {
-					values.accent_color          = ( 'undefined' !== typeof values.button_accent_color && '' !== values.button_accent_color ) ? values.button_accent_color.toLowerCase() : '#ffffff';
-					values.accent_hover_color    = ( 'undefined' !== typeof values.button_accent_hover_color && '' !== values.button_accent_hover_color ) ? values.button_accent_hover_color.toLowerCase() : '#ffffff';
-					values.border_color          = ( 'undefined' !== typeof values.button_border_color && '' !== values.button_border_color ) ? values.button_border_color.toLowerCase() : '#ffffff';
-					values.border_hover_color    = ( 'undefined' !== typeof values.button_border_hover_color && '' !== values.button_border_hover_color ) ? values.button_border_hover_color.toLowerCase() : '#ffffff';
-					values.bevel_color           = ( 'undefined' !== typeof values.button_bevel_color && '' !== values.button_bevel_color ) ? values.button_bevel_color.toLowerCase() : '#54770F';
-					values.gradient_colors       = buttonGradientTopColor.toLowerCase() + '|' + buttonGradientBottomColor.toLowerCase();
-					values.gradient_hover_colors = buttonGradientTopColorHover.toLowerCase() + '|' + buttonGradientBottomColorHover.toLowerCase();
+				// Legacy single border support.
+				if ( 'undefined' !== params.border_width && '' !== params.border_width && 'undefined' === params.border_top ) {
+					this.values.border_top    = params.border_width;
+					this.values.border_right  = this.values.border_top;
+					this.values.border_bottom = this.values.border_top;
+					this.values.border_left   = this.values.border_top;
 				}
 
-				// Combined variable settings.
-				oldTextColor   = values.text_color;
+				this.values.default_border_width = false;
+				if ( '' === this.values.border_top && '' === this.values.border_right && '' === this.values.border_bottom && '' === this.values.border_left ) {
+					this.values.default_border_width = true;
+				} else {
 
-				if ( '' !== oldTextColor ) {
-					values.text_color = oldTextColor;
+					// Not using default, ensure values for each.
+					this.values.border_top    = ( '' === this.values.border_top ) ? this.extras.border_top : this.values.border_top;
+					this.values.border_right  = ( '' === this.values.border_right ) ? this.extras.border_right : this.values.border_right;
+					this.values.border_bottom = ( '' === this.values.border_bottom ) ? this.extras.border_bottom : this.values.border_bottom;
+					this.values.border_left   = ( '' === this.values.border_left ) ? this.extras.border_left : this.values.border_left;
 				}
 
-				if ( '' !== values.modal ) {
-					values.link = '#';
+				this.values.border_top    = _.isEmpty( this.values.border_top ) ? '0' : _.fusionGetValueWithUnit( this.values.border_top );
+				this.values.border_right  = _.isEmpty( this.values.border_right ) ? '0' : _.fusionGetValueWithUnit( this.values.border_right );
+				this.values.border_bottom = _.isEmpty( this.values.border_bottom ) ? '0' : _.fusionGetValueWithUnit( this.values.border_bottom );
+				this.values.border_left   = _.isEmpty( this.values.border_left ) ? '0' : _.fusionGetValueWithUnit( this.values.border_left );
+				this.values.border_width  = this.values.border_top + ' ' +  this.values.border_right + ' ' + this.values.border_bottom + ' ' +  this.values.border_left;
+
+				if ( 'undefined' === typeof this.values.size ) {
+					this.values.size = '';
 				}
-
-				values.margin_bottom = _.fusionValidateAttrValue( values.margin_bottom, 'px' );
-				values.margin_left   = _.fusionValidateAttrValue( values.margin_left, 'px' );
-				values.margin_right  = _.fusionValidateAttrValue( values.margin_right, 'px' );
-				values.margin_top    = _.fusionValidateAttrValue( values.margin_top, 'px' );
-
-				values.type = values.type.toLowerCase();
 			},
 
 			/**
@@ -226,14 +286,16 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 * @return {Object}
 			 */
 			buildAttr: function( values ) {
-				var params = this.model.get( 'params' ),
-					attr = _.fusionVisibilityAtts( values.hide_on_mobile, {
+				var params           = this.model.get( 'params' ),
+					attr             = _.fusionVisibilityAtts( values.hide_on_mobile, {
 						class: 'fusion-button button-' + values.type + ' button-' + values.color + ' button-cid' + this.model.get( 'cid' ),
 						style: ''
 					} ),
-					sizeClass    = 'button-' + values.size,
-					stretchClass = 'fusion-button-span-' + values.stretch,
-					typeClass    = '';
+					sizeClass        = 'button-' + values.size,
+					stretchClass     = 'fusion-button-span-' + values.stretch,
+					typeClass        = '',
+					isDefaultStretch = ( 'undefined' !== typeof values.stretch && ( '' === values.stretch || 'default' === values.stretch ) ) || 'undefined' === typeof values.stretch,
+					marginRight, marginLeft;
 
 				attr[ 'class' ] += _.fusionGetStickyClass( values.sticky_display );
 
@@ -268,20 +330,27 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					attr.data_target =  '.fusion-modal.' + values.modal;
 				}
 
-				if ( '' !== values.margin_top ) {
+				if ( 'undefined' !== typeof values.margin_top && '' !== values.margin_top ) {
 					attr.style += 'margin-top:' + values.margin_top + ';';
 				}
 
-				if ( '' !== values.margin_right ) {
+				if ( 'undefined' !== typeof values.margin_right && '' !== values.margin_right ) {
 					attr.style += 'margin-right:' + values.margin_right + ';';
 				}
 
-				if ( '' !== values.margin_bottom ) {
+				if ( 'undefined' !== typeof values.margin_bottom && '' !== values.margin_bottom ) {
 					attr.style += 'margin-bottom:' + values.margin_bottom + ';';
 				}
 
-				if ( '' !== values.margin_left ) {
+				if ( 'undefined' !== typeof values.margin_left && '' !== values.margin_left ) {
 					attr.style += 'margin-left:' + values.margin_left + ';';
+				}
+
+				if ( ( ( 'undefined' !== typeof values.margin_right && '' !== values.margin_right ) || ( 'undefined' !== typeof values.margin_left && '' !== values.margin_left ) ) && ( ( ! isDefaultStretch && 'yes' === values.stretch ) || ( isDefaultStretch && 'yes' === fusionAllElements.fusion_button.defaults.stretch ) ) ) {
+					marginRight = 'undefined' !== typeof values.margin_right && '' !== values.margin_right ? ' - ' + values.margin_right : '';
+					marginLeft  = 'undefined' !== typeof values.margin_left && '' !== values.margin_left ? ' - ' + values.margin_left : '';
+
+					attr.style += 'width:calc(100%' + marginRight + marginLeft + ');';
 				}
 
 				if ( '' !== values[ 'class' ] ) {
@@ -348,175 +417,185 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			/**
 			 * Builds the styles.
 			 *
-			 * @since 2.0
-			 * @param {Object} values - The values object.
-			 * @return {string}
+			 * @since 3.5
+			 * @return {void}
 			 */
-			buildButtonStyles: function( values ) {
-				var params               = this.model.get( 'params' ),
-					styles               = '',
-					styleTag             = '',
-					cid                  = 'cid' + this.model.get( 'cid' ),
-					generalStyles        = '',
-					textColorStyles      = '',
-					button3DStyles       = '',
-					hoverStyles          = '',
-					textColorHoverStyles = '',
-					gradientStyles       = '',
-					gradientHoverStyles  = '',
-					button3DAdd          = '',
-					oldTextColor,
-					gradHoverColors,
-					gradColors,
-					button3DShadow,
-					button3DShadowPart1,
-					button3DShadowPart2,
-					button3DShadowPart3;
+			getStyles: function() {
+				// variables into current scope
+				var self = this,
+					hover_selectors,
+					box_shadow_3d,
+					selectors,
+					grad_colors,
+					grad_hover_colors,
+					text_styles,
+					side_padding,
+					font_size,
+					css;
 
-				if ( ( 'custom' === values.color || 'default' === values.color || ( -1 !== values.color.indexOf( 'scheme-' ) && ( '' !== values.bevel_color || '' !== values.accent_color || '' !== values.accent_hover_color || '' !== values.border_width || '' !== values.gradient_colors ) ) ) ) {
+				this.baseSelector = '.fusion-button.button-cid' +  this.model.get( 'cid' );
+				this.dynamic_css  = {};
+				hover_selectors   = [ this.baseSelector + ':hover', this.baseSelector + ':active', this.baseSelector + ':focus' ];
 
-					oldTextColor   = values.text_color;
+				// If its custom, default or a custom color scheme.
+				if ( 'custom' ===  this.values.color || 'default' ===  this.values.color || false !==  this.values.color.includes( 'scheme-' ) ) {
 
-					if ( '3d' === values.type && '' !== values.bevel_color ) {
-						if ( 'small' === values.size ) {
-							button3DAdd = 0;
-						} else if ( 'medium' === values.size ) {
-							button3DAdd = 1;
-						} else if ( 'large' === values.size ) {
-							button3DAdd = 2;
-						} else if ( 'xlarge' === values.size ) {
-							button3DAdd = 3;
-						}
-						button3DShadowPart1 = 'inset 0px 1px 0px #fff,';
-						button3DShadowPart2 = '0px ' + ( 2 + button3DAdd ) + 'px 0px ' + values.bevel_color + ',';
-						button3DShadowPart3 = '1px ' + ( 4 + button3DAdd ) + 'px ' + ( 4 + button3DAdd ) + 'px 3px rgba(0,0,0,0.3)';
+					// 3D type with custom bevel color, change box shadow color.
+					if ( '3d' ===  this.values.type ) {
+						box_shadow_3d = 'inset 0 1px 0 #fff, 0 0.15em 0 ' + this.values.bevel_color + ', 0.1em 0.2em 0.2em 0.15em rgba(0, 0, 0, 0.3)';
+						this.addCssProperty( this.baseSelector + '.button-3d', 'box-shadow', box_shadow_3d );
 
-						if ( 'small' === values.size ) {
-							button3DShadowPart3 = button3DShadowPart3.replace( '3px', '2px' );
-						}
-						button3DShadow = button3DShadowPart1 + button3DShadowPart2 + button3DShadowPart3;
-						button3DStyles = '-webkit-box-shadow: ' + button3DShadow + ';-moz-box-shadow: ' + button3DShadow + ';box-shadow: ' + button3DShadow + ';';
+						box_shadow_3d = 'inset 0 1px 0 #fff, 0 1px 0 ' + this.values.bevel_color + ', 0.05em 0.1em 0.1em 0.07em rgba(0, 0, 0, 0.3)';
+						this.addCssProperty( this.baseSelector + '.button-3d:active', 'box-shadow', box_shadow_3d );
+
+						box_shadow_3d = 'inset 0 1px 0 #fff, 0 0.15em 0 ' + this.values.bevel_color_hover + ', 0.1em 0.2em 0.2em 0.15em rgba(0, 0, 0, 0.3)';
+						this.addCssProperty( this.baseSelector + '.button-3d:hover', 'box-shadow', box_shadow_3d );
+
+						box_shadow_3d = 'inset 0 1px 0 #fff, 0 1px 0 ' + this.values.bevel_color_hover + ', 0.05em 0.1em 0.1em 0.07em rgba(0, 0, 0, 0.3)';
+						this.addCssProperty( this.baseSelector + '.button-3d:hover:active', 'box-shadow', box_shadow_3d );
 					}
 
-					if ( 'default' !== values.color ) {
-						if ( oldTextColor ) {
-							textColorStyles += 'color:' + oldTextColor + ';';
-						} else if ( values.accent_color ) {
-							textColorStyles += 'color:' + values.accent_color + ';';
+					if ( 'default' !==  this.values.color ) {
+						selectors = [ this.baseSelector + ' .fusion-button-text', this.baseSelector + ' i' ];
+
+						if ( 'string' === typeof this.values.old_text_color && '' !== this.values.old_text_color ) {
+							this.addCssProperty( selectors, 'color',  this.values.old_text_color );
+						} else if ( '' !==  this.values.accent_color ) {
+							this.addCssProperty( selectors, 'color',  this.values.accent_color );
 						}
 
-						if ( '' !== values.border_color ) {
-							generalStyles += 'border-color:' + values.border_color + ';';
+						if ( '' !==  this.values.border_color ) {
+							this.addCssProperty( this.baseSelector, 'border-color',  this.values.border_color );
 						}
 
-						if ( '' !== oldTextColor ) {
-							textColorHoverStyles += 'color:' + oldTextColor + ';';
-						} else if ( '' !== values.accent_hover_color ) {
-							textColorHoverStyles += 'color:' + values.accent_hover_color + ';';
-						} else if ( '' !== values.accent_color ) {
-							textColorHoverStyles += 'color:' + values.accent_color + ';';
+						selectors = [ this.baseSelector + ':hover .fusion-button-text', this.baseSelector + ':hover i', this.baseSelector + ':focus .fusion-button-text', this.baseSelector + ':focus i', this.baseSelector + ':active .fusion-button-text', this.baseSelector + ':active i' ];
+						if ( 'string' === typeof this.values.old_text_color && '' !== this.values.old_text_color ) {
+							this.addCssProperty( selectors, 'color',  this.values.old_text_color );
+						} else if ( '' !==  this.values.accent_hover_color ) {
+							this.addCssProperty( selectors, 'color',  this.values.accent_hover_color );
+						} else if ( '' !==  this.values.accent_color ) {
+							this.addCssProperty( selectors, 'color',  this.values.accent_color );
 						}
 
-						if ( '' !== values.border_hover_color ) {
-							hoverStyles += 'border-color:' + values.border_hover_color + ';';
-						} else if ( '' !== values.accent_color ) {
-							hoverStyles += 'border-color:' + values.accent_color + ';';
+						if ( '' !==  this.values.border_hover_color ) {
+							this.addCssProperty( hover_selectors, 'border-color',  this.values.border_hover_color );
+						} else if ( '' !==  this.values.accent_color ) {
+							this.addCssProperty( hover_selectors, 'border-color',  this.values.accent_color );
 						}
 
-						if ( '' !== textColorStyles ) {
-							styles += '.fusion-button.button-' + cid + ' .fusion-button-text, .fusion-button.button-' + cid + ' i {' + textColorStyles + '}';
+						if ( '' !==  this.values.accent_color && 'yes' ===  this.values.icon_divider ) {
+							this.addCssProperty( this.baseSelector + ' .fusion-button-icon-divider', 'border-color',  this.values.accent_color );
 						}
 
-						if ( '' !== values.accent_color ) {
-							styles += '.fusion-button.button-' + cid + ' .fusion-button-icon-divider{border-color:' + values.accent_color + ';}';
-						}
-
-						if ( '' !== textColorHoverStyles ) {
-							styles += '.fusion-button.button-' + cid + ':hover .fusion-button-text, .fusion-button.button-' + cid + '.hover .fusion-button-text, .fusion-button.button-' + cid + ':hover i, .fusion-button.button-' + cid + '.hover i, .fusion-button.button-' + cid + ':focus .fusion-button-text, .fusion-button.button-' + cid + ':focus i,.fusion-button.button-' + cid + ':active .fusion-button-text, .fusion-button.button-' + cid + ':active{' + textColorHoverStyles + '}';
-						}
-
-						if ( '' !== values.accent_hover_color ) {
-							styles += '.fusion-button.button-' + cid + ':hover .fusion-button-icon-divider, .fusion-button.button-' + cid + '.hover .fusion-button-icon-divider, .fusion-button.button-' + cid + ':hover .fusion-button-icon-divider, .fusion-button.button-' + cid + '.hover .fusion-button-icon-divider, .fusion-button.button-' + cid + ':active .fusion-button-icon-divider{border-color:' + values.accent_hover_color + ';}';
+						if ( '' !==  this.values.accent_hover_color && 'yes' ===  this.values.icon_divider ) {
+							selectors = [ this.baseSelector + ':hover .fusion-button-icon-divider', this.baseSelector + ':active .fusion-button-icon-divider', this.baseSelector + ':focus .fusion-button-icon-divider' ];
+							this.addCssProperty( selectors, 'border-color',  this.values.accent_hover_color );
 						}
 					}
 
-					if ( '' !== values.border_width && 'custom' === values.color && ( 'undefined' === typeof params.border_width || '' !== params.border_width ) ) {
-						generalStyles += 'border-width:' + values.border_width + ';';
-						hoverStyles   += 'border-width:' + values.border_width + ';';
+					if ( '' !==  this.values.border_width && 'custom' ===  this.values.color && ! this.values.default_border_width ) {
+						this.addCssProperty( this.baseSelector, 'border-width',  this.values.border_width );
+						this.addCssProperty( hover_selectors, 'border-width',  this.values.border_width );
 					}
 
-					generalStyles += 'border-radius:' + values.border_radius + ';';
+					this.addCssProperty( this.baseSelector, 'border-radius',  this.values.border_radius );
 
-					if ( '' !== generalStyles ) {
-						styles += '.fusion-button.button-' + cid + ' {' + generalStyles + '}';
-					}
+					if ( 'default' !== this.values.color ) {
+						if ( 'string' === typeof this.values.gradient_colors && '' !== this.values.gradient_colors ) {
+							// Checking for deprecated separators.
+							if ( this.values.gradient_colors.includes( ';' ) ) {
+								grad_colors = this.values.gradient_colors.split( ';' );
+							} else {
+								grad_colors = this.values.gradient_colors.split( '|' );
+							}
 
-					if ( '' !== button3DStyles ) {
-						styles += '.fusion-button.button-' + cid + '.button-3d{' + button3DStyles + '}.button-' + cid + '.button-3d:active{' + button3DStyles + '}';
-					}
+							// Only one, just use that as background color, no gradient.
+							if ( 1 === grad_colors.length || '' === grad_colors[ 1 ] || grad_colors[ 0 ] === grad_colors[ 1 ] ) {
+								this.addCssProperty( this.baseSelector, 'background', grad_colors[ 0 ] );
+							} else {
+								this.addCssProperty( this.baseSelector, 'background', grad_colors[ 0 ] );
+								if ( 'linear' ===  this.values.gradient_type ) {
+									this.addCssProperty( this.baseSelector, 'background-image', 'linear-gradient(' +  this.values.linear_angle + 'deg,' + grad_colors[ 0 ] + ' ' +  this.values.gradient_start_position + '%,' + grad_colors[ 1 ] + ' ' +  this.values.gradient_end_position + '%)' );
+								} else {
+									this.addCssProperty( this.baseSelector, 'background-image', 'radial-gradient(circle at ' +  this.values.radial_direction + ',' + grad_colors[ 0 ] + ' ' +  this.values.gradient_start_position + '%,' + grad_colors[ 1 ] + ' ' +  this.values.gradient_end_position + '%)' );
+								}
+							}
 
-					if ( '' !== hoverStyles ) {
-						styles += '.fusion-button.button-' + cid + ':hover, .fusion-button.button-' + cid + '.hover, .fusion-button.button-' + cid + ':focus, .fusion-button.button-' + cid + ':active{' + hoverStyles + '}';
-					}
-
-					if ( '' !== values.gradient_colors && 'default' !== values.color ) {
-						gradColors = '';
-
-						// Checking for deprecated separators.
-						if ( -1 !== values.gradient_colors.indexOf( ';' ) ) {
-							gradColors = values.gradient_colors.split( ';' );
-						} else {
-							gradColors = values.gradient_colors.split( '|' );
 						}
 
-						if ( 1 === gradColors.length || '' === gradColors[ 1 ] || gradColors[ 0 ] === gradColors[ 1 ] ) {
-							gradientStyles += 'background:' + gradColors[ 0 ] + ';';
-						} else {
-							gradientStyles += 'background: ' + gradColors[ 0 ] + ';';
-							gradientStyles += 'background-image: -webkit-gradient( linear, left bottom, left top, from( ' + gradColors[ 1 ] + ' ), to( ' + gradColors[ 0 ] + ' ) );';
-							gradientStyles += 'background-image: -webkit-linear-gradient( bottom, ' + gradColors[ 1 ] + ', ' + gradColors[ 0 ] + ' );';
-							gradientStyles += 'background-image:   -moz-linear-gradient( bottom, ' + gradColors[ 1 ] + ', ' + gradColors[ 0 ] + ' );';
-							gradientStyles += 'background-image:     -o-linear-gradient( bottom, ' + gradColors[ 1 ] + ', ' + gradColors[ 0 ] + ' );';
-							gradientStyles += 'background-image: linear-gradient( to top, ' + gradColors[ 1 ] + ', ' + gradColors[ 0 ] + ' );';
+						if ( 'string' === typeof this.values.gradient_hover_colors && '' !== this.values.gradient_hover_colors ) {
+
+							// Checking for deprecated separators.
+							if ( this.values.gradient_hover_colors.includes( ';' ) ) {
+								grad_hover_colors = this.values.gradient_hover_colors.split( ';' );
+							} else {
+								grad_hover_colors = this.values.gradient_hover_colors.split( '|' );
+							}
+
+							if ( 1 === grad_hover_colors.length || '' === grad_hover_colors[ 1 ] || grad_hover_colors[ 0 ] === grad_hover_colors[ 1 ] ) {
+								this.addCssProperty( hover_selectors, 'background', grad_hover_colors[ 0 ] );
+							} else {
+								this.addCssProperty( hover_selectors, 'background', grad_hover_colors[ 0 ] );
+								if ( 'linear' ===  this.values.gradient_type ) {
+									this.addCssProperty( hover_selectors, 'background-image', 'linear-gradient(' +  this.values.linear_angle + 'deg,' + grad_hover_colors[ 0 ] + ' ' +  this.values.gradient_start_position + '%,' + grad_hover_colors[ 1 ] + ' ' +  this.values.gradient_end_position + '%)' );
+								} else {
+									this.addCssProperty( hover_selectors, 'background-image', 'radial-gradient(circle at ' +  this.values.radial_direction + ',' + grad_hover_colors[ 0 ] + ' ' +  this.values.gradient_start_position + '%,' + grad_hover_colors[ 1 ] + ' ' +  this.values.gradient_end_position + '%)' );
+								}
+							}
 						}
-
-						styles += '.fusion-button.button-' + cid + '{' + gradientStyles + '}';
-					}
-
-					if ( values.gradient_hover_colors && 'default' !== values.color ) {
-						gradHoverColors = '';
-
-						// Checking for deprecated separators.
-						if ( -1 !== values.gradient_hover_colors.indexOf( ';' ) ) {
-							gradHoverColors = values.gradient_hover_colors.split( ';' );
-						} else {
-							gradHoverColors = values.gradient_hover_colors.split( '|' );
-						}
-
-						if ( 1 == gradHoverColors.length || '' === gradHoverColors[ 1 ] || gradHoverColors[ 0 ] === gradHoverColors[ 1 ] ) {
-							gradientHoverStyles += 'background: ' + gradHoverColors[ 0 ] + ';';
-						} else {
-							gradientHoverStyles += 'background: ' + gradHoverColors[ 0 ] + ';';
-							gradientHoverStyles += 'background-image: -webkit-gradient( linear, left bottom, left top, from( ' + gradHoverColors[ 1 ] + ' ), to( ' + gradHoverColors[ 0 ] + ' ) );';
-							gradientHoverStyles += 'background-image: -webkit-linear-gradient( bottom, ' + gradHoverColors[ 1 ] + ', ' + gradHoverColors[ 0 ] + ' );';
-							gradientHoverStyles += 'background-image:   -moz-linear-gradient( bottom, ' + gradHoverColors[ 1 ] + ', ' + gradHoverColors[ 0 ] + ' );';
-							gradientHoverStyles += 'background-image:     -o-linear-gradient( bottom, ' + gradHoverColors[ 1 ] + ', ' + gradHoverColors[ 0 ] + ' );';
-							gradientHoverStyles += 'background-image: linear-gradient( to top, ' + gradHoverColors[ 1 ] + ', ' + gradHoverColors[ 0 ] + ' );';
-						}
-
-						styles += '.fusion-button.button-' + cid + ':hover, .fusion-button.button-' + cid + '.hover, .button-' + cid + ':focus,.fusion-button.button-' + cid + ':active{' + gradientHoverStyles + '}';
 					}
 				}
 
-				if ( '' !== values.text_transform ) {
-					styles += '.fusion-button.button-' + cid + ' .fusion-button-text{text-transform:' + values.text_transform + '}';
+				if ( !this.isDefault( 'text_transform' ) && '' !==  this.values.text_transform ) {
+					this.addCssProperty( this.baseSelector + ' .fusion-button-text', 'text-transform',  this.values.text_transform );
 				}
 
-				if ( '' !== styles ) {
-					styleTag = '<style type="text/css">' + styles + '</style>';
+				if ( '' === this.values.size ) {
+					if (  !  this.isDefault( 'font_size' ) ) {
+						this.addCssProperty( this.baseSelector, 'font-size',  _.fusionGetValueWithUnit( this.values.font_size ) );
+					}
+
+					if (  !  this.isDefault( 'line_height' ) ) {
+						this.addCssProperty( this.baseSelector, 'line-height',  this.values.line_height );
+					}
+
+					if (  !  this.isDefault( 'padding_top' ) ) {
+						this.addCssProperty( this.baseSelector, 'padding-top',  _.fusionGetValueWithUnit( this.values.padding_top ) );
+					}
+
+					if (  !  this.isDefault( 'padding_right' ) ) {
+						this.addCssProperty( this.baseSelector, 'padding-right',  _.fusionGetValueWithUnit( this.values.padding_right ) );
+					}
+
+					if (  !  this.isDefault( 'padding_bottom' ) ) {
+						this.addCssProperty( this.baseSelector, 'padding-bottom',  _.fusionGetValueWithUnit( this.values.padding_bottom ) );
+					}
+
+					if (  !  this.isDefault( 'padding_left' ) ) {
+						this.addCssProperty( this.baseSelector, 'padding-left',  _.fusionGetValueWithUnit( this.values.padding_left ) );
+					}
+
+					// If we have an icon and divider and changed either font or padding we need to calculate new spacing.
+					if ( '' !==  this.values.icon && 'yes' ===  this.values.icon_divider &&  (  !  this.isDefault( 'padding_' +  this.values.icon_position ) ||   !  this.isDefault( 'font_size' ) ) ) {
+						side_padding = ! this.isDefault( 'padding_' +  this.values.icon_position ) ? this.values[ 'padding_' +  this.values.icon_position ] : this.extras[ 'padding_' + this.values.icon_position ];
+						font_size    = ! this.isDefault( 'font_size' ) ? this.values.font_size : this.extras.button_font_size;
+						this.addCssProperty( this.baseSelector + ' .fusion-button-text-' +  this.values.icon_position, 'padding-' +  this.values.icon_position, 'calc( ' + side_padding + ' / 2 + ' + font_size + ' + 1px )' );
+						this.addCssProperty( this.baseSelector + ' .button-icon-divider-' +  this.values.icon_position, 'width', 'calc( ' + side_padding + ' + ' + font_size + ' )' );
+					}
 				}
 
-				return styleTag;
+				if (  !  this.isDefault( 'letter_spacing' ) ) {
+					this.addCssProperty( this.baseSelector, 'letter-spacing',  _.fusionGetValueWithUnit( this.values.letter_spacing ) );
+				}
+
+				text_styles = _.fusionGetFontStyle( 'button_font', this.values, 'object' );
+				jQuery.each( text_styles, function( rule, value ) {
+					self.addCssProperty( self.baseSelector, rule, value );
+				} );
+
+				css = this.parseCSS();
+				return ( css ) ? '<style>' + css + '</style>' : '';
+
 			}
 		} );
 	} );

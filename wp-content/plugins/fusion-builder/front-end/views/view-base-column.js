@@ -931,9 +931,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				var borderRadius;
 
 				// Alpha related checks.
-				this.values.alpha_background_color     = jQuery.Color( this.values.background_color ).alpha();
-				this.values.alpha_gradient_start_color = jQuery.Color( this.values.gradient_start_color ).alpha();
-				this.values.alpha_gradient_end_color   = jQuery.Color( this.values.gradient_end_color ).alpha();
+				this.values.alpha_background_color     = jQuery.AWB_Color( this.values.background_color ).alpha();
+				this.values.alpha_gradient_start_color = jQuery.AWB_Color( this.values.gradient_start_color ).alpha();
+				this.values.alpha_gradient_end_color   = jQuery.AWB_Color( this.values.gradient_end_color ).alpha();
 
 				if ( '' !== this.values.margin_bottom ) {
 					this.values.margin_bottom = _.fusionGetValueWithUnit( this.values.margin_bottom );
@@ -1312,6 +1312,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				this.setBackgroundImage();
 				this.setBorderStyle();
 				this.setBorderRadiusStyle();
+				this.setOverflowStyle();
 				this.setBoxShadowStyle();
 				this.setWrapperStyleBg();
 			},
@@ -1398,6 +1399,18 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				this.values.border_radius_style = '';
 				if ( '' !== this.values.border_radius ) {
 					this.values.border_radius_style = 'border-radius:' + this.values.border_radius + ';overflow:hidden;';
+				}
+
+				if ( '' !== this.values.border_radius && '' === this.values.overflow ) {
+					this.values.border_radius_style += 'overflow:hidden;';
+				}
+			},
+
+			setOverflowStyle: function() {
+				this.values.overflow_style = '';
+
+				if ( '' !== this.values.overflow ) {
+					this.values.overflow_style = 'overflow:' + this.values.overflow + ';';
 				}
 			},
 
@@ -1668,6 +1681,11 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					attr.style += this.values.border_radius_style;
 				}
 
+				// Overflow.
+				if ( '' !== this.values.overflow_style ) {
+					attr.style += this.values.overflow_style;
+				}
+
 				// Box shadow.
 				if ( 'liftup' !== this.values.hover_type && '' !== this.values.box_shadow_styles ) {
 					attr.style += this.values.box_shadow_styles;
@@ -1751,6 +1769,11 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				} else if ( 'lightbox' === this.values.target ) {
 					attr[ 'data-rel' ] = 'iLightbox';
 				}
+
+				if ( '' !== this.values.link_description ) {
+					attr[ 'aria-label' ] = this.values.link_description;
+				}
+
 				return attr;
 			},
 

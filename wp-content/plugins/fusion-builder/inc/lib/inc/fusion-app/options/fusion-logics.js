@@ -117,6 +117,7 @@ FusionPageBuilder.options.fusionLogics = {
 					break;
 				}
 
+				$wrapper.find( '.logic-additionals' ).remove();
 				if ( 'undefined' !== typeof currentChoice.additionals ) {
 					switch ( currentChoice.additionals.type ) {
 					case 'select':
@@ -141,8 +142,6 @@ FusionPageBuilder.options.fusionLogics = {
 						$wrapper.find( '.logic-field' ).append( $options );
 						break;
 					}
-				} else {
-					$wrapper.find( '.logic-additionals' ).remove();
 				}
 			}
 

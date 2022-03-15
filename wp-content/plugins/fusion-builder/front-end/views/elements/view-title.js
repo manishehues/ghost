@@ -258,11 +258,6 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					attr.style += 'font-size:' + values.font_size + ';';
 				}
 
-				// Text shadow.
-				if ( 'no' !== values.text_shadow ) {
-					attr.style += 'text-shadow:' + values.text_shadow + ';';
-				}
-
 				if ( '' !== values.margin_top ) {
 					attr.style += 'margin-top:' + values.margin_top + ';';
 				}
@@ -342,6 +337,10 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					headingAttr.style += 'letter-spacing:' + values.letter_spacing + ';';
 				}
 
+				if ( 'undefined' !== typeof values.text_transform && '' !== values.text_transform && 'none' !== values.text_transform ) {
+					headingAttr.style += 'text-transform:' + values.text_transform + ';';
+				}
+
 				if ( 'undefined' !== typeof values.text_color && '' !== values.text_color ) {
 					headingAttr.style += 'color:' + values.text_color + ';';
 				}
@@ -353,6 +352,16 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				if ( '' !== values.style_tag ) {
 					headingAttr.style += values.style_tag;
+				}
+
+				// Text shadow.
+				if ( 'no' !== values.text_shadow ) {
+
+					if ( 'yes' === values.gradient_font ) {
+						headingAttr.style += 'filter:drop-shadow(' + values.text_shadow + ');';
+					} else {
+						headingAttr.style += 'text-shadow:' + values.text_shadow + ';';
+					}
 				}
 
 				if ( 'text' === values.title_type ) {

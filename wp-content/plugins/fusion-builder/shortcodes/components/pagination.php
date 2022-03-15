@@ -72,6 +72,7 @@ if ( fusion_is_element_enabled( 'fusion_tb_pagination' ) ) {
 					'preview_position'      => 'bottom',
 					'same_term'             => 'no',
 					'taxonomy'              => 'category',
+					'inverse_post_order'    => 'no',
 					'alignment'             => '',
 					'font_size'             => $fusion_settings->get( 'body_typography', 'font-size' ),
 					'text_color'            => $fusion_settings->get( 'link_color' ),
@@ -135,8 +136,7 @@ if ( fusion_is_element_enabled( 'fusion_tb_pagination' ) ) {
 			 * @return string          HTML output.
 			 */
 			public function render( $args, $content = '' ) {
-				$is_builder = ( function_exists( 'fusion_is_preview_frame' ) && fusion_is_preview_frame() ) || ( function_exists( 'fusion_is_builder_frame' ) && fusion_is_builder_frame() );
-				$defaults   = FusionBuilder::set_shortcode_defaults( self::get_element_defaults(), $args, 'fusion_tb_pagination' );
+				$defaults = FusionBuilder::set_shortcode_defaults( self::get_element_defaults(), $args, 'fusion_tb_pagination' );
 
 				$defaults['border_size']           = FusionBuilder::validate_shortcode_attr_value( $defaults['border_size'], 'px' );
 				$defaults['height']                = FusionBuilder::validate_shortcode_attr_value( $defaults['height'], 'px' );
@@ -172,13 +172,31 @@ if ( fusion_is_element_enabled( 'fusion_tb_pagination' ) ) {
 				$content   = '';
 				$same_term = ( isset( $this->args['same_term'] ) && 'no' !== $this->args['same_term'] ) ? true : false;
 				$term      = ( isset( $this->args['same_term'] ) && '' !== $this->args['taxonomy'] ) ? $this->args['taxonomy'] : 'category';
-				$prev_post = get_adjacent_post( $same_term, '', true, $term );
-				$next_post = get_adjacent_post( $same_term, '', false, $term );
+
+				// If the user wants to reverse the logic of the post order, then swap posts.
+				if ( 'yes' === $this->args['inverse_post_order'] ) {
+					$prev_post = get_adjacent_post( $same_term, '', false, $term );
+					$next_post = get_adjacent_post( $same_term, '', true, $term );
+
+					add_filter( 'previous_post_link', [ $this, 'swap_rel_attr_in_prev_post_link' ] );
+					add_filter( 'next_post_link', [ $this, 'swap_rel_attr_in_next_post_link' ] );
+					$prev_post_link = get_next_post_link( '%link', esc_attr__( 'Previous', 'fusion-builder' ), $same_term, '', $term );
+					$next_post_link = get_previous_post_link( '%link', esc_attr__( 'Next', 'fusion-builder' ), $same_term, '', $term );
+					remove_filter( 'previous_post_link', [ $this, 'swap_rel_attr_in_prev_post_link' ] );
+					remove_filter( 'next_post_link', [ $this, 'swap_rel_attr_in_next_post_link' ] );
+				} else {
+					$prev_post = get_adjacent_post( $same_term, '', true, $term );
+					$next_post = get_adjacent_post( $same_term, '', false, $term );
+
+					$prev_post_link = get_previous_post_link( '%link', esc_attr__( 'Previous', 'fusion-builder' ), $same_term, '', $term );
+					$next_post_link = get_next_post_link( '%link', esc_attr__( 'Next', 'fusion-builder' ), $same_term, '', $term );
+				}
+
 				if ( 'sticky' !== $this->args['layout'] ) {
-					$content .= '<div class="fusion-tb-previous">' . get_previous_post_link( '%link', esc_attr__( 'Previous', 'fusion-builder' ), $same_term, '', $term );
+					$content .= '<div class="fusion-tb-previous">' . $prev_post_link;
 					$content .= $this->get_text_preview( $prev_post );
 					$content .= '</div>';
-					$content .= '<div class="fusion-tb-next">' . get_next_post_link( '%link', esc_attr__( 'Next', 'fusion-builder' ), $same_term, '', $term );
+					$content .= '<div class="fusion-tb-next">' . $next_post_link;
 					$content .= $this->get_text_preview( $next_post );
 					$content .= '</div>';
 				} elseif ( 'sticky' === $this->args['layout'] ) {
@@ -254,7 +272,6 @@ if ( fusion_is_element_enabled( 'fusion_tb_pagination' ) ) {
 					$width        = intval( $wrapper_height ) / $aspect_ratio;
 					$height       = intval( $wrapper_height );
 					$hwstring     = image_hwstring( $width, $height );
-					$attachment   = get_post( $attachment_id );
 
 					$attr = [
 						'src'   => $src,
@@ -496,6 +513,46 @@ if ( fusion_is_element_enabled( 'fusion_tb_pagination' ) ) {
 			}
 
 			/**
+			 * Replace the "next" rel attribute, with "prev". This function is a
+			 * filter.
+			 *
+			 * @access public
+			 * @since 3.5
+			 * @param string $html The Html of the adjacent link.
+			 * @return string
+			 */
+			public function swap_rel_attr_in_next_post_link( $html ) {
+				$regex_match_next = '/(<a.*?rel=["\'])(next)(["\'].*?>)/';
+				$new_html         = preg_replace( $regex_match_next, '$1prev$3', $html );
+
+				if ( empty( $new_html ) ) {
+					return $html;
+				}
+
+				return $new_html;
+			}
+
+			/**
+			 * Replace the "prev" rel attribute, with "next". This function is a
+			 * filter.
+			 *
+			 * @access public
+			 * @since 3.5
+			 * @param string $html The Html of the adjacent link.
+			 * @return string
+			 */
+			public function swap_rel_attr_in_prev_post_link( $html ) {
+				$regex_match_prev = '/(<a.*?rel=["\'])(prev)(["\'].*?>)/';
+				$new_html         = preg_replace( $regex_match_prev, '$1next$3', $html );
+
+				if ( empty( $new_html ) ) {
+					return $html;
+				}
+
+				return $new_html;
+			}
+
+			/**
 			 * Returns placeholder image
 			 *
 			 * @access public
@@ -635,6 +692,17 @@ function fusion_component_pagination() {
 								'value'    => 'no',
 								'operator' => '!=',
 							],
+						],
+					],
+					[
+						'type'        => 'radio_button_set',
+						'heading'     => esc_attr__( 'Swap Post Order', 'fusion-builder' ),
+						'description' => esc_attr__( 'Whether or not next/previous buttons should invert the post order logic.', 'fusion-builder' ),
+						'param_name'  => 'inverse_post_order',
+						'default'     => 'no',
+						'value'       => [
+							'yes' => esc_html__( 'Yes', 'fusion-builder' ),
+							'no'  => esc_html__( 'No', 'fusion-builder' ),
 						],
 					],
 					[

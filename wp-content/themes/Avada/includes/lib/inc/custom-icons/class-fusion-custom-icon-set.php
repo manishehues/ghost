@@ -181,7 +181,7 @@ class Fusion_Custom_Icon_Set {
 			'supports'            => [ 'title' ],
 		];
 
-		register_post_type( $this->post_type, $args ); // phpcs:ignore WPThemeReview.PluginTerritory.ForbiddenFunctions.plugin_territory_register_post_type
+		register_post_type( $this->post_type, apply_filters( 'fusion_custom_icons_args', $args ) ); // phpcs:ignore WPThemeReview.PluginTerritory.ForbiddenFunctions.plugin_territory_register_post_type
 	}
 
 	/**
@@ -507,7 +507,7 @@ class Fusion_Custom_Icon_Set {
 									'<a href="https://icomoon.io/app/" target="_blank" rel="noreferrer">Icomoon</a>',
 									'<br>',
 									'<strong>' . esc_html__( 'Note:', 'Avada' ) . '</strong>',
-									'<a href="https://theme-fusion.com/documentation/fusion-builder/settings-tools/how-to-upload-and-use-custom-icons-in-avada/" target="_blank" rel="noreferrer">Custom Icon documentation</a>'
+									'<a href="https://theme-fusion.com/documentation/avada/how-to/how-to-upload-and-use-custom-icons-in-avada/" target="_blank" rel="noreferrer">Custom Icon documentation</a>'
 								);
 								?>
 							</p>
@@ -533,7 +533,7 @@ class Fusion_Custom_Icon_Set {
 					$json_exists = method_exists( $this->wp_filesystem, 'exists' ) && $this->wp_filesystem->exists( FUSION_ICONS_BASE_DIR . $icon_set['icon_set_dir_name'] . '/selection.json' );
 					if ( $json_exists ) :
 						?>
-					<a href="<?php echo FUSION_ICONS_BASE_URL . $icon_set['icon_set_dir_name'] . '/selection.json'; ?>" id="fusion-custom-icons-json" target="_blank" data-title="<?php echo esc_attr( __( 'JSON', 'Avada' ) ); ?>">
+					<a href="<?php echo FUSION_ICONS_BASE_URL . $icon_set['icon_set_dir_name'] . '/selection.json'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" id="fusion-custom-icons-json" target="_blank" data-title="<?php echo esc_attr( __( 'JSON', 'Avada' ) ); ?>">
 						<?php echo esc_html( __( 'Download', 'Avada' ) ); ?>
 					</a>
 					<?php endif; ?>

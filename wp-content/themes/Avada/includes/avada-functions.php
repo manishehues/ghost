@@ -573,7 +573,7 @@ if ( ! function_exists( 'avada_nav_woo_cart' ) ) {
 					$product_link = apply_filters( 'woocommerce_cart_item_permalink', $_product->is_visible() ? $_product->get_permalink( $cart_item ) : '', $cart_item, $cart_item_key );
 					$thumbnail_id = ( $cart_item['variation_id'] && has_post_thumbnail( $cart_item['variation_id'] ) ) ? $cart_item['variation_id'] : $cart_item['product_id'];
 
-					if ( $_product && $_product->exists() && $cart_item['quantity'] > 0 && apply_filters( 'woocommerce_cart_item_visible', true, $cart_item, $cart_item_key ) ) {
+					if ( $_product && $_product->exists() && $cart_item['quantity'] > 0 && apply_filters( 'woocommerce_widget_cart_item_visible', true, $cart_item, $cart_item_key ) ) {
 						$items .= '<div class="fusion-menu-cart-item">';
 						$items .= '<a href="' . $product_link . '">';
 						$items .= get_the_post_thumbnail( $thumbnail_id, 'recent-works-thumbnail' );
@@ -937,7 +937,7 @@ if ( ! function_exists( 'avada_ajax_avada_slider_preview' ) ) {
 					$slider_object->initByAlias( $slider );
 					$slider_id = $slider_object->getID();
 
-					$edit_link = admin_url( 'admin.php?page=revslider&view=slider&id=' . $slider_id );
+					$edit_link = admin_url( 'admin.php?page=revslider&view=slide&id=' . $slider_id );
 				}
 			}
 		} elseif ( 'flex' === $slider_type ) {

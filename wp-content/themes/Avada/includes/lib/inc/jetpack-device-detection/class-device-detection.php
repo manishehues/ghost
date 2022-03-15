@@ -1,4 +1,6 @@
 <?php
+// phpcs:ignoreFile
+
 /**
  * Device detection for Jetpack.
  *

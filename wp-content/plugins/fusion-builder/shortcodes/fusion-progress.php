@@ -17,6 +17,15 @@ if ( fusion_is_element_enabled( 'fusion_progress' ) ) {
 		class FusionSC_Progressbar extends Fusion_Element {
 
 			/**
+			 * The counter.
+			 *
+			 * @access private
+			 * @since 3.6.1
+			 * @var int
+			 */
+			private $element_counter = 1;
+
+			/**
 			 * An array of the shortcode arguments.
 			 *
 			 * @access protected
@@ -36,6 +45,7 @@ if ( fusion_is_element_enabled( 'fusion_progress' ) ) {
 				add_filter( 'fusion_attr_progressbar-shortcode', [ $this, 'attr' ] );
 				add_filter( 'fusion_attr_progressbar-shortcode-bar', [ $this, 'bar_attr' ] );
 				add_filter( 'fusion_attr_progressbar-shortcode-content', [ $this, 'content_attr' ] );
+				add_filter( 'fusion_attr_fusion-progressbar-text', [ $this, 'text_attr' ] );
 				add_filter( 'fusion_attr_progressbar-shortcode-span', [ $this, 'span_attr' ] );
 
 				add_shortcode( 'fusion_progress', [ $this, 'render' ] );
@@ -54,21 +64,28 @@ if ( fusion_is_element_enabled( 'fusion_progress' ) ) {
 				$fusion_settings = awb_get_fusion_settings();
 
 				return [
-					'hide_on_mobile'    => fusion_builder_default_visibility( 'string' ),
-					'class'             => '',
-					'id'                => '',
-					'animated_stripes'  => 'no',
-					'filledcolor'       => $fusion_settings->get( 'progressbar_filled_color' ),
-					'height'            => $fusion_settings->get( 'progressbar_height' ),
-					'percentage'        => '70',
-					'show_percentage'   => 'yes',
-					'striped'           => 'no',
-					'textcolor'         => $fusion_settings->get( 'progressbar_text_color' ),
-					'text_position'     => $fusion_settings->get( 'progressbar_text_position' ),
-					'unfilledcolor'     => $fusion_settings->get( 'progressbar_unfilled_color' ),
-					'unit'              => '',
-					'filledbordercolor' => $fusion_settings->get( 'progressbar_filled_border_color' ),
-					'filledbordersize'  => $fusion_settings->get( 'progressbar_filled_border_size' ),
+					'hide_on_mobile'                => fusion_builder_default_visibility( 'string' ),
+					'class'                         => '',
+					'id'                            => '',
+					'animated_stripes'              => 'no',
+					'filledcolor'                   => $fusion_settings->get( 'progressbar_filled_color' ),
+					'height'                        => $fusion_settings->get( 'progressbar_height' ),
+					'percentage'                    => '70',
+					'show_percentage'               => 'yes',
+					'striped'                       => 'no',
+					'textcolor'                     => $fusion_settings->get( 'progressbar_text_color' ),
+					'text_position'                 => $fusion_settings->get( 'progressbar_text_position' ),
+					'text_align'                    => '',
+					'unfilledcolor'                 => $fusion_settings->get( 'progressbar_unfilled_color' ),
+					'unit'                          => '',
+					'fusion_font_family_text_font'  => '',
+					'fusion_font_variant_text_font' => '',
+					'filledbordercolor'             => $fusion_settings->get( 'progressbar_filled_border_color' ),
+					'filledbordersize'              => $fusion_settings->get( 'progressbar_filled_border_size' ),
+					'border_radius_top_left'        => '',
+					'border_radius_top_right'       => '',
+					'border_radius_bottom_right'    => '',
+					'border_radius_bottom_left'     => '',
 				];
 			}
 
@@ -116,7 +133,7 @@ if ( fusion_is_element_enabled( 'fusion_progress' ) ) {
 
 				$value = '';
 				if ( 'yes' === $show_percentage ) {
-					$value = '<span ' . FusionBuilder::attributes( 'fusion-progressbar-value' ) . '>' . $percentage . $unit . '</span>';
+					$value = '<span ' . FusionBuilder::attributes( 'fusion-progressbar-value' ) . '>' . $this->sanitize_percentage( $percentage ) . $unit . '</span>';
 				}
 
 				$text_wrapper = '<span ' . FusionBuilder::attributes( 'progressbar-shortcode-span' ) . '>' . $text . ' ' . $value . '</span>';
@@ -130,6 +147,8 @@ if ( fusion_is_element_enabled( 'fusion_progress' ) ) {
 				}
 
 				$this->on_render();
+
+				$this->element_counter++;
 
 				return apply_filters( 'fusion_element_progress_content', $html, $args );
 
@@ -158,6 +177,18 @@ if ( fusion_is_element_enabled( 'fusion_progress' ) ) {
 					$attr['class'] .= ' fusion-progressbar-text-on-bar';
 				}
 
+				if ( $this->args['class'] ) {
+					$attr['class'] .= ' ' . $this->args['class'];
+				}
+
+				if ( $this->args['id'] ) {
+					$attr['id'] = $this->args['id'];
+				}
+
+				if ( $this->args['text_align'] ) {
+					$attr['style'] = 'text-align:' . $this->args['text_align'];
+				}
+
 				return $attr;
 
 			}
@@ -176,10 +207,6 @@ if ( fusion_is_element_enabled( 'fusion_progress' ) ) {
 					'class' => 'fusion-progressbar-bar progress-bar',
 				];
 
-				if ( $this->args['height'] ) {
-					$attr['style'] .= 'height:' . $this->args['height'] . ';';
-				}
-
 				if ( 'yes' === $this->args['striped'] ) {
 					$attr['class'] .= ' progress-striped';
 				}
@@ -188,12 +215,24 @@ if ( fusion_is_element_enabled( 'fusion_progress' ) ) {
 					$attr['class'] .= ' active';
 				}
 
-				if ( $this->args['class'] ) {
-					$attr['class'] .= ' ' . $this->args['class'];
+				if ( $this->args['height'] ) {
+					$attr['style'] .= 'height:' . $this->args['height'] . ';';
 				}
 
-				if ( $this->args['id'] ) {
-					$attr['id'] = $this->args['id'];
+				if ( '' !== $this->args['border_radius_top_left'] ) {
+					$attr['style'] .= 'border-top-left-radius:' . $this->args['border_radius_top_left'] . ';';
+				}
+
+				if ( '' !== $this->args['border_radius_top_right'] ) {
+					$attr['style'] .= 'border-top-right-radius:' . $this->args['border_radius_top_right'] . ';';
+				}
+
+				if ( '' !== $this->args['border_radius_bottom_left'] ) {
+					$attr['style'] .= 'border-bottom-left-radius:' . $this->args['border_radius_bottom_left'] . ';';
+				}
+
+				if ( '' !== $this->args['border_radius_bottom_right'] ) {
+					$attr['style'] .= 'border-bottom-right-radius:' . $this->args['border_radius_bottom_right'] . ';';
 				}
 
 				return $attr;
@@ -218,11 +257,44 @@ if ( fusion_is_element_enabled( 'fusion_progress' ) ) {
 					$attr['style'] .= 'border: ' . $this->args['filledbordersize'] . ' solid ' . $this->args['filledbordercolor'] . ';';
 				}
 
-				$attr['role']          = 'progressbar';
-				$attr['aria-valuemin'] = '0';
-				$attr['aria-valuemax'] = '100';
+				if ( '' !== $this->args['border_radius_top_left'] ) {
+					$attr['style'] .= 'border-top-left-radius:' . $this->args['border_radius_top_left'] . ';';
+				}
 
-				$attr['aria-valuenow'] = $this->args['percentage'];
+				if ( '' !== $this->args['border_radius_top_right'] ) {
+					$attr['style'] .= 'border-top-right-radius:' . $this->args['border_radius_top_right'] . ';';
+				}
+
+				if ( '' !== $this->args['border_radius_bottom_left'] ) {
+					$attr['style'] .= 'border-bottom-left-radius:' . $this->args['border_radius_bottom_left'] . ';';
+				}
+
+				if ( '' !== $this->args['border_radius_bottom_right'] ) {
+					$attr['style'] .= 'border-bottom-right-radius:' . $this->args['border_radius_bottom_right'] . ';';
+				}
+
+				$attr['role']            = 'progressbar';
+				$attr['aria-labelledby'] = 'awb-progressbar-label-' . $this->element_counter;
+				$attr['aria-valuemin']   = '0';
+				$attr['aria-valuemax']   = '100';
+				$attr['aria-valuenow']   = $this->sanitize_percentage( $this->args['percentage'] );
+
+				return $attr;
+
+			}
+
+			/**
+			 * Builds the text attributes array.
+			 *
+			 * @access public
+			 * @since 3.6.1
+			 * @return array
+			 */
+			public function text_attr() {
+				$attr = [
+					'class' => 'fusion-progressbar-text',
+					'id'    => 'awb-progressbar-label-' . $this->element_counter,
+				];
 
 				return $attr;
 
@@ -236,10 +308,47 @@ if ( fusion_is_element_enabled( 'fusion_progress' ) ) {
 			 * @return array
 			 */
 			public function span_attr() {
-				return [
+				$atts = [
 					'class' => 'progress-title',
 					'style' => 'color:' . $this->args['textcolor'] . ';',
 				];
+
+				if ( 'on_bar' === $this->args['text_position'] ) {
+					$empty_percentage = 100 - $this->sanitize_percentage( $this->args['percentage'] );
+					if ( 66 > $empty_percentage ) {
+						if ( ! is_rtl() ) {
+							$atts['style'] .= 'right: calc(15px + ' . $empty_percentage . '%);';
+						} else {
+							$atts['style'] .= 'left: calc(15px + ' . $empty_percentage . '%);';
+						}
+					}
+				}
+
+				$atts['style'] .= Fusion_Builder_Element_Helper::get_font_styling( $this->args, 'text_font' );
+
+				return $atts;
+			}
+
+			/**
+			 * Sanitize the percentage value, because this can come also from a
+			 * dynamic data which can be a string or a float.
+			 *
+			 * @since 3.6
+			 * @param int|string $percentage The value to be sanitized.
+			 * @return int
+			 */
+			protected function sanitize_percentage( $percentage ) {
+				$percentage = round( floatval( $percentage ), 0 );
+
+				if ( 0 > $percentage ) {
+					$percentage = 0;
+				}
+
+				if ( 100 < $percentage ) {
+					$percentage = 100;
+				}
+
+				return $percentage;
 			}
 
 			/**
@@ -250,7 +359,6 @@ if ( fusion_is_element_enabled( 'fusion_progress' ) ) {
 			 * @return array
 			 */
 			protected function add_styling() {
-
 				global $wp_version, $content_media_query, $six_fourty_media_query, $three_twenty_six_fourty_media_query, $ipad_portrait_media_query, $fusion_settings, $dynamic_css_helpers;
 
 				$main_elements = apply_filters( 'fusion_builder_element_classes', [ '.fusion-progressbar-bar' ], '.fusion-progressbar-bar' );
@@ -268,8 +376,20 @@ if ( fusion_is_element_enabled( 'fusion_progress' ) ) {
 				$css[ $ipad_portrait_media_query ]['.fusion-progressbar']['margin-bottom']           = '10px !important';
 
 				return $css;
-
 			}
+
+			/**
+			 * Used to set any other variables for use on front-end editor template.
+			 *
+			 * @since 3.5
+			 * @return array
+			 */
+			public static function get_element_extras() {
+				return [
+					'is_rtl' => is_rtl(),
+				];
+			}
+
 
 			/**
 			 * Adds settings to element options panel.
@@ -288,14 +408,6 @@ if ( fusion_is_element_enabled( 'fusion_progress' ) ) {
 						'type'        => 'accordion',
 						'icon'        => 'fusiona-tasks',
 						'fields'      => [
-							'progressbar_height'         => [
-								'label'       => esc_html__( 'Progress Bar Height', 'fusion-builder' ),
-								'description' => esc_html__( 'Insert a height for the progress bar.', 'fusion-builder' ),
-								'id'          => 'progressbar_height',
-								'default'     => '48px',
-								'type'        => 'dimension',
-								'transport'   => 'postMessage',
-							],
 							'progressbar_text_position'  => [
 								'label'       => esc_html__( 'Progress Bar Text Position', 'fusion-builder' ),
 								'description' => esc_html__( 'Select the position of the progress bar text. Choose "Default" for Global Options selection.', 'fusion-builder' ),
@@ -309,19 +421,35 @@ if ( fusion_is_element_enabled( 'fusion_progress' ) ) {
 									'below_bar' => esc_html__( 'Below Bar', 'fusion-builder' ),
 								],
 							],
+							'progressbar_text_color'     => [
+								'label'       => esc_html__( 'Progress Bar Text Color', 'fusion-builder' ),
+								'description' => esc_html__( 'Controls the color of the progress bar text.', 'fusion-builder' ),
+								'id'          => 'progressbar_text_color',
+								'default'     => 'var(--awb-color1)',
+								'type'        => 'color-alpha',
+								'transport'   => 'postMessage',
+							],
+							'progressbar_height'         => [
+								'label'       => esc_html__( 'Progress Bar Height', 'fusion-builder' ),
+								'description' => esc_html__( 'Insert a height for the progress bar.', 'fusion-builder' ),
+								'id'          => 'progressbar_height',
+								'default'     => '48px',
+								'type'        => 'dimension',
+								'transport'   => 'postMessage',
+							],
 							'progressbar_filled_color'   => [
 								'label'       => esc_html__( 'Progress Bar Filled Color', 'fusion-builder' ),
 								'description' => esc_html__( 'Controls the color of the progress bar filled area.', 'fusion-builder' ),
 								'id'          => 'progressbar_filled_color',
-								'default'     => '#65bc7b',
+								'default'     => 'var(--awb-color5)',
 								'type'        => 'color-alpha',
 								'transport'   => 'postMessage',
 							],
-							'progressbar_filled_border_color' => [
-								'label'       => esc_html__( 'Progress Bar Filled Border Color', 'fusion-builder' ),
-								'description' => esc_html__( 'Controls the border color of the progress bar filled area.', 'fusion-builder' ),
-								'id'          => 'progressbar_filled_border_color',
-								'default'     => '#ffffff',
+							'progressbar_unfilled_color' => [
+								'label'       => esc_html__( 'Progress Bar Unfilled Color', 'fusion-builder' ),
+								'description' => esc_html__( 'Controls the color of the progress bar unfilled area.', 'fusion-builder' ),
+								'id'          => 'progressbar_unfilled_color',
+								'default'     => 'var(--awb-color2)',
 								'type'        => 'color-alpha',
 								'transport'   => 'postMessage',
 							],
@@ -338,19 +466,11 @@ if ( fusion_is_element_enabled( 'fusion_progress' ) ) {
 									'step' => '1',
 								],
 							],
-							'progressbar_unfilled_color' => [
-								'label'       => esc_html__( 'Progress Bar Unfilled Color', 'fusion-builder' ),
-								'description' => esc_html__( 'Controls the color of the progress bar unfilled area.', 'fusion-builder' ),
-								'id'          => 'progressbar_unfilled_color',
-								'default'     => '#f2f3f5',
-								'type'        => 'color-alpha',
-								'transport'   => 'postMessage',
-							],
-							'progressbar_text_color'     => [
-								'label'       => esc_html__( 'Progress Bar Text Color', 'fusion-builder' ),
-								'description' => esc_html__( 'Controls the color of the progress bar text.', 'fusion-builder' ),
-								'id'          => 'progressbar_text_color',
-								'default'     => '#ffffff',
+							'progressbar_filled_border_color' => [
+								'label'       => esc_html__( 'Progress Bar Filled Border Color', 'fusion-builder' ),
+								'description' => esc_html__( 'Controls the border color of the progress bar filled area.', 'fusion-builder' ),
+								'id'          => 'progressbar_filled_border_color',
+								'default'     => 'var(--awb-color1)',
 								'type'        => 'color-alpha',
 								'transport'   => 'postMessage',
 							],
@@ -411,31 +531,29 @@ function fusion_element_progress() {
 				'icon'          => 'fusiona-tasks',
 				'preview'       => FUSION_BUILDER_PLUGIN_DIR . 'inc/templates/previews/fusion-progress-preview.php',
 				'preview_id'    => 'fusion-builder-block-module-progress-preview-template',
-				'help_url'      => 'https://theme-fusion.com/documentation/fusion-builder/elements/progress-bar-element/',
+				'help_url'      => 'https://theme-fusion.com/documentation/avada/elements/progress-bar-element/',
+				'subparam_map'  => [
+					'fusion_font_family_text_font'  => 'main_typography',
+					'fusion_font_variant_text_font' => 'main_typography',
+				],
 				'inline_editor' => true,
 				'params'        => [
 					[
-						'type'             => 'dimension',
-						'remove_from_atts' => true,
-						'heading'          => esc_attr__( 'Progress Bar Height', 'fusion-builder' ),
-						'description'      => esc_attr__( 'Insert a height for the progress bar. Enter value including any valid CSS unit, ex: 10px.', 'fusion-builder' ),
-						'param_name'       => 'dimensions',
-						'value'            => [
-							'height' => '',
-						],
+						'type'         => 'range',
+						'heading'      => esc_attr__( 'Filled Area Percentage', 'fusion-builder' ),
+						'description'  => esc_attr__( 'From 1% to 100%.', 'fusion-builder' ),
+						'dynamic_data' => true,
+						'param_name'   => 'percentage',
+						'value'        => '70',
 					],
 					[
-						'type'        => 'radio_button_set',
-						'heading'     => esc_attr__( 'Text Position', 'fusion-builder' ),
-						'description' => esc_attr__( 'Select the position of the progress bar text. Choose "Default" for Global Options selection.', 'fusion-builder' ),
-						'param_name'  => 'text_position',
-						'value'       => [
-							''          => esc_attr__( 'Default', 'fusion-builder' ),
-							'on_bar'    => esc_attr__( 'On Bar', 'fusion-builder' ),
-							'above_bar' => esc_attr__( 'Above Bar', 'fusion-builder' ),
-							'below_bar' => esc_attr__( 'Below Bar', 'fusion-builder' ),
-						],
-						'default'     => '',
+						'type'         => 'textfield',
+						'heading'      => esc_attr__( 'Progress Bar Text', 'fusion-builder' ),
+						'description'  => esc_attr__( 'Text will show up on progress bar.', 'fusion-builder' ),
+						'dynamic_data' => true,
+						'param_name'   => 'element_content',
+						'value'        => esc_attr__( 'Your Content Goes Here', 'fusion-builder' ),
+						'placeholder'  => true,
 					],
 					[
 						'type'        => 'radio_button_set',
@@ -463,100 +581,6 @@ function fusion_element_progress() {
 						],
 					],
 					[
-						'type'        => 'range',
-						'heading'     => esc_attr__( 'Filled Area Percentage', 'fusion-builder' ),
-						'description' => esc_attr__( 'From 1% to 100%.', 'fusion-builder' ),
-						'param_name'  => 'percentage',
-						'value'       => '70',
-					],
-					[
-						'type'        => 'colorpickeralpha',
-						'heading'     => esc_attr__( 'Filled Color', 'fusion-builder' ),
-						'description' => esc_attr__( 'Controls the color of the filled in area. ', 'fusion-builder' ),
-						'param_name'  => 'filledcolor',
-						'value'       => '',
-						'default'     => $fusion_settings->get( 'progressbar_filled_color' ),
-					],
-					[
-						'type'        => 'range',
-						'heading'     => esc_attr__( 'Filled Border Size', 'fusion-builder' ),
-						'description' => esc_attr__( 'In pixels.', 'fusion-builder' ),
-						'param_name'  => 'filledbordersize',
-						'value'       => '',
-						'min'         => '0',
-						'max'         => '20',
-						'step'        => '1',
-						'default'     => $fusion_settings->get( 'progressbar_filled_border_size' ),
-					],
-					[
-						'type'        => 'colorpickeralpha',
-						'heading'     => esc_attr__( 'Filled Border Color', 'fusion-builder' ),
-						'description' => esc_attr__( 'Controls the border color of the filled in area. ', 'fusion-builder' ),
-						'param_name'  => 'filledbordercolor',
-						'value'       => '',
-						'default'     => $fusion_settings->get( 'progressbar_filled_border_color' ),
-						'dependency'  => [
-							[
-								'element'  => 'filledbordersize',
-								'value'    => '0',
-								'operator' => '!=',
-							],
-						],
-					],
-					[
-						'type'        => 'colorpickeralpha',
-						'heading'     => esc_attr__( 'Unfilled Color', 'fusion-builder' ),
-						'description' => esc_attr__( 'Controls the color of the unfilled in area. ', 'fusion-builder' ),
-						'param_name'  => 'unfilledcolor',
-						'value'       => '',
-						'default'     => $fusion_settings->get( 'progressbar_unfilled_color' ),
-					],
-					[
-						'type'        => 'radio_button_set',
-						'heading'     => esc_attr__( 'Striped Filling', 'fusion-builder' ),
-						'description' => esc_attr__( 'Choose to get the filled area striped.', 'fusion-builder' ),
-						'param_name'  => 'striped',
-						'value'       => [
-							'no'  => esc_attr__( 'No', 'fusion-builder' ),
-							'yes' => esc_attr__( 'Yes', 'fusion-builder' ),
-						],
-						'default'     => 'no',
-					],
-					[
-						'type'        => 'radio_button_set',
-						'heading'     => esc_attr__( 'Animated Stripes', 'fusion-builder' ),
-						'description' => esc_attr__( 'Choose to get the the stripes animated.', 'fusion-builder' ),
-						'param_name'  => 'animated_stripes',
-						'value'       => [
-							'no'  => esc_attr__( 'No', 'fusion-builder' ),
-							'yes' => esc_attr__( 'Yes', 'fusion-builder' ),
-						],
-						'default'     => 'no',
-						'dependency'  => [
-							[
-								'element'  => 'striped',
-								'value'    => 'yes',
-								'operator' => '==',
-							],
-						],
-					],
-					[
-						'type'        => 'textfield',
-						'heading'     => esc_attr__( 'Progress Bar Text', 'fusion-builder' ),
-						'description' => esc_attr__( 'Text will show up on progress bar.', 'fusion-builder' ),
-						'param_name'  => 'element_content',
-						'value'       => esc_attr__( 'Your Content Goes Here', 'fusion-builder' ),
-						'placeholder' => true,
-					],
-					[
-						'type'        => 'colorpickeralpha',
-						'heading'     => esc_attr__( 'Text Color', 'fusion-builder' ),
-						'description' => esc_attr__( 'Controls the text color. ', 'fusion-builder' ),
-						'param_name'  => 'textcolor',
-						'value'       => '',
-						'default'     => $fusion_settings->get( 'progressbar_text_color' ),
-					],
-					[
 						'type'        => 'checkbox_button_set',
 						'heading'     => esc_attr__( 'Element Visibility', 'fusion-builder' ),
 						'param_name'  => 'hide_on_mobile',
@@ -580,6 +604,174 @@ function fusion_element_progress() {
 						'value'       => '',
 						'group'       => esc_attr__( 'General', 'fusion-builder' ),
 					],
+
+					[
+						'type'        => 'radio_button_set',
+						'heading'     => esc_attr__( 'Text Position', 'fusion-builder' ),
+						'description' => esc_attr__( 'Select the position of the progress bar text. Choose "Default" for Global Options selection.', 'fusion-builder' ),
+						'param_name'  => 'text_position',
+						'value'       => [
+							''          => esc_attr__( 'Default', 'fusion-builder' ),
+							'on_bar'    => esc_attr__( 'On Bar', 'fusion-builder' ),
+							'above_bar' => esc_attr__( 'Above Bar', 'fusion-builder' ),
+							'below_bar' => esc_attr__( 'Below Bar', 'fusion-builder' ),
+						],
+						'default'     => '',
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+					],
+					[
+						'type'        => 'radio_button_set',
+						'heading'     => esc_attr__( 'Text Align', 'fusion-builder' ),
+						'description' => esc_attr__( 'Choose the alignment of the text. If the text position is "On Bar", the alignment will work only if the bar is filled over 35% percent.', 'fusion-builder' ),
+						'param_name'  => 'text_align',
+						'value'       => [
+							''       => esc_attr__( 'Text Flow', 'fusion-builder' ),
+							'left'   => esc_attr__( 'Left', 'fusion-builder' ),
+							'center' => esc_attr__( 'Center', 'fusion-builder' ),
+							'right'  => esc_attr__( 'Right', 'fusion-builder' ),
+						],
+						'default'     => '',
+						'dependency'  => [
+							[
+								'element'  => 'percentage',
+								'value'    => '34',
+								'operator' => '>',
+							],
+						],
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+					],
+					[
+						'type'        => 'colorpickeralpha',
+						'heading'     => esc_attr__( 'Text Color', 'fusion-builder' ),
+						'description' => esc_attr__( 'Controls the text color. ', 'fusion-builder' ),
+						'param_name'  => 'textcolor',
+						'value'       => '',
+						'default'     => $fusion_settings->get( 'progressbar_text_color' ),
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+					],
+					[
+						'type'             => 'typography',
+						'heading'          => esc_attr__( 'Typography', 'fusion-builder' ),
+						'description'      => esc_html__( 'Controls the text typography.', 'fusion-builder' ),
+						'param_name'       => 'main_typography',
+						'choices'          => [
+							'font-family'    => 'text_font',
+							'font-size'      => false,
+							'line-height'    => false,
+							'letter-spacing' => false,
+							'text-transform' => false,
+						],
+						'default'          => [
+							'font-family' => '',
+							'variant'     => '400',
+						],
+						'remove_from_atts' => true,
+						'global'           => true,
+						'group'            => esc_attr__( 'Design', 'fusion-builder' ),
+					],
+					[
+						'type'        => 'radio_button_set',
+						'heading'     => esc_attr__( 'Striped Filling', 'fusion-builder' ),
+						'description' => esc_attr__( 'Choose to get the filled area striped.', 'fusion-builder' ),
+						'param_name'  => 'striped',
+						'value'       => [
+							'no'  => esc_attr__( 'No', 'fusion-builder' ),
+							'yes' => esc_attr__( 'Yes', 'fusion-builder' ),
+						],
+						'default'     => 'no',
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+					],
+					[
+						'type'        => 'radio_button_set',
+						'heading'     => esc_attr__( 'Animated Stripes', 'fusion-builder' ),
+						'description' => esc_attr__( 'Choose to get the the stripes animated.', 'fusion-builder' ),
+						'param_name'  => 'animated_stripes',
+						'value'       => [
+							'no'  => esc_attr__( 'No', 'fusion-builder' ),
+							'yes' => esc_attr__( 'Yes', 'fusion-builder' ),
+						],
+						'default'     => 'no',
+						'dependency'  => [
+							[
+								'element'  => 'striped',
+								'value'    => 'yes',
+								'operator' => '==',
+							],
+						],
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+					],
+					[
+						'type'             => 'dimension',
+						'remove_from_atts' => true,
+						'heading'          => esc_attr__( 'Progress Bar Height', 'fusion-builder' ),
+						'description'      => esc_attr__( 'Insert a height for the progress bar. Enter value including any valid CSS unit, ex: 10px.', 'fusion-builder' ),
+						'param_name'       => 'dimensions',
+						'value'            => [
+							'height' => '',
+						],
+						'group'            => esc_attr__( 'Design', 'fusion-builder' ),
+					],
+					[
+						'type'        => 'colorpickeralpha',
+						'heading'     => esc_attr__( 'Filled Color', 'fusion-builder' ),
+						'description' => esc_attr__( 'Controls the color of the filled in area. ', 'fusion-builder' ),
+						'param_name'  => 'filledcolor',
+						'value'       => '',
+						'default'     => $fusion_settings->get( 'progressbar_filled_color' ),
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+					],
+					[
+						'type'        => 'colorpickeralpha',
+						'heading'     => esc_attr__( 'Unfilled Color', 'fusion-builder' ),
+						'description' => esc_attr__( 'Controls the color of the unfilled in area. ', 'fusion-builder' ),
+						'param_name'  => 'unfilledcolor',
+						'value'       => '',
+						'default'     => $fusion_settings->get( 'progressbar_unfilled_color' ),
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+					],
+					[
+						'type'             => 'dimension',
+						'remove_from_atts' => true,
+						'heading'          => esc_attr__( 'Border Radius', 'fusion-builder' ),
+						'description'      => esc_attr__( 'Enter values including any valid CSS unit, ex: 10px or 10%.', 'fusion-builder' ),
+						'param_name'       => 'border_radius',
+						'value'            => [
+							'border_radius_top_left'     => '',
+							'border_radius_top_right'    => '',
+							'border_radius_bottom_right' => '',
+							'border_radius_bottom_left'  => '',
+						],
+						'group'            => esc_attr__( 'Design', 'fusion-builder' ),
+					],
+					[
+						'type'        => 'range',
+						'heading'     => esc_attr__( 'Filled Border Size', 'fusion-builder' ),
+						'description' => esc_attr__( 'In pixels.', 'fusion-builder' ),
+						'param_name'  => 'filledbordersize',
+						'value'       => '',
+						'min'         => '0',
+						'max'         => '20',
+						'step'        => '1',
+						'default'     => $fusion_settings->get( 'progressbar_filled_border_size' ),
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+					],
+					[
+						'type'        => 'colorpickeralpha',
+						'heading'     => esc_attr__( 'Filled Border Color', 'fusion-builder' ),
+						'description' => esc_attr__( 'Controls the border color of the filled in area. ', 'fusion-builder' ),
+						'param_name'  => 'filledbordercolor',
+						'value'       => '',
+						'default'     => $fusion_settings->get( 'progressbar_filled_border_color' ),
+						'dependency'  => [
+							[
+								'element'  => 'filledbordersize',
+								'value'    => '0',
+								'operator' => '!=',
+							],
+						],
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+					],
+
 				],
 			]
 		)

@@ -374,7 +374,7 @@ FASElement.prototype.init = function() {
 	// Get corresponding labels for initial values.
 	if ( this.initialValues.length ) {
 		this.toggleLoading();
-		this.getLabels().success( function( data ) {
+		this.getLabels().done( function( data ) {
 			data = JSON.parse( data );
 
 			self.options = data.labels || [];

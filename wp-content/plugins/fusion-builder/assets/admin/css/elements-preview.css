@@ -4533,6 +4533,14 @@
 .fusion-builder-ui-wireframe .fusion-builder-live-editor .fusion-sharing-box .fusion-social-networks .fusion-social-network-icon {
   margin-bottom: 0;
 }
+#fusion_builder_layout .fusion-slider-sc .slides > li.fusion-flex-column,
+.fusion-builder-ui-wireframe .fusion-builder-live-editor .fusion-slider-sc .slides > li.fusion-flex-column {
+  display: none;
+}
+#fusion_builder_layout .fusion-slider-sc .slides > li.fusion-flex-column:first-child,
+.fusion-builder-ui-wireframe .fusion-builder-live-editor .fusion-slider-sc .slides > li.fusion-flex-column:first-child {
+  display: block;
+}
 #fusion_builder_layout .fusion-slider-sc .slides > li:first-child,
 .fusion-builder-ui-wireframe .fusion-builder-live-editor .fusion-slider-sc .slides > li:first-child {
   display: block;
@@ -4569,10 +4577,6 @@
   font-size: 16px;
   color: #46494a;
   display: inline-block;
-}
-#fusion_builder_layout .fusion-social-networks .fusion-social-network-icon:hover,
-.fusion-builder-ui-wireframe .fusion-builder-live-editor .fusion-social-networks .fusion-social-network-icon:hover {
-  opacity: 0.8;
 }
 #fusion_builder_layout .fusion-social-networks .fusion-social-network-icon:before,
 .fusion-builder-ui-wireframe .fusion-builder-live-editor .fusion-social-networks .fusion-social-network-icon:before {

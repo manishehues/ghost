@@ -8,6 +8,21 @@ var FusionPageBuilder = FusionPageBuilder || {};
 		// Title View
 		FusionPageBuilder.fusion_tagline_box = FusionPageBuilder.ElementView.extend( {
 
+			onInit: function() {
+				var params = this.model.get( 'params' );
+				if ( 'object' === typeof params ) {
+					// Split border radius into 4.
+					if ( 'undefined' === typeof params.button_border_radius_top_left && 'undefined' !== typeof params.button_border_radius && '' !== params.button_border_radius ) {
+						params.button_border_radius_top_left     = parseInt( params.button_border_radius ) + 'px';
+						params.button_border_radius_top_right    = params.button_border_radius_top_left;
+						params.button_border_radius_bottom_right = params.button_border_radius_top_left;
+						params.button_border_radius_bottom_left  = params.button_border_radius_top_left;
+						delete params.button_border_radius;
+					}
+					this.model.set( 'params', params );
+				}
+			},
+
 			/**
 			 * Modify template attributes.
 			 *
@@ -62,6 +77,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				// BC compatibility for button shape.
 				if ( 'undefined' !== typeof values.button_shape && 'undefined' === typeof values.button_border_radius ) {
+					values.button_border_radius = '0';
 					if ( 'square' === values.button_shape ) {
 						values.button_border_radius = '0';
 					} else if ( 'round' === values.button_shape ) {
@@ -75,7 +91,18 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					} else if ( '' === values.button_shape ) {
 						values.button_border_radius = '';
 					}
+					values.button_border_radius_top_left     = values.button_border_radius;
+					values.button_border_radius_top_right    = values.button_border_radius_top_left;
+					values.button_border_radius_bottom_right = values.button_border_radius_top_left;
+					values.button_border_radius_bottom_left  = values.button_border_radius_top_left;
+				} else if ( 'string' === typeof values.buton_border_radius && 'undefined' === typeof values.button_border_radius_top_left ) {
+					values.button_border_radius_top_left     = values.button_button_border_radius;
+					values.button_border_radius_top_right    = values.button_border_radius_top_left;
+					values.button_border_radius_bottom_right = values.button_border_radius_top_left;
+					values.button_border_radius_bottom_left  = values.button_border_radius_top_left;
 				}
+
+				values.button_border_radius = _.fusionGetValueWithUnit( values.button_border_radius_top_left ) + ' ' + _.fusionGetValueWithUnit( values.button_border_radius_top_right ) + ' ' + _.fusionGetValueWithUnit( values.button_border_radius_bottom_right ) + ' ' + _.fusionGetValueWithUnit( values.button_border_radius_bottom_left );
 
 				try {
 					if ( FusionPageBuilderApp.base64Encode( FusionPageBuilderApp.base64Decode( values.description ) ) === values.description ) {
@@ -202,7 +229,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				}
 
 				if ( '' !== values.button_border_radius ) {
-					attrButton.style += 'border-radius:' + parseInt( values.button_border_radius ) + 'px;';
+					attrButton.style += 'border-radius:' + values.button_border_radius;
 				}
 
 				return attrButton;

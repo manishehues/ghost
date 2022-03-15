@@ -84,8 +84,13 @@
   border-radius: 0;
   background-clip: padding-box;
   box-shadow: none;
+  display: flex;
 }
 .fusion-progressbar-bar .progress {
   background-color: #65bc7b;
   box-shadow: none;
+}
+.rtl .fusion-progressbar-text-on-bar .progress-title {
+  left: none;
+  right: 15px;
 }

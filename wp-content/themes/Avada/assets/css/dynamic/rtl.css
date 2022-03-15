@@ -1464,9 +1464,14 @@
 .rtl #tribe-events #tribe-events-bar #tribe-bar-form.tribe-bar-collapse input[type="text"] {
   margin: 0;
 }
+.rtl #tribe-events .tribe-events-loop .tribe-events-content {
+  float: right;
+}
 .rtl #tribe-events .tribe-events-nav-left,
 .rtl #tribe-events .tribe-events-nav-previous {
   float: right;
+  margin-right: 0;
+  margin-left: 5px;
 }
 .rtl #tribe-events .tribe-events-nav-left a,
 .rtl #tribe-events .tribe-events-nav-previous a {
@@ -1489,6 +1494,8 @@
 .rtl #tribe-events .tribe-events-nav-next,
 .rtl #tribe-events .tribe-events-nav-right {
   float: left;
+  margin-right: 5px;
+  margin-left: 0;
 }
 .rtl #tribe-events .tribe-events-nav-next a,
 .rtl #tribe-events .tribe-events-nav-right a {

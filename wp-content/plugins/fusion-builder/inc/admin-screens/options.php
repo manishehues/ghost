@@ -255,9 +255,9 @@ if ( null === FusionBuilder()->registration ) {
 			<section class="avada-db-card">
 				<div class="fusion-builder-option">
 					<div class="fusion-builder-option-title">
-						<h2><?php esc_html_e( 'Import Avada Builder Content', 'fusion-builder' ); ?></h2>
+						<h2><?php esc_html_e( 'Import Library Content', 'fusion-builder' ); ?></h2>
 						<span class="fusion-builder-option-label">
-							<p><?php esc_html_e( 'Choose to import Avada Builder content; custom saved containers / columns / elements or full page templates. Click "Choose File" and select your Avada Builder XML file.', 'fusion-builder' ); ?></p>
+							<p><?php esc_html_e( 'Choose to import Avada Builder Library content. You can import either your saved containers, columns and elements, or your saved full page templates. Click "Choose File" and select your Avada Builder XML file.', 'fusion-builder' ); ?></p>
 						</span>
 					</div>
 
@@ -274,9 +274,9 @@ if ( null === FusionBuilder()->registration ) {
 			<section class="avada-db-card">
 				<div class="fusion-builder-option">
 					<div class="fusion-builder-option-title">
-						<h2><?php esc_html_e( 'Export Avada Builder Content', 'fusion-builder' ); ?></h2>
+						<h2><?php esc_html_e( 'Export Library Content', 'fusion-builder' ); ?></h2>
 						<span class="fusion-builder-option-label">
-							<p><?php esc_html_e( 'Choose to export Avada Builder content; custom saved containers / columns / elements or full page templates. An XML file will be downloaded to your computer.' ); ?></p>
+							<p><?php esc_html_e( 'Choose to export Avada Builder Library content. You can export your saved containers, columns and elements, or your saved full page templates. A corresponding XML file will be downloaded to your computer.' ); ?></p>
 						</span>
 					</div>
 
@@ -312,6 +312,33 @@ if ( null === FusionBuilder()->registration ) {
 					</div>
 				</div>
 			</section>
+
+			<?php if ( class_exists( 'AWB_Studio' ) && AWB_Studio::is_studio_enabled() ) : ?>
+				<?php wp_nonce_field( 'awb_remove_studio_content', 'awb_remove_studio_content' ); ?>
+			<section class="avada-db-card">
+				<div class="fusion-builder-option">
+					<div class="fusion-builder-option-title">
+						<h2><?php esc_html_e( 'Remove Avada Studio Content', 'fusion-builder' ); ?></h2>
+						<span class="fusion-builder-option-label">
+							<p>
+								<?php
+								/* translators: Opening and closing strong tags. */
+								printf( esc_html__( 'Remove previously imported Avada Studio content. %1$sWARNING:%2$s Use with caution. It will remove all imported content including images which might be used in your pages.', 'fusion-builder' ), '<strong>', '</strong>' );
+								?>
+							</p>
+						</span>
+					</div>
+
+					<div class="fusion-builder-option-field">
+						<div class="awb-studio-content-remove-wrap">
+							<button id="awb-remove-studio-content" class="button"><?php esc_html_e( 'Remove', 'fusion-builder' ); ?></button>
+							<span class="spinner avada-db-loader"></span>
+							<div class="awb-remove-studio-content-status"><i class="fusiona-exclamation-sign"></i><?php esc_html_e( 'Something went wrong.', 'fusion-builder' ); ?></div>
+						</div>
+					</div>
+				</div>
+			</section>
+			<?php endif; ?>
 
 			<section class="fusion-builder-settings-save-settings avada-db-card avada-db-card-transparent">
 				<input type="hidden" name="action" value="save_fb_settings">

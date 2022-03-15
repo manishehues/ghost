@@ -114,8 +114,8 @@ class Fusion_Social_Icon {
 		if ( self::$args['linktarget'] ) {
 			$icon_options['target'] = '_blank';
 
-			if ( 'facebook' !== $icon_options['social_network'] || isset( $args['icon'] ) ) {
-				$icon_options['rel'] = 'noopener noreferrer';
+			if ( isset( $icon_options['social_network'] ) || isset( $args['icon'] ) ) {
+				$icon_options['rel'] = ( 'facebook' !== $icon_options['social_network'] ? 'noopener ' : '' ) . 'noreferrer';
 			}
 		}
 
@@ -145,7 +145,7 @@ class Fusion_Social_Icon {
 		}
 
 		if ( fusion_library()->get_option( 'nofollow_social_links' ) ) {
-			$icon_options['rel'] = 'nofollow';
+			$icon_options['rel'] = ( isset( $icon_options['rel'] ) ) ? $icon_options['rel'] . ' nofollow' : 'nofollow';
 		}
 
 		if ( isset( $args['icon_color'] ) && $args['icon_color'] ) {

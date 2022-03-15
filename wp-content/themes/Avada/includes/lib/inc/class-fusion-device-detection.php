@@ -15,7 +15,7 @@ class Fusion_Device_Detection {
 	 * Hold the namespace class.
 	 *
 	 * @since 3.4
-	 * @return object
+	 * @var object
 	 */
 	public $detection;
 
@@ -42,7 +42,7 @@ class Fusion_Device_Detection {
 
 			$this->detection = 'FusionLibrary\Device_Detection';
 		} else {
-			$this->detection = 'Automattic\Jetpack\Device_Detection';   
+			$this->detection = 'Automattic\Jetpack\Device_Detection';
 		}
 	}
 

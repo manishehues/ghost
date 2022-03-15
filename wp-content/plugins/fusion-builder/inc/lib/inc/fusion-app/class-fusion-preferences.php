@@ -186,6 +186,17 @@ class Fusion_Preferences {
 			],
 			[
 				'type'        => 'radio_button_set',
+				'heading'     => esc_html__( 'Show Option Descriptions By Default', 'fusion-builder' ),
+				'description' => esc_html__( 'Choose if option descriptions should be shown or hidden by default.', 'fusion-builder' ),
+				'param_name'  => 'descriptions',
+				'value'       => [
+					'show' => esc_html__( 'Show', 'fusion-builder' ),
+					'hide' => esc_html__( 'Hide', 'fusion-builder' ),
+				],
+				'default'     => ( isset( self::$preferences['descriptions'] ) ? self::$preferences['descriptions'] : 'hide' ),
+			],
+			[
+				'type'        => 'radio_button_set',
 				'heading'     => esc_html__( 'Show Tooltips', 'fusion-builder' ),
 				'description' => esc_html__( 'Choose if tooltips should be enabled or disabled.', 'fusion-builder' ),
 				'param_name'  => 'tooltips',

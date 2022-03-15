@@ -536,11 +536,7 @@ ul.products .product {
   text-decoration: none;
 }
 .price ins .amount {
-  font-size: 18px;
   text-decoration: none;
-}
-.price > .amount {
-  font-size: 18px;
 }
 .price .stock {
   display: inline;

@@ -26,13 +26,18 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			generateTimeField: function( values ) {
 				var elementData,
 					elementHtml,
-					html = '';
+					html = '',
+					input_type = 'type="time"';
 
 				elementData = this.elementData( values );
 
 				this.generateTooltipHtml( values, elementData );
 
-				elementHtml = '<input id="time-' + this.model.get( 'cid' ) + '" type="time" data-type="' + values.picker + '" data-clock="' + values.clock + '" name="' + values.name + '" ' + elementData.holds_private_data + elementData[ 'class' ] + elementData.required + elementData.placeholder + '/>';
+				if ( 'custom' === values.picker || 'desktop' === values.picker ) {
+					input_type = 'type="text"';
+				}
+
+				elementHtml = '<input id="time-' + this.model.get( 'cid' ) + '" ' + input_type + ' data-type="' + values.picker + '" data-clock="' + values.clock + '" name="' + values.name + '" ' + elementData.holds_private_data + elementData[ 'class' ] + elementData.required + elementData.placeholder + '/>';
 
 				elementHtml = this.generateIconHtml( values, elementHtml );
 

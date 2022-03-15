@@ -1,4 +1,4 @@
-/* global ajaxurl, fusionBuilderConfig */
+/* global ajaxurl, fusionBuilderConfig, fusionBuilderAdmin */
 jQuery( document ).ready( function() {
 
 	jQuery( '.fusion-builder-admin-toggle-heading' ).on( 'click', function() {
@@ -114,6 +114,43 @@ jQuery( document ).ready( function() {
 	// Prevent form being submitted multiple times.
 	jQuery( '#fusion-create-layout-form, #fusion-create-template-form' ).on( 'submit', function() {
 		jQuery( this ).find( 'input[type="submit"]' ).prop( 'disabled', true );
+	} );
+
+	// Remove Avada Studio content.
+	jQuery( '#awb-remove-studio-content' ).on( 'click', function( event ) {
+		var $this = jQuery( this ),
+			confirmResponse;
+
+		event.preventDefault();
+
+		// Early exit if process is already started.
+		if ( $this.hasClass( 'disabled' ) ) {
+			return;
+		}
+
+		confirmResponse = confirm( fusionBuilderAdmin.remove_all_studio_content ); // eslint-disable-line no-alert
+		if ( ! confirmResponse ) {
+			return;
+		}
+
+		// Show spinner.
+		$this.next().show();
+		$this.addClass( 'disabled' );
+
+		jQuery.ajax( {
+			url: ajaxurl,
+			method: 'POST',
+			data: {
+				action: 'awb_studio_remove_content',
+				nonce: jQuery( '#awb_remove_studio_content' ).val()
+			}
+			} ).done( function( response ) { // eslint-disable-line no-unused-vars
+			} ).fail( function() {
+				jQuery( '.awb-remove-studio-content-status' ).show();
+			} ).always( function() {
+				$this.next().hide();
+				$this.removeClass( 'disabled' );
+			} );
 	} );
 
 } );

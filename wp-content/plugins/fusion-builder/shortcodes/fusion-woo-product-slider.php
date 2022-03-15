@@ -159,7 +159,8 @@ if ( fusion_is_element_enabled( 'fusion_products_slider' ) && class_exists( 'Woo
 					],
 				];
 
-				$ordering_args   = WC()->query->get_catalog_ordering_args( $defaults['orderby'], $defaults['order'] );
+				$ordering_args = WC()->query->get_catalog_ordering_args( $defaults['orderby'], $defaults['order'] );
+
 				$args['orderby'] = $ordering_args['orderby'];
 				$args['order']   = $ordering_args['order'];
 				if ( $ordering_args['meta_key'] ) {
@@ -209,6 +210,8 @@ if ( fusion_is_element_enabled( 'fusion_products_slider' ) && class_exists( 'Woo
 				}
 
 				$products = fusion_cached_query( $args );
+
+				fusion_library()->woocommerce->remove_post_clauses( $args['orderby'], $args['order'] );
 
 				if ( ! $live_request ) {
 					return $products;
@@ -508,7 +511,7 @@ function fusion_element_products_slider() {
 					'name'      => esc_attr__( 'Woo Product Carousel', 'fusion-builder' ),
 					'shortcode' => 'fusion_products_slider',
 					'icon'      => 'fusiona-tag',
-					'help_url'  => 'https://theme-fusion.com/documentation/fusion-builder/elements/woocommerce-product-carousel-element/',
+					'help_url'  => 'https://theme-fusion.com/documentation/avada/elements/woocommerce-product-carousel-element/',
 					'params'    => [
 						[
 							'type'        => 'radio_button_set',

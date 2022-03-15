@@ -264,10 +264,15 @@ class Fusion_Breadcrumbs {
 		$this->breadcrumbs_parts['prefix'] = $this->get_single_breadcrumb_data( $this->home_prefix, '', false, false, false, '' );
 
 		// Add the "Home" link.
-		if ( ! is_front_page() ) { // If the home page is a real page.
-			$this->breadcrumbs_parts['home'] = $this->get_single_breadcrumb_data( $this->home_label, get_home_url() );
-		} elseif ( is_home() && $fusion_settings->get( 'blog_title' ) ) { // If the home page is the main blog page.
+		if ( is_home() && $fusion_settings->get( 'blog_title' ) ) { // If the home page is the main blog page.
 			$this->breadcrumbs_parts['home'] = $this->get_single_breadcrumb_data( $fusion_settings->get( 'blog_title' ), '', true, true, true );
+		} else {
+			$this->breadcrumbs_parts['home'] = $this->get_single_breadcrumb_data( $this->home_label, get_home_url() );
+
+			// Make sure the breadcrumb does not get doubled up.
+			if ( is_front_page() ) {
+				return;
+			}
 		}
 
 		// Woocommerce path prefix (e.g "Shop" ).
@@ -301,6 +306,12 @@ class Fusion_Breadcrumbs {
 		} else {
 			// Blog page is a dedicated page.
 			if ( is_home() && ! is_front_page() ) {
+
+				// If TEC events page is set as front page.
+				if ( function_exists( 'tribe_is_event_query' ) && tribe_is_event_query() ) {
+					return;
+				}
+
 				$posts_page                            = get_option( 'page_for_posts' );
 				$posts_page_title                      = get_the_title( $posts_page );
 				$this->breadcrumbs_parts['posts_page'] = $this->get_single_breadcrumb_data( $posts_page_title, '', true, true, true );
@@ -458,11 +469,11 @@ class Fusion_Breadcrumbs {
 			$leaf_markup = ' class="breadcrumb-leaf"';
 		}
 
-		$breadcrumb_content = '<span ' . $leaf_markup . '>' . $data['label'] . '</span>';
+		$breadcrumb_content = '<span ' . $leaf_markup . '>' . wp_strip_all_tags( $data['label'] ) . '</span>';
 
 		// If a link is set add its markup.
 		if ( $data['url'] ) {
-			$breadcrumb_content = '<a href="' . $data['url'] . '" class="fusion-breadcrumb-link">' . $breadcrumb_content . '</a>';
+			$breadcrumb_content = '<a href="' . esc_url( $data['url'] ) . '" class="fusion-breadcrumb-link">' . $breadcrumb_content . '</a>';
 		}
 
 		// If a separator should be added, do it.

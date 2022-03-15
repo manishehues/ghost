@@ -207,19 +207,51 @@ class Fusion_Form_Builder {
 		}
 
 		if ( '' !== $form_id ) {
-			$fusion_forms = new Fusion_Form_DB_Forms();
-			$fusion_forms->insert(
-				[
-					'form_id' => $form_id,
-					'views'   => 0,
-				]
-			);
-			$fusion_forms->increment_views( $form_id );
+			if ( $this->can_increase_views_count( $form_id ) ) {
+				$fusion_forms = new Fusion_Form_DB_Forms();
+				$fusion_forms->insert(
+					[
+						'form_id' => $form_id,
+						'views'   => 0,
+					]
+				);
+				$fusion_forms->increment_views( $form_id );
+			}
 		}
 
 		// Send back nonce field.
 		wp_nonce_field( 'fusion_form_nonce', 'fusion-form-nonce-' . absint( $form_id ), false, true );
 		die();
+	}
+
+	/**
+	 * Return whether or not a visitor can increase the form views.
+	 *
+	 * @since 3.5
+	 * @param string|int $form_id The form id.
+	 * @return bool
+	 */
+	public function can_increase_views_count( $form_id ) {
+		$fusion_settings        = awb_get_fusion_settings();
+		$increase_views_setting = $fusion_settings->get( 'form_views_counting' );
+
+		$can_increase_views = false;
+
+		if ( 'all' === $increase_views_setting ) {
+			$can_increase_views = true;
+		}
+
+		if ( 'logged_out' === $increase_views_setting && ! is_user_logged_in() ) {
+			$can_increase_views = true;
+		}
+
+		if ( 'non_admins' === $increase_views_setting && ! current_user_can( 'manage_options' ) ) {
+			$can_increase_views = true;
+		}
+
+		$can_increase_views = apply_filters( 'fusion_forms_can_increase_views', $can_increase_views, $form_id );
+
+		return $can_increase_views;
 	}
 
 	/**
@@ -265,32 +297,30 @@ class Fusion_Form_Builder {
 	 */
 	public function register_post_types() {
 		$is_builder = ( function_exists( 'fusion_is_preview_frame' ) && fusion_is_preview_frame() ) || ( function_exists( 'fusion_is_builder_frame' ) && fusion_is_builder_frame() );
+		$args       = [
+			'labels'              => [
+				'name'          => _x( 'Avada Form', 'Post Type General Name', 'fusion-builder' ),
+				'singular_name' => _x( 'Avada Form', 'Post Type Singular Name', 'fusion-builder' ),
+				'add_new_item'  => _x( 'Add New Form', 'fusion-builder' ),
+				'edit_item'     => _x( 'Edit Form', 'fusion-builder' ),
+			],
+			'public'              => false,
+			'publicly_queryable'  => $is_builder,
+			'show_ui'             => true,
+			'show_in_menu'        => false,
+			'exclude_from_search' => true,
+			'can_export'          => true,
+			'query_var'           => true,
+			'has_archive'         => false,
+			'capability_type'     => 'post',
+			'map_meta_cap'        => true,
+			'hierarchical'        => false,
+			'show_in_nav_menus'   => false,
+			'supports'            => [ 'title', 'editor' ],
+			'menu_icon'           => 'dashicons-fusiona-logo',
+		];
 
-		register_post_type(
-			'fusion_form',
-			[
-				'labels'              => [
-					'name'          => _x( 'Avada Form', 'Post Type General Name', 'fusion-builder' ),
-					'singular_name' => _x( 'Avada Form', 'Post Type Singular Name', 'fusion-builder' ),
-					'add_new_item'  => _x( 'Add New Form', 'fusion-builder' ),
-					'edit_item'     => _x( 'Edit Form', 'fusion-builder' ),
-				],
-				'public'              => false,
-				'publicly_queryable'  => $is_builder,
-				'show_ui'             => true,
-				'show_in_menu'        => false,
-				'exclude_from_search' => true,
-				'can_export'          => true,
-				'query_var'           => true,
-				'has_archive'         => false,
-				'capability_type'     => 'post',
-				'map_meta_cap'        => true,
-				'hierarchical'        => false,
-				'show_in_nav_menus'   => false,
-				'supports'            => [ 'title', 'editor' ],
-				'menu_icon'           => 'dashicons-fusiona-logo',
-			]
-		);
+		register_post_type( 'fusion_form', apply_filters( 'fusion_form_cpt_args', $args ) );
 	}
 
 	/**
@@ -334,6 +364,7 @@ class Fusion_Form_Builder {
 		require_once FUSION_BUILDER_PLUGIN_DIR . 'shortcodes/form/time.php';
 		require_once FUSION_BUILDER_PLUGIN_DIR . 'shortcodes/form/rating.php';
 		require_once FUSION_BUILDER_PLUGIN_DIR . 'shortcodes/form/hidden.php';
+		require_once FUSION_BUILDER_PLUGIN_DIR . 'shortcodes/form/honeypot.php';
 		require_once FUSION_BUILDER_PLUGIN_DIR . 'shortcodes/form/fusion-form.php';
 		require_once FUSION_BUILDER_PLUGIN_DIR . 'shortcodes/form/submit.php';
 	}
@@ -657,22 +688,24 @@ class Fusion_Form_Builder {
 			// Get form post content.
 			global $wpdb;
 			$query             = "SELECT p.post_content FROM $wpdb->posts AS p INNER JOIN {$wpdb->prefix}fusion_forms AS ff ON p.ID = ff.form_id WHERE ff.id = %d";
-			$results           = $wpdb->get_results( $wpdb->prepare( $query, (int) $form_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$results           = $wpdb->get_results( $wpdb->prepare( $query, (int) $form_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL
 			$form_post_content = $results && isset( $results[0] ) ? $results[0]->post_content : '';
 			$field_labels      = [];
 			$field_names       = [];
 
 			// Get labels and names for all fields / inputs.
 			if ( '' !== $form_post_content ) {
-				preg_match_all( '/label=\"([^\"]*)\"\sname=\"([^\"]*)\"/', $form_post_content, $matches );
-				$field_labels = isset( $matches[1] ) ? $matches[1] : [];
-				$field_names  = isset( $matches[2] ) ? $matches[2] : [];
+				// Get form field names.
+				preg_match_all( '/\[fusion_form_[^\]]*\sname=\"([^\"]*)\"/', $form_post_content, $matches );
+				$field_names = isset( $matches[1] ) ? $matches[1] : [];
 
-				// Loop checking for empty labels, use name instead.
-				foreach ( $field_labels as $k => $label ) {
-					if ( '' === $label && isset( $field_names[ $k ] ) ) {
-						$field_labels[ $k ] = $field_names[ $k ];
-					}
+				// Get form field labels.
+				preg_match_all( '/\[fusion_form_[^\]]*\slabel=\"([^\"]*)\"/', $form_post_content, $matches );
+				$field_labels = isset( $matches[1] ) ? $matches[1] : [];
+
+				// If (some) labels are missing or empty use name instead.
+				if ( count( $field_names ) !== count( array_filter( $field_labels ) ) ) {
+					$field_labels = map_deep( $field_names, 'Fusion_Builder_Form_Helper::fusion_name_to_label' );
 				}
 			}
 
@@ -695,6 +728,11 @@ class Fusion_Form_Builder {
 					unset( $form_entry['Actions'] );
 					if ( ! $titles ) {
 						$titles = true;
+
+						// Add BOM.
+						fprintf( $f, chr( 0xEF ) . chr( 0xBB ) . chr( 0xBF ) );
+
+						// Add title row.
 						fputcsv( $f, $field_labels );
 					}
 

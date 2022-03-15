@@ -13,28 +13,144 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'Direct script access denied.' );
 }
+
 add_action( 'wp_head', 'avada_set_post_views' );
+add_action( 'wp_head', 'avada_set_today_post_views' );
+
 if ( ! function_exists( 'avada_set_post_views' ) ) {
 	/**
 	 * Post views inc.
 	 */
 	function avada_set_post_views() {
 		global $post;
-		if ( 'post' === get_post_type() && is_single() ) {
-			$post_id = $post->ID;
-			if ( ! empty( $post_id ) ) {
-				$count_key = 'avada_post_views_count';
-				$count     = get_post_meta( $post_id, $count_key, true );
-				if ( empty( $count ) ) {
-					$count = 0;
-					delete_post_meta( $post_id, $count_key );
-					add_post_meta( $post_id, $count_key, '0' );
-				} else {
-					$count++;
-					update_post_meta( $post_id, $count_key, $count );
-				}
-			}
+		$is_builder = ( function_exists( 'fusion_is_preview_frame' ) && fusion_is_preview_frame() ) || ( function_exists( 'fusion_is_builder_frame' ) && fusion_is_builder_frame() );
+		if ( ! is_singular() || is_preview() || $is_builder ) {
+			return;
 		}
+
+		$post_id = $post->ID;
+		if ( empty( $post_id ) ) {
+			return;
+		}
+
+		$count = avada_get_post_views( $post );
+		$count++;
+		update_post_meta( $post_id, 'avada_post_views_count', $count );
+	}
+}
+
+if ( ! function_exists( 'avada_set_today_post_views' ) ) {
+
+	/**
+	 * Increase the today post views, and the today date if necessary.
+	 *
+	 * @since 7.5
+	 */
+	function avada_set_today_post_views() {
+		global $post;
+		$is_builder = ( function_exists( 'fusion_is_preview_frame' ) && fusion_is_preview_frame() ) || ( function_exists( 'fusion_is_builder_frame' ) && fusion_is_builder_frame() );
+		if ( ! is_singular() || is_preview() || $is_builder ) {
+			return;
+		}
+
+		$post_id = $post->ID;
+		if ( empty( $post_id ) ) {
+			return;
+		}
+
+		$today_views = avada_get_today_post_views( $post );
+		$today_views++;
+		update_post_meta( $post_id, 'avada_today_post_views_count', $today_views );
+
+		// Check if also it's needed to update the today date, and update if necessary.
+		if ( ! avada_are_post_views_stored_from_today( $post ) ) {
+			update_post_meta( $post_id, 'avada_post_views_count_today_date', date( 'd-m-Y' ) );
+		}
+	}
+}
+
+if ( ! function_exists( 'avada_get_post_views' ) ) {
+
+	/**
+	 * Get the post views of a post.
+	 *
+	 * @since 7.5
+	 * @param WP_Post|int|null $post The post object, id or null. Defaults to query post.
+	 * @return int
+	 */
+	function avada_get_post_views( $post = null ) {
+		$post = get_post( $post );
+		if ( ! $post ) {
+			return 0;
+		}
+		$post_id = $post->ID;
+
+		$count_key = 'avada_post_views_count';
+		$count     = get_post_meta( $post_id, $count_key, true );
+
+		if ( ! is_numeric( $count ) ) {
+			return 0;
+		}
+
+		return (int) $count;
+	}
+}
+
+if ( ! function_exists( 'avada_get_today_post_views' ) ) {
+
+	/**
+	 * Get the today post views of a post.
+	 *
+	 * @since 7.5
+	 * @param WP_Post|int|null $post The post object, id or null. Defaults to query post.
+	 * @return int
+	 */
+	function avada_get_today_post_views( $post = null ) {
+		$post = get_post( $post );
+		if ( ! $post ) {
+			return 0;
+		}
+		$post_id = $post->ID;
+
+		if ( ! avada_are_post_views_stored_from_today( $post ) ) {
+			return 0;
+		}
+
+		$count_key = 'avada_today_post_views_count';
+		$count     = get_post_meta( $post_id, $count_key, true );
+
+		if ( ! is_numeric( $count ) ) {
+			return 0;
+		}
+
+		return (int) $count;
+	}
+}
+
+if ( ! function_exists( 'avada_are_post_views_stored_from_today' ) ) {
+
+	/**
+	 * Check if the today date is set correctly in meta, or in another words,
+	 * check if the views counted are from today.
+	 *
+	 * @since 7.5
+	 * @param WP_Post|int|null $post The post object, id or null. Defaults to query post.
+	 */
+	function avada_are_post_views_stored_from_today( $post = null ) {
+		$post = get_post( $post );
+		if ( ! $post ) {
+			return 0;
+		}
+		$post_id = $post->ID;
+
+		$post_meta_today = get_post_meta( $post_id, 'avada_post_views_count_today_date', true );
+		$today           = date( 'd-m-Y' );
+
+		if ( $today === $post_meta_today ) {
+			return true;
+		}
+
+		return false;
 	}
 }
 

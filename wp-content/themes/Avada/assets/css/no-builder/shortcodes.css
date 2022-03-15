@@ -1565,7 +1565,7 @@ table {
 .post-password-form input[type="submit"] .button-icon-divider-right img,
 .woocommerce .single_add_to_cart_button .button-icon-divider-right img {
   top: 50%;
-  margin-top: -6px;
+  transform: translateY(-50%);
   display: block;
 }
 #bbp_user_edit_submit.button-3d:active,
@@ -1662,7 +1662,7 @@ table {
 .post-password-form input[type="submit"] .button-icon-divider-right img,
 .woocommerce .single_add_to_cart_button .button-icon-divider-right img {
   top: 50%;
-  margin-top: -6px;
+  transform: translateY(-50%);
   display: block;
 }
 .button-medium,
@@ -1746,7 +1746,7 @@ table {
 .ticket-selector-submit-btn[type=submit] .button-icon-divider-right img,
 .woocommerce .checkout #place_order .button-icon-divider-right img {
   top: 50%;
-  margin-top: -6.5px;
+  transform: translateY(-50%);
   display: block;
 }
 .button-medium.button-3d:active,
@@ -1821,7 +1821,7 @@ table {
 .ticket-selector-submit-btn[type=submit] .button-icon-divider-right img,
 .woocommerce .checkout #place_order .button-icon-divider-right img {
   top: 50%;
-  margin-top: -6.5px;
+  transform: translateY(-50%);
   display: block;
 }
 #tribe-bar-form .tribe-bar-submit input[type=submit],
@@ -1905,7 +1905,7 @@ table {
 .button.large .button-icon-divider-right img,
 .fusion-body .fusion-button-large .button-icon-divider-right img {
   top: 50%;
-  margin-top: -7px;
+  transform: translateY(-50%);
   display: block;
 }
 #tribe-bar-form .tribe-bar-submit input[type=submit].button-3d:active,
@@ -1980,7 +1980,7 @@ table {
 .button.large .button-icon-divider-right img,
 .fusion-body .fusion-button-large .button-icon-divider-right img {
   top: 50%;
-  margin-top: -7px;
+  transform: translateY(-50%);
   display: block;
 }
 .button-xlarge,
@@ -2040,7 +2040,7 @@ table {
 .button.xlarge .button-icon-divider-right img,
 .fusion-body .fusion-button-xlarge .button-icon-divider-right img {
   top: 50%;
-  margin-top: -9px;
+  transform: translateY(-50%);
   display: block;
 }
 .button-xlarge.button-3d:active,
@@ -2093,7 +2093,7 @@ table {
 .button.xlarge .button-icon-divider-right img,
 .fusion-body .fusion-button-xlarge .button-icon-divider-right img {
   top: 50%;
-  margin-top: -9px;
+  transform: translateY(-50%);
   display: block;
 }
 .button span {
@@ -4026,9 +4026,6 @@ table {
   text-decoration: none;
   box-shadow: none !important;
   line-height: 1;
-}
-.fusion-social-networks .fusion-social-network-icon:hover {
-  opacity: 0.8;
 }
 .fusion-social-networks .fusion-social-network-icon:before {
   color: inherit;

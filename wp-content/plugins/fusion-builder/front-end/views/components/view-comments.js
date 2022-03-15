@@ -25,6 +25,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				// Validate values.
 				this.validateValues( atts.values );
+				this.values = atts.values;
 
 				attributes.wrapperAttr = this.buildAttr( atts.values );
 				attributes.styles      = this.buildStyleBlock( atts.values );
@@ -130,43 +131,69 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 * @return {String}
 			 */
 			buildStyleBlock: function( values ) {
-				var styles = '<style type="text/css">';
+				var selectors, css;
+				this.baseSelector = '.fusion-comments-tb.fusion-comments-tb-' +  this.model.get( 'cid' );
+				this.dynamic_css  = {};
 
-				if ( '' !== values.border_size ) {
-					styles += '.fusion-comments-tb-' + this.model.get( 'cid' ) + ' .commentlist .the-comment{border-bottom-width:' + values.border_size + ';}';
+				selectors = this.baseSelector + ' .commentlist .the-comment';
+
+				if ( !this.isDefault( 'border_size' ) ) {
+					this.addCssProperty( selectors, 'border-bottom-width',  values.border_size );
 				}
 
-				if ( '' !== values.border_color ) {
-					styles += '.fusion-comments-tb-' + this.model.get( 'cid' ) + ' .commentlist .the-comment{border-color:' + values.border_color + ';}';
+				if ( !this.isDefault( 'border_color' ) ) {
+					this.addCssProperty( selectors, 'border-color',  values.border_color );
 				}
 
 				if ( 'hide' === values.avatar ) {
-					styles += '.fusion-comments-tb-' + this.model.get( 'cid' ) + ' .commentlist .the-comment .comment-text{margin-left:0px;}';
+					this.addCssProperty( this.baseSelector + ' .commentlist .the-comment .comment-text', 'margin-left',  '0px' );
 				}
 
 				if ( 'circle' === values.avatar ) {
-					styles += '.fusion-comments-tb-' + this.model.get( 'cid' ) + '.circle .the-comment .avatar{border-radius: 50%;}';
+					this.addCssProperty( this.baseSelector + '.circle .the-comment .avatar', 'border-radius',  '50%' );
 				}
 
 				if ( 'square' === values.avatar ) {
-					styles += '.fusion-comments-tb-' + this.model.get( 'cid' ) + '.square .the-comment .avatar{border-radius: 0;}';
-				}
-
-				if ( '' !== values.padding ) {
-					styles += '.fusion-comments-tb-' + this.model.get( 'cid' ) + ' .commentlist .children{padding-left:' + values.padding + ';}';
+					this.addCssProperty( this.baseSelector + '.square .the-comment .avatar', 'border-radius',  '0' );
 				}
 
 				if ( 'hide' === values.avatar ) {
-					styles += '.fusion-comments-tb-' + this.model.get( 'cid' ) + ' .avatar{display:none;}';
+					this.addCssProperty( this.baseSelector + ' .the-comment .avatar', 'display',  'none' );
+				}
+
+				if ( '' !== values.padding ) {
+					this.addCssProperty( this.baseSelector + ' .commentlist .children', 'padding-left',  values.padding );
 				}
 
 				if ( 'hide' === values.headings ) {
-					styles += '.fusion-comments-tb-' + this.model.get( 'cid' ) + ' .fusion-title{display:none;}';
+					this.addCssProperty( this.baseSelector + ' .fusion-title', 'display',  'none' );
 				}
 
-				styles += '</style>';
+				if ( !this.isDefault( 'heading_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' .fusion-title h' + values.heading_size, 'color',  values.heading_color, true );
+				}
 
-				return styles;
+				if ( !this.isDefault( 'link_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' a', 'color', values.link_color );
+					this.addCssProperty( this.baseSelector + ' .comment-author.meta a', 'color', values.link_color, true );
+				}
+
+				if ( !this.isDefault( 'link_hover_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' a:hover', 'color', values.link_hover_color );
+					this.addCssProperty( this.baseSelector + ' .comment-author.meta a:hover', 'color', values.link_hover_color, true );
+				}
+
+				if ( !this.isDefault( 'text_color' ) ) {
+					this.addCssProperty( this.baseSelector, 'color', values.text_color );
+				}
+
+				if ( !this.isDefault( 'meta_color' ) ) {
+					this.addCssProperty( this.baseSelector + ' .comment-author.meta', 'color', values.meta_color, true );
+				}
+
+
+				css = this.parseCSS();
+				return ( css ) ? '<style type="text/css">' + css + '</style>' : '';
 			}
 
 		} );

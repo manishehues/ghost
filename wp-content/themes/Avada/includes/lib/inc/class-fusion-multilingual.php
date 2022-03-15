@@ -99,7 +99,8 @@ class Fusion_Multilingual {
 		add_filter( 'fusion_layout_section_id', [ $this, 'pll_layout_section' ], 10, 3 );
 
 		add_filter( 'wcml_multi_currency_ajax_actions', [ $this, 'add_action_to_multi_currency_ajax' ], 10, 1 );
-		
+
+		add_filter( 'option_rewrite_rules', [ $this, 'wpml_portfolio_slug_filter_rewrite_rules' ], 1, 1 );
 	}
 
 	/**
@@ -465,9 +466,48 @@ class Fusion_Multilingual {
 	 * @param array $ajax_actions The AJAX actions.
 	 * @return array The filtered AJAX actions.
 	 */
-	function add_action_to_multi_currency_ajax( $ajax_actions ) {
+	public function add_action_to_multi_currency_ajax( $ajax_actions ) {
 		$ajax_actions[] = 'fusion_quick_view_load';
 
 		return $ajax_actions;
+	}
+
+	/**
+	 * Filter rewrite rules for porftolio slugs.
+	 *
+	 * @access public
+	 * @since 3.5
+	 * @param array $rules The rewrite rules.
+	 * @return array The filtered rewrite rules.
+	 */
+	public function wpml_portfolio_slug_filter_rewrite_rules( $rules ) {
+		if ( ! is_array( $rules ) && empty( $rules ) ) {
+			return $rules;
+		}
+
+		if ( class_exists( 'WPML_ST_Slug_Translation_Settings' ) ) {
+			$slug_translation_settings = new WPML_ST_Slug_Translation_Settings();
+
+			if ( $slug_translation_settings->is_enabled() ) {
+				return $rules;
+			}
+		}
+
+		$results                     = [];
+		$original_option_name        = class_exists( 'Avada' ) ? Avada::get_original_option_name() : 'fusion_options';
+		$default_lang_glogal_options = get_option( $original_option_name, true );
+		$default_portfolio_slug      = isset( $default_lang_glogal_options['portfolio_slug'] ) && $default_lang_glogal_options['portfolio_slug'] ? $default_lang_glogal_options['portfolio_slug'] : 'portfolio-items';
+		$active_lang_portfolio_slug  = fusion_library()->get_option( 'portfolio_slug' );
+
+		if ( self::get_active_language() !== self::get_default_language() && $default_portfolio_slug !== $active_lang_portfolio_slug ) {
+			foreach ( $rules as $match => $query ) {
+				$new_match             = str_replace( $default_portfolio_slug, $active_lang_portfolio_slug, $match );
+				$results[ $new_match ] = $query;
+			}
+
+			return $results;
+		}
+
+		return $rules;
 	}
 }

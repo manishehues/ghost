@@ -80,6 +80,86 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			},
 
 			/**
+			 * Runs just after render on cancel.
+			 *
+			 * @since 3.0.2
+			 * @return null
+			 */
+			beforeGenerateShortcode: function() {
+				var elementType = this.model.get( 'element_type' ),
+					options     = fusionAllElements[ elementType ].params,
+					values      = jQuery.extend( true, {}, fusionAllElements[ elementType ].defaults, _.fusionCleanParameters( this.model.get( 'params' ) ) ),
+					self        = this;
+
+				if ( 'object' !== typeof options ) {
+					return;
+				}
+
+				// If images needs replaced lets check element to see if we have media being used to add to object.
+				if ( 'undefined' !== typeof FusionApp.data.replaceAssets && FusionApp.data.replaceAssets && ( 'undefined' !== typeof FusionApp.data.fusion_element_type || 'fusion_template' === FusionApp.getPost( 'post_type' ) ) ) {
+
+					this.mapStudioImages( options, values );
+
+					if ( 'undefined' !== typeof this.model.get( 'multi' ) && 'multi_element_parent' === this.model.get( 'multi' ) ) {
+						this.model.children.each( function( child ) {
+							var elementType = child.attributes.element_type,
+								childOptions = fusionAllElements[ elementType ].params,
+								childValues  = jQuery.extend( true, {}, fusionAllElements[ elementType ].defaults, _.fusionCleanParameters( child.attributes.params ) );
+
+							self.mapStudioImages( childOptions, childValues );
+						} );
+					}
+
+					if ( 'fusion_form' === elementType && '' !== values.form_post_id ) {
+						// If its not within object already, add it.
+						if ( 'undefined' === typeof FusionPageBuilderApp.mediaMap.forms[ values.form_post_id ] ) {
+							FusionPageBuilderApp.mediaMap.forms[ values.form_post_id ] = true;
+						}
+					}
+
+				}
+			},
+
+			/**
+			 * Add studio images to media map.
+			 * @param {Object} options
+			 * @param {Object} values
+			 * @returns void
+			 */
+			mapStudioImages: function( options, values ) {
+
+				if ( 'object' !== typeof options ) {
+					return;
+				}
+
+				// If images needs replaced lets check element to see if we have media being used to add to object.
+				_.each( options, function( option ) {
+					var value;
+					if ( 'upload' === option.type && 'undefined' !== typeof values[ option.param_name ] && '' !== values[ option.param_name ] ) {
+						value = values[ option.param_name ];
+
+						if ( 'undefined' === typeof value || 'undefined' === value ) {
+							return;
+						}
+
+						// If its not within object already, add it.
+						if ( 'undefined' === typeof FusionPageBuilderApp.mediaMap.images[ value ] ) {
+							FusionPageBuilderApp.mediaMap.images[ value ] = true;
+						}
+
+						// Check if we have an image ID for this param.
+						if ( 'undefined' !== typeof values[ option.param_name + '_id' ] && '' !== values[ option.param_name + '_id' ] )	{
+							if ( 'object' !== typeof FusionPageBuilderApp.mediaMap.images[ value ] ) {
+								FusionPageBuilderApp.mediaMap.images[ value ] = {};
+							}
+							FusionPageBuilderApp.mediaMap.images[ value ][ option.param_name + '_id' ] = values[ option.param_name + '_id' ];
+						}
+					}
+				} );
+
+			},
+
+			/**
 			 * Triggers a refresh.
 			 *
 			 * @since 2.0.0
@@ -715,6 +795,32 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			},
 
 			/**
+			 * Removes loading overlay after ajax is done.
+			 *
+			 * @since 3.5
+			 * @return {void}
+			 */
+			removeLoadingOverlay: function() {
+				var contentType = 'element',
+					$elementContent;
+
+				if ( _.isObject( this.model.attributes ) ) {
+					if ( 'fusion_builder_container' === this.model.attributes.element_type ) {
+						contentType = 'container';
+					} else if ( 'fusion_builder_column' === this.model.attributes.element_type ) {
+						contentType = 'columns';
+					}
+				}
+
+				$elementContent = this.$el.find( '.fusion-builder-' + contentType + '-content' );
+
+				if ( $elementContent.hasClass( 'fusion-loader' ) ) {
+					$elementContent.removeClass( 'fusion-loader' );
+					$elementContent.find( '.fusion-builder-loader' ).remove();
+				}
+			},
+
+			/**
 			 * Removes an element.
 			 *
 			 * @since 2.0.0
@@ -1144,6 +1250,11 @@ var FusionPageBuilder = FusionPageBuilder || {};
 							}
 						} else if ( 'object' !== typeof paramObject && jQuery( '.font_family #' + param ).length ) {
 							paramObject = elementMap.params[ jQuery( '.font_family #' + param ).closest( '.fusion-builder-option' ).attr( 'data-option-id' ) ];
+							if ( 'object' === typeof paramObject && 'string' === typeof paramObject.heading ) {
+								paramTitle = paramObject.heading;
+							}
+						} else if (  'object' !== typeof paramObject && jQuery( '.typography [name="' + param + '"]' ).length ) {
+							paramObject = elementMap.params[ jQuery( '.typography [name="' + param + '"]' ).closest( '.fusion-builder-option' ).attr( 'data-option-id' ) ];
 							if ( 'object' === typeof paramObject && 'string' === typeof paramObject.heading ) {
 								paramTitle = paramObject.heading;
 							}

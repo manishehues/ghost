@@ -47,6 +47,7 @@ class Avada_Woocommerce_Variations {
 	 */
 	private function __construct() {
 		add_action( 'init', [ $this, 'init' ] );
+		add_action( 'admin_init', [ $this, 'admin_init' ] );
 	}
 
 	/**
@@ -81,6 +82,24 @@ class Avada_Woocommerce_Variations {
 			add_action( 'wp', [ $this, 'enqueue_assets' ] );
 
 			add_action( 'woocommerce_product_option_terms', [ $this, 'option_terms' ], 20, 3 );
+		}
+	}
+
+	/**
+	 * Function that gets called at 'admin_init' action.
+	 *
+	 * @static
+	 * @access public
+	 * @since 7.5
+	 */
+	public function admin_init() {
+		$attribute_taxonomies = wc_get_attribute_taxonomies();
+		if ( $attribute_taxonomies ) {
+			foreach ( $attribute_taxonomies as $tax ) {
+				$product_attr = wc_attribute_taxonomy_name( $tax->attribute_name );
+				add_filter( 'manage_edit-' . $product_attr . '_columns', [ $this, 'add_custom_attribute_type_preview' ] );
+				add_filter( 'manage_' . $product_attr . '_custom_column', [ $this, 'create_preview_column_for_custom_attribute_type' ], 10, 3 );
+			}
 		}
 	}
 
@@ -442,6 +461,108 @@ class Avada_Woocommerce_Variations {
 		$attributes['avada_image']  = __( 'Avada Image', 'fusion-builder' );
 		$attributes['avada_button'] = __( 'Avada Button', 'fusion-builder' );
 		return $attributes;
+	}
+
+	/**
+	 * Add columns for custom attribute types in the WooCommerce attributes table, if needed.
+	 *
+	 * @param array $columns The previous columns.
+	 * @return array The new columns.
+	 * @since 7.2
+	 */
+	public function add_custom_attribute_type_preview( $columns ) {
+
+		if ( ! wp_doing_ajax() ) {
+			$screen = get_current_screen();
+			if ( ! $screen instanceof WP_Screen ) {
+				return $columns;
+			}
+			$taxonomy_slug = $screen->taxonomy;
+		} else {
+			// We are in AJAX, try to determine the taxonomy from http referer.
+			$params         = [];
+			$url            = wp_get_referer();
+			$url_components = wp_parse_url( $url );
+
+			if ( ! is_array( $url_components ) && ! isset( $url_components['query'] ) ) {
+				return $columns;
+			}
+
+			parse_str( $url_components['query'], $params );
+			$taxonomy_slug = '';
+			if ( isset( $params['taxonomy'] ) ) {
+				$taxonomy_slug = $params['taxonomy'];
+			}
+		}
+
+		if ( ! $taxonomy_slug ) {
+			return $columns;
+		}
+
+		$attribute_id = wc_attribute_taxonomy_id_by_name( $taxonomy_slug );
+
+		if ( ! $attribute_id ) {
+			return $columns;
+		}
+
+		$attribute = wc_get_attribute( $attribute_id );
+		if ( ! $attribute ) {
+			return $columns;
+		}
+		$type = $attribute->type;
+
+		if ( 'avada_color' === $type ) {
+			$new_column = [ 'avada_color' => '' ];
+			$columns    = array_merge( array_slice( $columns, 0, 2, true ), $new_column, array_slice( $columns, 2, null, true ) );
+		}
+
+		if ( 'avada_image' === $type ) {
+			$new_column = [ 'avada_image' => '' ];
+			$columns    = array_merge( array_slice( $columns, 0, 2, true ), $new_column, array_slice( $columns, 2, null, true ) );
+		}
+
+		return $columns;
+	}
+
+	/**
+	 * Create the preview columns, for custom avada attributes types.
+	 *
+	 * @param string     $content The previews content.
+	 * @param string     $column_id The column Id.
+	 * @param int|string $term_id The term Id.
+	 * @return string The content.
+	 * @since 7.2
+	 */
+	public function create_preview_column_for_custom_attribute_type( $content, $column_id, $term_id ) {
+		if ( 'avada_color' === $column_id ) {
+			$color = fusion_data()->term_meta( $term_id )->get( 'attribute_color' );
+			if ( ! $color ) {
+				$color = 'transparent';
+			}
+			return '<div class="avada-color-column-preview" style="background-color:' . $color . '"></div>';
+		}
+
+		if ( 'avada_image' === $column_id ) {
+			$image = fusion_data()->term_meta( intval( $term_id ) )->get( 'attribute_image' );
+
+			$image_id = '';
+			if ( is_array( $image ) && isset( $image['id'] ) ) {
+				$image_id = $image['id'];
+			}
+
+			$image_url = '';
+			if ( ! empty( $image_id ) ) {
+				$image_url = wp_get_attachment_image_url( $image_id, 'thumbnail' );
+
+				if ( ! is_string( $image_url ) ) {
+					$image_url = '';
+				}
+			}
+
+			return '<img class="avada-image-column-preview" src="' . esc_attr( $image_url ) . '" alt="">';
+		}
+
+		return $content;
 	}
 }
 

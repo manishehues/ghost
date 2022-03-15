@@ -429,12 +429,3 @@ if(isset($_REQUEST['service_type']) && !empty($_REQUEST['service_type'])){
 		</div>
 	</form>
 </div>
-
-
-
-
-
-
-
-
-

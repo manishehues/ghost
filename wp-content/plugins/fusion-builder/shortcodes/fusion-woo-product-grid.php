@@ -297,12 +297,23 @@ if ( fusion_is_element_enabled( 'fusion_woo_product_grid' ) && class_exists( 'Wo
 					'operator' => 'NOT IN',
 				];
 
+				// If out of stock are set not to show, hide them.
+				if ( 'yes' === get_option( 'woocommerce_hide_out_of_stock_items', 'no' ) ) {
+					$args['meta_query'][] = [
+						'key'     => '_stock_status',
+						'value'   => 'outofstock',
+						'compare' => 'NOT IN',
+					];
+				}
+
 				// Ajax returns protected posts, but we just want published.
 				if ( $live_request ) {
 					$args['post_status'] = 'publish';
 				}
 
 				$products = fusion_cached_query( apply_filters( $this->shortcode_name . '_query_args', $args ) );
+
+				fusion_library()->woocommerce->remove_post_clauses( $args['orderby'], $args['order'] );
 
 				if ( ! $live_request ) {
 					return $products;
@@ -364,10 +375,6 @@ if ( fusion_is_element_enabled( 'fusion_woo_product_grid' ) && class_exists( 'Wo
 
 					$this->args = $defaults;
 
-					if ( ! $products->have_posts() ) {
-						return fusion_builder_placeholder( 'product', 'products' );
-					}
-
 					$product_list = '';
 
 					if ( $products->have_posts() ) {
@@ -404,6 +411,9 @@ if ( fusion_is_element_enabled( 'fusion_woo_product_grid' ) && class_exists( 'Wo
 						$product_list = ob_get_clean();
 
 						$GLOBALS['post'] = $original_post; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+					} else {
+						$this->element_counter++;
+						return fusion_builder_placeholder( 'product', 'products' );
 					}
 
 					wp_reset_query(); // phpcs:ignore WordPress.WP.DiscouragedFunctions
@@ -654,6 +664,21 @@ if ( fusion_is_element_enabled( 'fusion_woo_product_grid' ) && class_exists( 'Wo
 						'pagination_type'       => $this->args['scrolling'],
 					]
 				);
+			}
+
+			/**
+			 * Load base CSS.
+			 *
+			 * @access public
+			 * @since 3.0
+			 * @return void
+			 */
+			public function add_css_files() {
+
+				// Needs styling for product rollover.
+				if ( class_exists( 'Avada' ) && class_exists( 'WooCommerce' ) ) {
+					Fusion_Dynamic_CSS::enqueue_style( Avada::$template_dir_path . '/assets/css/dynamic/woocommerce/woo-products.min.css', Avada::$template_dir_url . '/assets/css/dynamic/woocommerce/woo-products.min.css' );
+				}
 			}
 
 			/**
@@ -909,7 +934,7 @@ function fusion_element_woo_product_grid() {
 					'name'      => esc_attr__( 'Woo Product Grid', 'fusion-builder' ),
 					'shortcode' => 'fusion_woo_product_grid',
 					'icon'      => 'fusiona-product-grid-and-archives',
-					'help_url'  => 'https://theme-fusion.com/documentation/fusion-builder/elements/woocommerce-product-carousel-element/',
+					'help_url'  => 'https://theme-fusion.com/documentation/avada/elements/woocommerce-product-carousel-element/',
 					'params'    => [
 						[
 							'type'        => 'radio_button_set',

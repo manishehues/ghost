@@ -1,4 +1,3 @@
-/* global extras */
 var FusionPageBuilder = FusionPageBuilder || {};
 
 ( function() {
@@ -25,7 +24,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				if ( 'undefined' !== typeof atts.query_data  ) {
 					attributes.cart_shipping_content = atts.query_data;
 				}
-				attributes.styles = this.buildStyleBlock( atts.values );
+				attributes.styles = this.buildStyleBlock( atts.values, atts.extras );
 
 				return attributes;
 			},
@@ -66,9 +65,10 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 *
 			 * @since  3.3
 			 * @param  {Object} values - The values object.
+			 * @param  {Object} extras - The extras object.
 			 * @return {String}
 			 */
-			buildStyleBlock: function( values ) {
+			buildStyleBlock: function( values, extras ) {
 				var inputs, hoverColor, placeholderColor, placeHolderInputs, hoverInputs, css;
 				this.values = values;
 				// variables into current scope
@@ -100,7 +100,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				}
 
 				if ( ! this.isDefault( 'field_text_color' ) ) {
-					placeholderColor = jQuery.Color( this.values.field_text_color ).alpha( 0.5 ).toRgbaString();
+					placeholderColor = jQuery.AWB_Color( this.values.field_text_color ).alpha( 0.5 ).toRgbaString();
 					this.addCssProperty( inputs, 'color',  this.values.field_text_color, true );
 
 					placeHolderInputs = [ this.baseSelector + ' input::placeholder', this.baseSelector + ' textarea::placeholder' ];
@@ -116,7 +116,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				}
 
 				if ( ! this.isDefault( 'field_border_focus_color' ) ) {
-					hoverColor = jQuery.Color( this.values.field_border_focus_color ).alpha( 0.5 ).toRgbaString();
+					hoverColor = jQuery.AWB_Color( this.values.field_border_focus_color ).alpha( 0.5 ).toRgbaString();
 
 					hoverInputs = [
 						this.baseSelector + ' input:hover',
@@ -135,7 +135,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 
 				css  = this.parseCSS();
-				css += this.mediaQueryStyles();
+				css += this.mediaQueryStyles( extras );
 
 				return ( css ) ? '<style>' + css + '</style>' : '';
 
@@ -145,10 +145,10 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 * Builds media query styles.
 			 *
 			 * @since  3.3
-			 * @param  {Object} values - The values object.
+			 * @param  {Object} extras - The extras object.
 			 * @return {String}
 			 */
-			mediaQueryStyles: function(  ) {
+			mediaQueryStyles: function( extras ) {
 				var baseSelector = '.fusion-woocommerce-shipping-calculator-' + this.model.get( 'cid' ),
 					css = '';
 

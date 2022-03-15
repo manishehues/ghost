@@ -44,7 +44,7 @@ _.mixin( {
 		Object.keys( params ).forEach( function( key ) {
 			if ( params[ key ] && 'object' === typeof params[ key ] ) {
 				_.fusionCleanParameters( params[ key ] );
-			} else if ( null === params[ key ] || '' === params[ key ] ) {
+			} else if ( ( null === params[ key ] || '' === params[ key ] ) && 'element_content' !== key ) {
 				delete params[ key ];
 			}
 		} );
@@ -450,6 +450,11 @@ _.mixin( {
 				return icon.replace( 'fusion-prefix-', '' );
 			}
 
+			// AWB icon is used.
+			if ( 'awb-icon-' === icon.substr( 0, 9 ) ) {
+				return icon;
+			}
+
 			// FA icon, but we need to handle BC.
 			if ( 'icon-' === icon.substr( 0, 5 ) || 'fa-' !== icon.substr( 0, 3 ) ) {
 				icon = icon.replace( 'icon-', 'fa-' );
@@ -611,7 +616,7 @@ _.mixin( {
 
 		// Trim the value.
 		value = 'undefined' === typeof value ? '' : value;
-		value = value.trim();
+		value = value.toString().trim();
 		if ( -1 !== jQuery.inArray( value, [ 'auto', 'inherit', 'initial' ] ) ) {
 			return value;
 		}
@@ -719,7 +724,7 @@ _.mixin( {
 		masonryColumnSpacing = ( parseFloat( data.blog_grid_column_spacing ) ) + 'px';
 
 		// Calculate the correct size of the image wrapper container, based on orientation and column spacing.
-		if ( 'transparent' !== data.timeline_color && 0 !== jQuery.Color( data.timeline_color ).alpha() ) {
+		if ( 'transparent' !== data.timeline_color && 0 !== jQuery.AWB_Color( data.timeline_color ).alpha() ) {
 
 			masonryColumnOffset = ' - ' + ( parseFloat( data.blog_grid_column_spacing ) / 2 ) + 'px';
 			if ( 'string' === typeof data.element_orientation_class && -1 !== data.element_orientation_class.indexOf( 'fusion-element-portrait' ) ) {
@@ -1138,7 +1143,7 @@ _.mixin( {
 	 * @return {string}
 	 */
 	fusionAutoCalculateAccentColor: function( color ) {
-		var colorObj  = jQuery.Color( color ),
+		var colorObj  = jQuery.AWB_Color( color ),
 			lightness = parseInt( colorObj.lightness() * 100, 10 );
 
 		if ( 0 < lightness ) { // Not black.
@@ -1264,34 +1269,43 @@ _.mixin( {
 							if ( _.isUndefined( socialMediaIcons.custom_source[ customKey ] ) ) {
 								socialMediaIcons.custom_source[ customKey ] = '';
 							}
+							if ( _.isUndefined( socialMediaIcons.icon_mark[ customKey ] ) ) {
+								socialMediaIcons.icon_mark[ customKey ] = '';
+							}
 
 							iconOptions = {
 								social_network: socialMediaIcons.custom_title[ customKey ],
 								social_link: url,
 								icon_color: i < iconColors.length ? iconColors[ i ] : '',
-								box_color: customIconBoxColor
+								box_color: customIconBoxColor,
+								icon_mark: socialMediaIcons.icon_mark[ customKey ].replace( 'fusion-prefix-', '' )
 							};
 							if ( _.isFunction( functionName ) ) {
 								iconOptions = functionName( iconOptions, params );
 							}
 							icons += '<a ' + _.fusionGetAttributes( iconOptions ) + '>';
-							icons += '<img';
 
-							if ( ! _.isUndefined( socialMediaIcons.custom_source[ customKey ].url ) ) {
-								icons += ' src="' + socialMediaIcons.custom_source[ customKey ].url + '"';
+							if ( _.isEmpty( socialMediaIcons.icon_mark[ customKey ] ) ) {
+								icons += '<img';
+
+								if ( ! _.isUndefined( socialMediaIcons.custom_source[ customKey ].url ) ) {
+									icons += ' src="' + socialMediaIcons.custom_source[ customKey ].url + '"';
+								}
+								if ( ! _.isUndefined( socialMediaIcons.custom_title[ customKey ] ) && '' != socialMediaIcons.custom_title[ customKey ] ) {
+									icons += ' alt="' + socialMediaIcons.custom_title[ customKey ] + '"';
+								}
+								if ( ! _.isUndefined( socialMediaIcons.custom_source[ customKey ].width ) && socialMediaIcons.custom_source[ customKey ].width ) {
+									width = parseInt( socialMediaIcons.custom_source[ customKey ].width, 10 );
+									icons += ' width="' + width + '"';
+								}
+								if ( 'undefined' !== socialMediaIcons.custom_source[ customKey ].height && socialMediaIcons.custom_source[ customKey ].height ) {
+									height = parseInt( socialMediaIcons.custom_source[ customKey ].height, 10 );
+									icons += ' height="' + height + '"';
+								}
+								icons += ' />';
 							}
-							if ( ! _.isUndefined( socialMediaIcons.custom_title[ customKey ] ) && '' != socialMediaIcons.custom_title[ customKey ] ) {
-								icons += ' alt="' + socialMediaIcons.custom_title[ customKey ] + '"';
-							}
-							if ( ! _.isUndefined( socialMediaIcons.custom_source[ customKey ].width ) && socialMediaIcons.custom_source[ customKey ].width ) {
-								width = parseInt( socialMediaIcons.custom_source[ customKey ].width, 10 );
-								icons += ' width="' + width + '"';
-							}
-							if ( 'undefined' !== socialMediaIcons.custom_source[ customKey ].height && socialMediaIcons.custom_source[ customKey ].height ) {
-								height = parseInt( socialMediaIcons.custom_source[ customKey ].height, 10 );
-								icons += ' height="' + height + '"';
-							}
-							icons += ' /></a>';
+
+							icons += '</a>';
 						} );
 					} else {
 						if ( true == useBrandColors ) {
@@ -1415,6 +1429,14 @@ _.mixin( {
 			spotify: {
 				label: 'Spotify',
 				color: '#2ebd59'
+			},
+			teams: {
+				label: 'Teams',
+				color: '#505AC9'
+			},
+			telegram: {
+				label: 'Telegram',
+				color: '#0088cc'
 			},
 			tiktok: {
 				label: 'Tiktok',
@@ -1570,25 +1592,27 @@ _.mixin( {
 	 */
 	fusionGetSocialNetworks: function( params ) {
 
+		// Careful! The icons are also ordered by these.
 		var socialLinksArray = {},
 			socialLinks      = {
 				facebook: 'facebook',
-				tiktok: 'tiktok',
 				twitch: 'twitch',
+				tiktok: 'tiktok',
 				twitter: 'twitter',
 				instagram: 'instagram',
+				youtube: 'youtube',
 				linkedin: 'linkedin',
-				discord: 'discord',
 				dribbble: 'dribbble',
 				rss: 'rss',
-				youtube: 'youtube',
 				pinterest: 'pinterest',
 				flickr: 'flickr',
 				vimeo: 'vimeo',
 				tumblr: 'tumblr',
+				discord: 'discord',
 				digg: 'digg',
 				blogger: 'blogger',
 				skype: 'skype',
+				teams: 'teams',
 				myspace: 'myspace',
 				deviantart: 'deviantart',
 				yahoo: 'yahoo',
@@ -1600,6 +1624,7 @@ _.mixin( {
 				vk: 'vk',
 				wechat: 'wechat',
 				whatsapp: 'whatsapp',
+				telegram: 'telegram',
 				xing: 'xing',
 				yelp: 'yelp',
 				spotify: 'spotify',
@@ -1615,7 +1640,6 @@ _.mixin( {
 
 		if ( params.show_custom && 'yes' === params.show_custom ) {
 			socialLinksArray.custom = {};
-
 			if ( Array.isArray( params.social_media_icons_icon ) ) {
 				_.each( params.social_media_icons_icon, function( icon, key ) {
 
@@ -2265,8 +2289,8 @@ _.mixin( {
 	 */
 	getGradientString: function( values, type ) {
 		var gradientString          = '',
-			alphaGradientStartColor = jQuery.Color( values.gradient_start_color ).alpha(),
-			alphaGradientEndColor   = jQuery.Color( values.gradient_end_color ).alpha(),
+			alphaGradientStartColor = jQuery.AWB_Color( values.gradient_start_color ).alpha(),
+			alphaGradientEndColor   = jQuery.AWB_Color( values.gradient_end_color ).alpha(),
 			isGradientColor         = ( ! _.isEmpty( values.gradient_start_color ) && 0 !== alphaGradientStartColor ) || ( ! _.isEmpty( values.gradient_end_color ) && 0 !== alphaGradientEndColor ) ? true : false;
 
 		if ( isGradientColor ) {
@@ -2310,8 +2334,8 @@ _.mixin( {
 		var gradientString          = '',
 			gradientStart           = 'string' === typeof values.gradient_start_color && '' !== values.gradient_start_color ? values.gradient_start_color : 'rgba(255,255,255,0)',
 			gradientEnd             = 'string' === typeof values.gradient_end_color && '' !== values.gradient_end_color ? values.gradient_end_color : 'rgba(255,255,255,0)',
-			alphaGradientStartColor = jQuery.Color( gradientStart ).alpha(),
-			alphaGradientEndColor   = jQuery.Color( gradientEnd ).alpha(),
+			alphaGradientStartColor = jQuery.AWB_Color( gradientStart ).alpha(),
+			alphaGradientEndColor   = jQuery.AWB_Color( gradientEnd ).alpha(),
 			isGradientColor         = 0 !== alphaGradientStartColor || 0 !== alphaGradientEndColor;
 
 		if ( isGradientColor ) {
@@ -2370,7 +2394,6 @@ _.mixin( {
 		style += ' ' + _.fusionGetValueWithUnit( values.text_shadow_vertical );
 		style += ' ' + _.fusionGetValueWithUnit( values.text_shadow_blur );
 		style += ' ' + values.text_shadow_color;
-		style += ';';
 
 		return style;
 	},
@@ -2389,14 +2412,20 @@ _.mixin( {
 			style_str = '',
 			weight    = '';
 
-		if ( '' !== values[ 'fusion_font_family_' + param_id ] ) {
-			if ( values[ 'fusion_font_family_' + param_id ].includes( '\'' ) || 'inherit' === values[ 'fusion_font_family_' + param_id ] ) {
+		if ( 'string' === typeof values[ 'fusion_font_family_' + param_id ] && '' !== values[ 'fusion_font_family_' + param_id ] ) {
+			if ( values[ 'fusion_font_family_' + param_id ].includes( 'var(' ) ) {
+				style[ 'font-family' ] = values[ 'fusion_font_family_' + param_id ];
+				if ( 'object' === typeof window.awbTypographySelect ) {
+					style[ 'font-weight' ] = window.awbTypographySelect.getVarString( values[ 'fusion_font_family_' + param_id ], 'font-weight' );
+					style[ 'font-style' ]  = window.awbTypographySelect.getVarString( values[ 'fusion_font_family_' + param_id ], 'font-style' );
+				}
+			} else if ( values[ 'fusion_font_family_' + param_id ].includes( '\'' ) || 'inherit' === values[ 'fusion_font_family_' + param_id ] ) {
 				style[ 'font-family' ] = values[ 'fusion_font_family_' + param_id ];
 			} else {
 				style[ 'font-family' ] = '\'' + values[ 'fusion_font_family_' + param_id ] + '\'';
 			}
 
-			if ( '' !== values[ 'fusion_font_variant_' + param_id ] ) {
+			if ( 'string' === typeof values[ 'fusion_font_variant_' + param_id ] && '' !== values[ 'fusion_font_variant_' + param_id ] && 'undefined' === typeof style[ 'font-weight' ] ) {
 				weight = values[ 'fusion_font_variant_' + param_id ].replace( 'italic', '' );
 				if ( weight !== values[ 'fusion_font_variant_' + param_id ] ) {
 					style[ 'font-style' ] = 'italic';

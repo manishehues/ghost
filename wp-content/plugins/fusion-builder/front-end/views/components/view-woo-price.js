@@ -88,6 +88,10 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					attr[ 'class' ] += ' hide-sale';
 				}
 
+				if ( '0px' !== values.badge_border_size ) {
+					attr[ 'class' ] += ' has-border';
+				}
+
 				if ( '' !== values.sale_position ) {
 					attr[ 'class' ] += ' sale-position-' + values.sale_position;
 				}
@@ -97,7 +101,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				}
 
 				if ( '' !== values.badge_position && 'no' !== values.show_badge ) {
-					attr[ 'class' ] += ' badge-position-' + values.badge_position;
+					attr[ 'class' ] += ' has-badge badge-position-' + values.badge_position;
 				}
 
 				if ( '' !== values[ 'class' ] ) {

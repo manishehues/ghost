@@ -64,7 +64,7 @@ $fusion_apply_patches_cmd = function( $args, $assoc_args ) {
 		}
 
 		if ( $can_apply && ! $patch_applied ) {
-			Fusion_Patcher_Apply_Patch::cli_apply_patch( $patch_id, fusion_format_patch( $patch_args ) );
+			Fusion_Patcher_Apply_Patch::apply_patch_from_args( $patch_id, Fusion_Patcher_Apply_Patch::format_patch( $patch_args ) );
 			WP_CLI::success( '#' . $patch_id . ' patch applied.' );
 		} else {
 			WP_CLI::log( 'Skip the patch: ' . $patch_id );
@@ -74,48 +74,6 @@ $fusion_apply_patches_cmd = function( $args, $assoc_args ) {
 
 if ( class_exists( 'WP_CLI' ) ) {
 	WP_CLI::add_command( 'fusion patch apply', $fusion_apply_patches_cmd );
-}
-
-/**
- * WIP: Helper function
- *
- * @param array $patch Patch array.
- * @return array
- */
-function fusion_format_patch( $patch ) {
-	global $avada_patcher;
-
-	$patches = [];
-	if ( ! isset( $patch['patch'] ) ) {
-		return;
-	}
-	foreach ( $patch['patch'] as $key => $args ) {
-		if ( ! isset( $args['context'] ) || ! isset( $args['path'] ) || ! isset( $args['reference'] ) ) {
-			continue;
-		}
-		$valid_contexts   = [];
-		$valid_contexts[] = $avada_patcher->get_args( 'context' );
-		$bundled          = $avada_patcher->get_args( 'bundled' );
-		if ( ! empty( $bundled ) ) {
-			foreach ( $bundled as $product ) {
-				$valid_contexts[] = $product;
-			}
-		}
-		foreach ( $valid_contexts as $context ) {
-			if ( $context === $args['context'] ) {
-				$patcher_instance = $avada_patcher->get_instance( $context );
-				if ( null === $patcher_instance ) {
-					continue;
-				}
-				$v1 = Fusion_Helper::normalize_version( $patcher_instance->get_args( 'version' ) );
-				$v2 = Fusion_Helper::normalize_version( $args['version'] );
-				if ( version_compare( $v1, $v2, '==' ) ) {
-					$patches[ $context ][ $args['path'] ] = $args['reference'];
-				}
-			}
-		}
-	}
-	return $patches;
 }
 
 /* Omit closing PHP tag to avoid "Headers already sent" issues. */

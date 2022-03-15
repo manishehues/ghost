@@ -187,12 +187,33 @@ if ( fusion_is_element_enabled( 'fusion_form' ) ) {
 			 * @return string HTML output.
 			 */
 			public function create_style_tag() {
-				$this->base_selector = '.fusion-form-' . $this->params['form_number'];
-				$inputs              = [
-					$this->base_selector . ' input:not([type="submit"])',
-					$this->base_selector . ' select',
-					$this->base_selector . ' textarea',
+				$this->base_selector = '.fusion-form-form-wrapper .fusion-form-' . $this->params['form_number'];
+
+				$text_inputs = [
+					$this->base_selector . ' input[type="date"]',
+					$this->base_selector . ' input[type="datetime-local"]',
+					$this->base_selector . ' input[type="email"]',
+					$this->base_selector . ' input[type="month"]',
+					$this->base_selector . ' input[type="number"]',
+					$this->base_selector . ' input[type="password"]',
+					$this->base_selector . ' input[type="search"]',
+					$this->base_selector . ' input[type="tel"]',
+					$this->base_selector . ' input[type="phone-number"]',
+					$this->base_selector . ' input[type="text"]',
+					$this->base_selector . ' input[type="time"]',
+					$this->base_selector . ' input[type="url"]',
+					$this->base_selector . ' input[type="week"]',
+					$this->base_selector . ' input[type="datetime"]',
 				];
+
+				$upload_input = $this->base_selector . ' input[type="upload"]';
+				$range_input  = $this->base_selector . ' input[type="range"]';
+
+				$select_input   = $this->base_selector . ' select';
+				$textarea_input = $this->base_selector . ' textarea';
+
+				// Input types that are not target: checkbox, radio, range.
+				$customizable_inputs = array_merge( $text_inputs, [ $select_input ], [ $textarea_input ], [ $upload_input ] );
 
 				// Help tooltips.
 				$this->add_css_property( $this->base_selector . ' .fusion-form-tooltip .fusion-form-tooltip-content', 'color', $this->params['form_meta']['tooltip_text_color'], true );
@@ -209,23 +230,20 @@ if ( fusion_is_element_enabled( 'fusion_form' ) ) {
 
 				// Field height.
 				if ( ! $this->is_default( 'form_input_height' ) ) {
-					$height_inputs = [
-						$this->base_selector . ' input:not([type="submit"])',
-						$this->base_selector . ' select',
-					];
+					$height_inputs = array_merge( $text_inputs, [ $select_input ], [ $range_input ] );
 					$this->add_css_property( $height_inputs, 'height', $this->params['form_meta']['form_input_height'] );
 					$this->add_css_property( $this->base_selector . ' .fusion-form-input-with-icon > i', 'line-height', $this->params['form_meta']['form_input_height'] );
 				}
 
 				// Background color.
 				if ( ! $this->is_default( 'form_bg_color' ) ) {
-					$this->add_css_property( $inputs, 'background-color', $this->params['form_meta']['form_bg_color'] );
+					$this->add_css_property( $customizable_inputs, 'background-color', $this->params['form_meta']['form_bg_color'] );
 				}
 
 				// Font Size.
 				if ( ! $this->is_default( 'form_font_size' ) ) {
-					$this->add_css_property( $inputs, 'font-size', $this->params['form_meta']['form_font_size'] );
-					$this->add_css_property( $this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-input-with-icon>i', 'font-size', $this->params['form_meta']['form_font_size'] );
+					$this->add_css_property( $customizable_inputs, 'font-size', $this->params['form_meta']['form_font_size'] );
+					$this->add_css_property( $this->base_selector . ' .fusion-form-field .fusion-form-input-with-icon>i', 'font-size', $this->params['form_meta']['form_font_size'] );
 				}
 
 				// Placeholders.
@@ -260,7 +278,7 @@ if ( fusion_is_element_enabled( 'fusion_form' ) ) {
 					$this->add_css_property( $this->base_selector . ' input.fusion-form-upload-field::placeholder', 'color', $this->params['form_meta']['form_text_color'] );
 
 					// Input text color.
-					$this->add_css_property( $inputs, 'color', $this->params['form_meta']['form_text_color'] );
+					$this->add_css_property( $customizable_inputs, 'color', $this->params['form_meta']['form_text_color'] );
 
 					// Select stroke color.
 					$this->add_css_property( $this->base_selector . ' .fusion-select-wrapper .select-arrow path', 'stroke', $this->params['form_meta']['form_text_color'], true );
@@ -273,16 +291,16 @@ if ( fusion_is_element_enabled( 'fusion_form' ) ) {
 
 				// Border size.
 				if ( ! $this->is_default( 'form_border_width', 'top' ) ) {
-					$this->add_css_property( $inputs, 'border-top-width', FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_width']['top'], 'px' ) );
-					$this->add_css_property( $this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-image-select label', 'border-top-width', FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_width']['top'], 'px' ) );
+					$this->add_css_property( $customizable_inputs, 'border-top-width', FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_width']['top'], 'px' ) );
+					$this->add_css_property( $this->base_selector . ' .fusion-form-field .fusion-form-image-select label', 'border-top-width', FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_width']['top'], 'px' ) );
 				}
 				if ( ! $this->is_default( 'form_border_width', 'bottom' ) ) {
-					$this->add_css_property( $inputs, 'border-bottom-width', FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_width']['bottom'], 'px' ) );
-					$this->add_css_property( $this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-image-select label', 'border-bottom-width', FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_width']['bottom'], 'px' ) );
+					$this->add_css_property( $customizable_inputs, 'border-bottom-width', FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_width']['bottom'], 'px' ) );
+					$this->add_css_property( $this->base_selector . ' .fusion-form-field .fusion-form-image-select label', 'border-bottom-width', FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_width']['bottom'], 'px' ) );
 				}
 				if ( ! $this->is_default( 'form_border_width', 'right' ) ) {
-					$this->add_css_property( $inputs, 'border-right-width', FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_width']['right'], 'px' ) );
-					$this->add_css_property( $this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-image-select label', 'border-right-width', FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_width']['right'], 'px' ) );
+					$this->add_css_property( $customizable_inputs, 'border-right-width', FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_width']['right'], 'px' ) );
+					$this->add_css_property( $this->base_selector . ' .fusion-form-field .fusion-form-image-select label', 'border-right-width', FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_width']['right'], 'px' ) );
 
 					if ( is_rtl() ) {
 						$this->add_css_property( $this->base_selector . ' .fusion-form-field .fusion-form-input-with-icon > i', 'right', 'calc( 1em + ' . FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_width']['right'], 'px' ) . ')', true );
@@ -291,8 +309,8 @@ if ( fusion_is_element_enabled( 'fusion_form' ) ) {
 					}
 				}
 				if ( ! $this->is_default( 'form_border_width', 'left' ) ) {
-					$this->add_css_property( $inputs, 'border-left-width', FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_width']['left'], 'px' ) );
-					$this->add_css_property( $this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-image-select label', 'border-left-width', FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_width']['left'], 'px' ) );
+					$this->add_css_property( $customizable_inputs, 'border-left-width', FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_width']['left'], 'px' ) );
+					$this->add_css_property( $this->base_selector . ' .fusion-form-field .fusion-form-image-select label', 'border-left-width', FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_width']['left'], 'px' ) );
 
 					if ( is_rtl() ) {
 						$this->add_css_property( $this->base_selector . ' .fusion-select-wrapper .select-arrow', 'left', 'calc( 1em + ' . FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_width']['left'], 'px' ) . ')', true );
@@ -308,28 +326,30 @@ if ( fusion_is_element_enabled( 'fusion_form' ) ) {
 					$border_bottom   = $this->is_default( 'form_border_width', 'bottom' ) ? $fusion_settings->get( 'form_border_width', 'bottom' ) : FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_width']['bottom'], 'px' );
 					$border_top      = empty( $border_top ) ? '1px' : $border_top;
 					$border_bottom   = empty( $border_bottom ) ? '1px' : $border_bottom;
+					$font_size       = $this->is_default( 'form_font_size' ) ? '1em' : $this->params['form_meta']['form_font_size'];
 					$this->add_css_property( $this->base_selector . ' .fusion-form-field:not( .fusion-form-upload-field ) .fusion-form-input-with-icon > i', 'top', 'calc( 50% + (' . $border_top . ' - ' . $border_bottom . ' ) / 2 )', true );
+					$this->add_css_property( $this->base_selector . ' .fusion-form-field.fusion-form-textarea-field .fusion-form-input-with-icon > i', 'top', 'calc( ' . $border_top . ' + ' . $font_size . ' )', true );
 				}
 
 				// Border color.
 				if ( ! $this->is_default( 'form_border_color' ) ) {
 					$selectors = [
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-checkbox label:before',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-radio label:before',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-image-select label',
+						$this->base_selector . ' .fusion-form-field .fusion-form-checkbox label:before',
+						$this->base_selector . ' .fusion-form-field .fusion-form-radio label:before',
+						$this->base_selector . ' .fusion-form-field .fusion-form-image-select label',
 					];
 
-					$this->add_css_property( $inputs, 'border-color', $this->params['form_meta']['form_border_color'] );
+					$this->add_css_property( $customizable_inputs, 'border-color', $this->params['form_meta']['form_border_color'] );
 					$this->add_css_property( $selectors, 'border-color', $this->params['form_meta']['form_border_color'] );
 
 					$selectors = [
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-rating-area .fusion-form-rating-icon',
+						$this->base_selector . ' .fusion-form-field .fusion-form-rating-area .fusion-form-rating-icon',
 					];
 					$this->add_css_property( $selectors, 'color', $this->params['form_meta']['form_border_color'] );
 
 					// Range input type.
-					$this->add_css_property( $this->base_selector . '.fusion-form-form-wrapper .fusion-form-field input[type=range]::-webkit-slider-runnable-track', 'background', $this->params['form_meta']['form_border_color'] );
-					$this->add_css_property( $this->base_selector . '.fusion-form-form-wrapper .fusion-form-field input[type=range]::-moz-range-track', 'background', $this->params['form_meta']['form_border_color'] );
+					$this->add_css_property( $this->base_selector . ' .fusion-form-field input[type=range]::-webkit-slider-runnable-track', 'background', $this->params['form_meta']['form_border_color'] );
+					$this->add_css_property( $this->base_selector . ' .fusion-form-field input[type=range]::-moz-range-track', 'background', $this->params['form_meta']['form_border_color'] );
 				}
 
 				// Border focus color.
@@ -340,59 +360,59 @@ if ( fusion_is_element_enabled( 'fusion_form' ) ) {
 						$this->base_selector . ' input:not([type="submit"]):focus',
 						$this->base_selector . ' select:focus',
 						$this->base_selector . ' textarea:focus',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field.focused.fusion-form-upload-field .fusion-form-upload-field',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-radio input:checked + label:before',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-radio input:hover + label:before',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-checkbox input:checked + label:before',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-checkbox input:hover + label:before',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-image-select .fusion-form-input:checked + label',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-image-select .fusion-form-input:hover + label',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-checkbox input:focus + label:before',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-radio input:focus + label:before',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-image-select .fusion-form-input:focus + label',
+						$this->base_selector . ' .fusion-form-field.focused.fusion-form-upload-field .fusion-form-upload-field',
+						$this->base_selector . ' .fusion-form-field .fusion-form-radio input:checked + label:before',
+						$this->base_selector . ' .fusion-form-field .fusion-form-radio input:hover + label:before',
+						$this->base_selector . ' .fusion-form-field .fusion-form-checkbox input:checked + label:before',
+						$this->base_selector . ' .fusion-form-field .fusion-form-checkbox input:hover + label:before',
+						$this->base_selector . ' .fusion-form-field .fusion-form-image-select .fusion-form-input:checked + label',
+						$this->base_selector . ' .fusion-form-field .fusion-form-image-select .fusion-form-input:hover + label',
+						$this->base_selector . ' .fusion-form-field .fusion-form-checkbox input:focus + label:before',
+						$this->base_selector . ' .fusion-form-field .fusion-form-radio input:focus + label:before',
+						$this->base_selector . ' .fusion-form-field .fusion-form-image-select .fusion-form-input:focus + label',
 					];
 					$this->add_css_property( $selectors, 'border-color', $this->params['form_meta']['form_focus_border_color'] );
 
 					$selectors = [
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-radio input:hover:not(:checked) + label:before',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-checkbox input:hover:not(:checked) + label:before',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-image-select .fusion-form-input:hover:not(:checked) + label',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-upload-field-container:hover .fusion-form-upload-field',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-range-field-container .fusion-form-range-value:hover:not(:focus)',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-input:hover:not(:focus)',
+						$this->base_selector . ' .fusion-form-field .fusion-form-radio input:hover:not(:checked) + label:before',
+						$this->base_selector . ' .fusion-form-field .fusion-form-checkbox input:hover:not(:checked) + label:before',
+						$this->base_selector . ' .fusion-form-field .fusion-form-image-select .fusion-form-input:hover:not(:checked) + label',
+						$this->base_selector . ' .fusion-form-field .fusion-form-upload-field-container:hover .fusion-form-upload-field',
+						$this->base_selector . ' .fusion-form-field .fusion-form-range-field-container .fusion-form-range-value:hover:not(:focus)',
+						$this->base_selector . ' .fusion-form-field .fusion-form-input:hover:not(:focus)',
 					];
 
 					$this->add_css_property( $selectors, 'border-color', $hover_color );
 
 					$selectors = [
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-rating-area .fusion-form-input:checked ~ label i',
+						$this->base_selector . ' .fusion-form-field .fusion-form-rating-area .fusion-form-input:checked ~ label i',
 					];
 					$this->add_css_property( $selectors, 'color', $this->params['form_meta']['form_focus_border_color'] );
 
 					$selectors = [
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-rating-area .fusion-form-input:checked:hover ~ label i',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-rating-area .fusion-form-rating-icon:hover i',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-rating-area .fusion-form-rating-icon:hover ~ label i',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-rating-area .fusion-form-input:hover ~ label i',
+						$this->base_selector . ' .fusion-form-field .fusion-form-rating-area .fusion-form-input:checked:hover ~ label i',
+						$this->base_selector . ' .fusion-form-field .fusion-form-rating-area .fusion-form-rating-icon:hover i',
+						$this->base_selector . ' .fusion-form-field .fusion-form-rating-area .fusion-form-rating-icon:hover ~ label i',
+						$this->base_selector . ' .fusion-form-field .fusion-form-rating-area .fusion-form-input:hover ~ label i',
 					];
 
 					$this->add_css_property( $selectors, 'color', $hover_color );
 
 					$selectors = [
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-checkbox input:checked + label:after',
-						$this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-radio input:checked + label:after',
+						$this->base_selector . ' .fusion-form-field .fusion-form-checkbox input:checked + label:after',
+						$this->base_selector . ' .fusion-form-field .fusion-form-radio input:checked + label:after',
 					];
 					$this->add_css_property( $selectors, 'background', $this->params['form_meta']['form_focus_border_color'] );
 
 					// Range input.
-					$this->add_css_property( $this->base_selector . '.fusion-form-form-wrapper .fusion-form-field input[type=range]::-webkit-slider-thumb', 'background', $this->params['form_meta']['form_focus_border_color'] );
-					$this->add_css_property( $this->base_selector . '.fusion-form-form-wrapper .fusion-form-field input[type=range]::-moz-range-thumb', 'background', $this->params['form_meta']['form_focus_border_color'] );
+					$this->add_css_property( $this->base_selector . ' .fusion-form-field input[type=range]::-webkit-slider-thumb', 'background', $this->params['form_meta']['form_focus_border_color'] );
+					$this->add_css_property( $this->base_selector . ' .fusion-form-field input[type=range]::-moz-range-thumb', 'background', $this->params['form_meta']['form_focus_border_color'] );
 				}
 
 				// Border radius.
 				if ( ! $this->is_default( 'form_border_radius' ) ) {
-					$this->add_css_property( $inputs, 'border-radius', FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_radius'], 'px' ) );
-					$this->add_css_property( $this->base_selector . '.fusion-form-form-wrapper .fusion-form-field .fusion-form-image-select label', 'border-radius', FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_radius'], 'px' ) );
+					$this->add_css_property( $customizable_inputs, 'border-radius', FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_radius'], 'px' ) );
+					$this->add_css_property( $this->base_selector . ' .fusion-form-field .fusion-form-image-select label', 'border-radius', FusionBuilder::validate_shortcode_attr_value( $this->params['form_meta']['form_border_radius'], 'px' ) );
 				}
 
 				$css = $this->parse_css() . $this->args['custom_css'];
@@ -493,6 +513,11 @@ if ( fusion_is_element_enabled( 'fusion_form' ) ) {
 
 				if ( $this->args['id'] ) {
 					$attr['id'] = $this->args['id'];
+				}
+
+				// Studio Preview.
+				if ( isset( $this->params['form_meta']['preview_width'] ) && isset( $_GET['awb-studio-form'] ) && ! isset( $_GET['fb-edit'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+					$attr['style'] .= 'width: ' . $this->params['form_meta']['preview_width'] . '%;';
 				}
 
 				$attr['data-config'] = $this->localize_form_data();

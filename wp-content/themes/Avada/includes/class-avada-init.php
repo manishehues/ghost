@@ -30,9 +30,6 @@ class Avada_Init {
 		add_action( 'after_setup_theme', [ $this, 'add_theme_supports' ], 10 );
 		add_action( 'after_setup_theme', [ $this, 'register_nav_menus' ] );
 		add_action( 'after_setup_theme', [ $this, 'add_image_size' ] );
-		add_action( 'after_setup_theme', [ $this, 'init_fb_demos_importer' ], 20 );
-		add_action( 'wp_ajax_fusion_builder_load_demo', [ $this, 'init_fb_demos_importer' ], 20 );
-		add_action( 'wp_ajax_fusion_builder_load_demo_layout', [ $this, 'init_fb_demos_importer' ], 20 );
 		add_filter( 'image_size_names_choose', [ $this, 'add_image_sizes_to_media_library_dialog' ] );
 		add_action( 'init', [ $this, 'init' ] );
 
@@ -160,46 +157,6 @@ class Avada_Init {
 	 */
 	public function init() {
 		Avada::get_options();
-	}
-
-	/**
-	 * Conditionally init Fusion_Builder_Demos_Importer class.
-	 *
-	 * @since 5.8.2
-	 * @access  public
-	 */
-	public function init_fb_demos_importer() {
-		$post_type = false;
-
-		if ( ( ! Avada_Helper::is_post_admin_screen()
-				&& ( function_exists( 'fusion_is_preview_frame' ) && ( function_exists( 'fusion_is_preview_frame' ) && ! fusion_is_preview_frame() ) )
-				&& ! fusion_is_builder_frame() )
-			|| ! current_theme_supports( 'fusion-builder-demos' )
-			|| ! Avada()->registration->should_show()
-			|| ! defined( 'FUSION_BUILDER_PLUGIN_DIR' )
-			|| ( fusion_doing_ajax()
-				&& ( ! isset( $_POST['page_name'] ) && ! isset( $_POST['layout_name'] ) ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-			return;
-		}
-
-		// Edit screen.
-		$post_id = isset( $_GET['post'] ) ? sanitize_text_field( wp_unslash( $_GET['post'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
-
-		if ( '' !== $post_id ) {
-			$post_type = get_post_type( $post_id );
-		}
-
-		// New post screen.
-		if ( false === $post_type && isset( $_GET['post_type'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-			$post_type = sanitize_text_field( wp_unslash( $_GET['post_type'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
-		}
-
-		// Avada Builder is enabled for this post type.
-		if ( in_array( $post_type, FusionBuilder::allowed_post_types(), true )
-			|| ( fusion_doing_ajax() && ( isset( $_POST['page_name'] ) || isset( $_POST['layout_name'] ) ) ) // phpcs:ignore WordPress.Security.NonceVerification
-			|| ( function_exists( 'Fusion_App' ) && Fusion_App()->get_builder_status() ) ) {
-			$fusion_builder_demo_importer = new Fusion_Builder_Demos_Importer();
-		}
 	}
 
 	/**
@@ -530,7 +487,7 @@ class Avada_Init {
 				'ignore_sticky_posts' => 1,
 		];
 
-		if ( function_exists( 'wc_get_product_visibility_term_ids' ) && ( in_array( 'any', $args['post_type'] ) || in_array( 'product', $args['post_type'] ) ) ) { // phpcs:ignore WordPress.PHP.StrictInArray.MissingTrueStrict
+		if ( function_exists( 'wc_get_product_visibility_term_ids' ) && ( 'any' === $args['post_type'] || ( is_array( $args['post_type'] ) && in_array( 'product', $args['post_type'] ) ) ) ) { // phpcs:ignore WordPress.PHP.StrictInArray.MissingTrueStrict
 			$product_visibility_term_ids = wc_get_product_visibility_term_ids();
 
 			$args['tax_query']   = []; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query

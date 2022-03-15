@@ -93,12 +93,18 @@ FusionPageBuilder.options.fusionSelectField = {
 
 							// Listen for changes to other option.
 							self.$el.find( '#' + conditions.option ).on( 'change', function() {
-								var itemValue = jQuery( this ).val();
+								var itemValue = jQuery( this ).val(),
+									dataConditions = $self.data( 'conditions' );
+
+								dataConditions = dataConditions ? JSON.parse( _.unescape( dataConditions ) ) : false;
+								if ( false === dataConditions ) {
+									return;
+								}
 
 								// Find and disable options not valid.
-								if ( 'object' === typeof conditions.map[ itemValue ] ) {
+								if ( 'object' === typeof dataConditions.map[ itemValue ] ) {
 									$self.find( '.fusion-select-label' ).addClass( 'fusion-disabled' );
-									_.each( conditions.map[ value ], function( acceptedValue ) {
+									_.each( dataConditions.map[ itemValue ], function( acceptedValue ) {
 										$self.find( '.fusion-select-label[data-value="' + acceptedValue + '"]' ).removeClass( 'fusion-disabled' );
 									} );
 								} else {
@@ -107,7 +113,7 @@ FusionPageBuilder.options.fusionSelectField = {
 
 								// If selection is now invalid, reset to default.
 								if ( $self.find( '.fusion-option-selected.fusion-disabled' ).length ) {
-									$self.find( '.fusion-select-option-value' ).val( defaultValue ).trigger( 'change', [ { userClicked: true } ] );
+									$self.find( '.fusion-select-option-value' ).val( defaultValue ).trigger( 'change', [ { userClicked: true, silent: true } ] );
 								}
 							} );
 						}

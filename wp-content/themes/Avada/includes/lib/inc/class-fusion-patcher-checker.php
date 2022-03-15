@@ -114,16 +114,18 @@ class Fusion_Patcher_Checker {
 			$fusion_library_latest_version,
 			true
 		);
-		$patcher_instances = $this->patcher->get_instance();
-		$args              = [
-			'patches'         => $this->get_cache(),
-			'display_counter' => apply_filters( 'fusion_patches_counter', 'both' ), // Allowed values are both|top_level|sub_level|none.
-			'args'            => [],
+
+		$args = [
+			'patches'                   => $this->get_cache(),
+			'display_counter'           => apply_filters( 'fusion_patches_counter', 'both' ), // Allowed values are both|top_level|sub_level|none.
+			'args'                      => [],
+			'patch_applied_text'        => __( 'Patch Applied', 'Avada' ),
+			'patch_dismiss_notice_text' => __( 'Dismiss Notice', 'Avada' ),
+			'admin_url'                 => esc_url( admin_url() ),
 		];
-		foreach ( $patcher_instances as $instance ) {
-			$instance_args  = $instance->get_args();
-			$args['args'][] = $instance_args;
-		}
+
+		$args['args'][] = $this->patcher->get_args();
+
 		wp_localize_script( 'fusion-patcher-checker', 'patcherVars', $args );
 
 	}

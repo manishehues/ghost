@@ -97,7 +97,7 @@ function avada_options_section_forms( $sections ) {
 						'label'       => esc_html__( 'Form Field Background Color', 'Avada' ),
 						'description' => esc_html__( 'Controls the background color of form fields.', 'Avada' ),
 						'id'          => 'form_bg_color',
-						'default'     => '#ffffff',
+						'default'     => 'var(--awb-color1)',
 						'type'        => 'color-alpha',
 						'css_vars'    => [
 							[
@@ -111,7 +111,7 @@ function avada_options_section_forms( $sections ) {
 						'label'       => esc_html__( 'Form Text Color', 'Avada' ),
 						'description' => esc_html__( 'Controls the color of the form text.', 'Avada' ),
 						'id'          => 'form_text_color',
-						'default'     => '#9ea0a4',
+						'default'     => 'var(--awb-color8)',
 						'type'        => 'color-alpha',
 						'css_vars'    => [
 							[
@@ -170,7 +170,7 @@ function avada_options_section_forms( $sections ) {
 						'label'           => esc_html__( 'Form Border Color', 'Avada' ),
 						'description'     => esc_html__( 'Controls the border color of the form fields.', 'Avada' ),
 						'id'              => 'form_border_color',
-						'default'         => '#e2e2e2',
+						'default'         => 'var(--awb-color3)',
 						'type'            => 'color-alpha',
 						'soft_dependency' => true,
 						'css_vars'        => [
@@ -185,7 +185,7 @@ function avada_options_section_forms( $sections ) {
 						'label'           => esc_html__( 'Form Border Color On Focus', 'Avada' ),
 						'description'     => esc_html__( 'Controls the border color of the form fields when they have focus.', 'Avada' ),
 						'id'              => 'form_focus_border_color',
-						'default'         => '#65bc7b',
+						'default'         => 'var(--awb-color4)',
 						'type'            => 'color-alpha',
 						'soft_dependency' => true,
 						'css_vars'        => [
@@ -218,6 +218,18 @@ function avada_options_section_forms( $sections ) {
 								'value_pattern' => '$px',
 								'po'            => false,
 							],
+						],
+					],
+					'form_views_counting'               => [
+						'label'       => esc_html__( 'Form Views Counting', 'Avada' ),
+						'description' => esc_html__( 'Select which types of users will increase the form views on visit.', 'Avada' ),
+						'id'          => 'form_views_counting',
+						'default'     => 'all',
+						'type'        => 'select',
+						'choices'     => [
+							'all'        => esc_html__( 'All', 'Avada' ),
+							'logged_out' => esc_html__( 'Logged Out', 'Avada' ),
+							'non_admins' => esc_html__( 'Non-Admins', 'Avada' ),
 						],
 					],
 				],
@@ -336,7 +348,7 @@ function avada_options_section_forms( $sections ) {
 				'id'          => 'hubspot_section',
 				'type'        => 'sub-section',
 				'fields'      => [
-					'hubspot_api'   => [
+					'hubspot_api'         => [
 						'label'       => esc_html__( 'HubSpot API', 'Avada' ),
 						'description' => esc_html__( 'Select a method to connect to your HubSpot account.', 'Avada' ),
 						'id'          => 'hubspot_api',
@@ -349,7 +361,7 @@ function avada_options_section_forms( $sections ) {
 						],
 						'transport'   => 'postMessage',
 					],
-					'hubspot_key'   => [
+					'hubspot_key'         => [
 						'label'       => esc_html__( 'HubSpot API Key', 'Avada' ),
 						/* translators: "our docs" link. */
 						'description' => sprintf( esc_html__( 'Follow the steps in %s to access your API key.', 'Avada' ), '<a href="https://knowledge.hubspot.com/integrations/how-do-i-get-my-hubspot-api-key" target="_blank" rel="noopener noreferrer">' . esc_html__( 'HubSpot docs', 'Avada' ) . '</a>' ),
@@ -366,7 +378,7 @@ function avada_options_section_forms( $sections ) {
 						// This option doesn't require updating the preview.
 						'transport'   => 'postMessage',
 					],
-					'hubspot_oauth' => [
+					'hubspot_oauth'       => [
 						'label'       => '',
 						'description' => ( class_exists( 'Fusion_Hubspot' ) ? Fusion_Hubspot()->maybe_render_button() : '' ),
 						'id'          => 'hubspot_oauth',
@@ -376,6 +388,93 @@ function avada_options_section_forms( $sections ) {
 								'setting'  => 'hubspot_api',
 								'operator' => '==',
 								'value'    => 'auth',
+							],
+						],
+					],
+					'reset_hubspot_cache' => [
+						'label'         => esc_html__( 'Reset HubSpot Properties', 'Avada' ),
+						'description'   => esc_html__( 'Resets all HubSpot properties data.', 'Avada' ),
+						'id'            => 'reset_hubspot_cache',
+						'default'       => '',
+						'type'          => 'raw',
+						'content'       => '<a class="button button-secondary" href="#" onclick="fusionResetHubSpotCache(event);" target="_self" >' . esc_html__( 'Reset HubSpot Cache', 'Avada' ) . '</a><span class="spinner fusion-spinner"></span>',
+						'full_width'    => false,
+						'transport'     => 'postMessage', // No need to refresh the page.
+						'hide_on_front' => true,
+						'required'      => [
+							[
+								'setting'  => 'hubspot_api',
+								'operator' => '!=',
+								'value'    => 'off',
+							],
+						],
+					],
+				],
+			],
+			'mailchimp_section'     => [
+				'label'       => esc_html__( 'Mailchimp', 'Avada' ),
+				'description' => '',
+				'id'          => 'mailchimp_section',
+				'type'        => 'sub-section',
+				'fields'      => [
+					'mailchimp_api'         => [
+						'label'       => esc_html__( 'Mailchimp API', 'Avada' ),
+						'description' => esc_html__( 'Select a method to connect to your Mailchimp account.', 'Avada' ),
+						'id'          => 'mailchimp_api',
+						'default'     => 'off',
+						'type'        => 'radio-buttonset',
+						'choices'     => [
+							'auth' => esc_html__( 'OAuth', 'Avada' ),
+							'key'  => esc_html__( 'API Key', 'Avada' ),
+							'off'  => esc_html__( 'Off', 'Avada' ),
+						],
+						'transport'   => 'postMessage',
+					],
+					'mailchimp_key'         => [
+						'label'       => esc_html__( 'Mailchimp API Key', 'Avada' ),
+						/* translators: "our docs" link. */
+						'description' => sprintf( esc_html__( 'Follow the steps in %s to access your API key.', 'Avada' ), '<a href="https://mailchimp.com/help/about-api-keys/" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Mailchimp docs', 'Avada' ) . '</a>' ),
+						'id'          => 'mailchimp_key',
+						'default'     => '',
+						'type'        => 'text',
+						'required'    => [
+							[
+								'setting'  => 'mailchimp_api',
+								'operator' => '==',
+								'value'    => 'key',
+							],
+						],
+						// This option doesn't require updating the preview.
+						'transport'   => 'postMessage',
+					],
+					'mailchimp_oauth'       => [
+						'label'       => '',
+						'description' => ( class_exists( 'Fusion_Mailchimp' ) ? Fusion_Mailchimp()->maybe_render_button() : '' ),
+						'id'          => 'mailchimp_oauth',
+						'type'        => 'custom',
+						'required'    => [
+							[
+								'setting'  => 'mailchimp_api',
+								'operator' => '==',
+								'value'    => 'auth',
+							],
+						],
+					],
+					'reset_mailchimp_cache' => [
+						'label'         => esc_html__( 'Reset Mailchimp Lists and Fields', 'Avada' ),
+						'description'   => esc_html__( 'Resets all Mailchimp lists and fields data.', 'Avada' ),
+						'id'            => 'reset_mailchimp_cache',
+						'default'       => '',
+						'type'          => 'raw',
+						'content'       => '<a class="button button-secondary" href="#" onclick="fusionResetMailchimpCache(event);" target="_self" >' . esc_html__( 'Reset Mailchimp Cache', 'Avada' ) . '</a><span class="spinner fusion-spinner"></span>',
+						'full_width'    => false,
+						'transport'     => 'postMessage', // No need to refresh the page.
+						'hide_on_front' => true,
+						'required'      => [
+							[
+								'setting'  => 'mailchimp_api',
+								'operator' => '!=',
+								'value'    => 'off',
 							],
 						],
 					],

@@ -33,16 +33,34 @@
 		</div>
 	</div>
 </div>
+{{{captionStyles}}}
 <# } #>
 </script>
 <script type="text/html" id="tmpl-fusion_image-shortcode">
-<div {{{ _.fusionGetAttributes( attrItemWrapper ) }}}>
-	<div {{{ _.fusionGetAttributes( attrImageWrapper ) }}}>
-		<# if ( 'no' === mouseScroll && ( ( null !== link && '' !== link ) || 'yes' === lightbox ) ) { #>
-				<a {{{ _.fusionGetAttributes( attrCarouselLink ) }}}>{{{ imageElement }}}</a>
-		<# } else { #>
-			{{{ imageElement }}}
-		<# } #>
-	</div>
-</div>
+<#
+var image_html = '';
+
+image_html += '<div ' + _.fusionGetAttributes( attrItemWrapper ) + '>';
+
+if ( 'above' === parentValues.caption_style && 'undefined' !== typeof captionHtml ) {
+	image_html += captionHtml;
+}
+
+image_html += '<div ' + _.fusionGetAttributes( attrImageWrapper ) + '>';
+
+if ( 'no' === mouseScroll && ( ( null !== link && '' !== link ) || 'yes' === lightbox ) ) {
+	image_html += '<a ' + _.fusionGetAttributes( attrCarouselLink ) + '>' + imageElement + '</a>';
+} else {
+	image_html += imageElement;
+}
+
+image_html += '</div>';
+
+if ( 'below' === parentValues.caption_style && 'undefined' !== typeof captionHtml ) {
+	image_html += captionHtml;
+}
+
+image_html += '</div>';
+#>
+{{{ image_html }}}
 </script>

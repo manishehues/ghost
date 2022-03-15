@@ -604,6 +604,9 @@ class Fusion_FusionRedux {
 			case 'color-palette':
 				$args['type'] = 'color_palette';
 				break;
+			case 'typography-sets':
+				$args['type'] = 'typography_sets';
+				break;
 			case 'preset':
 			case 'preset':
 				$args['type']    = 'image_select';
@@ -875,15 +878,24 @@ class Fusion_FusionRedux {
 		wp_localize_script( 'fusion-redux-custom-js', 'fusionFusionreduxVars', $vars );
 		wp_enqueue_script( 'fusion-redux-custom-js' );
 
-
 		wp_enqueue_script( 'fusion-redux-reset-caches', trailingslashit( FUSION_LIBRARY_URL ) . 'inc/redux/assets/fusion-reset-caches.js', [], time(), false );
 		wp_localize_script(
 			'fusion-redux-reset-caches',
 			'fusionReduxResetCaches',
 			[
-				'ajaxurl' => admin_url( 'admin-ajax.php' ),
-				'confirm' => esc_html__( 'Are you sure you want to reset all Avada caches?', 'fusion-builder' ),
-				'success' => esc_html__( 'All Avada caches have been reset.', 'fusion-builder' ),
+				'ajaxurl'   => admin_url( 'admin-ajax.php' ),
+				'general'   => [
+					'confirm' => esc_html__( 'Are you sure you want to reset all Avada caches?', 'fusion-builder' ),
+					'success' => esc_html__( 'All Avada caches have been reset.', 'fusion-builder' ),
+				],
+				'mailchimp' => [
+					'confirm' => esc_html__( 'Are you sure you want to reset all Mailchimp caches?', 'fusion-builder' ),
+					'success' => esc_html__( 'All Mailchimp caches have been reset.', 'fusion-builder' ),
+				],
+				'hubspot'   => [
+					'confirm' => esc_html__( 'Are you sure you want to reset all HubSpot caches?', 'fusion-builder' ),
+					'success' => esc_html__( 'All HubSpot caches have been reset.', 'fusion-builder' ),
+				],
 			]
 		);
 	}

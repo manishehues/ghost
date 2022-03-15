@@ -47,6 +47,8 @@ class Fusion_Builder_WooCommerce {
 	private function __construct() {
 		add_action( 'init', [ $this, 'init' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ], 10 );
+
+		add_action( 'avada_after_main_content', [ $this, 'add_woocommerce_structured_data' ] );
 	}
 
 	/**
@@ -90,7 +92,7 @@ class Fusion_Builder_WooCommerce {
 	 * @since 3.2
 	 */
 	public function enqueue_scripts() {
-		if ( class_exists( 'WooCommerce' ) && fusion_is_preview_frame() ) {
+		if ( apply_filters( 'awb_enqueue_woocommerce_frontend_scripts', class_exists( 'WooCommerce' ) && fusion_is_preview_frame() ) ) {
 			wp_enqueue_script( 'zoom' );
 			wp_enqueue_script( 'flexslider' );
 
@@ -211,6 +213,22 @@ class Fusion_Builder_WooCommerce {
 			];
 		}
 		return $data;
+	}
+
+	/**
+	 * Add WooCommerce structured data, when using custom single product layout.
+	 *
+	 * @access public
+	 * @since 4.5
+	 * @return void
+	 */
+	public function add_woocommerce_structured_data() {
+		global $woocommerce;
+
+		if ( $this->is_layout_product() ) {
+			$woocommerce->structured_data->generate_website_data();
+			$woocommerce->structured_data->generate_product_data();
+		}
 	}
 }
 

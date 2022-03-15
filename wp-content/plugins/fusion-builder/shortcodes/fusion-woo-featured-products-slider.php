@@ -202,6 +202,8 @@ if ( fusion_is_element_enabled( 'fusion_featured_products_slider' ) && class_exi
 
 				$products = fusion_cached_query( $defaults );
 
+				fusion_library()->woocommerce->remove_post_clauses( $args['orderby'], $args['order'] );
+
 				if ( ! $products->have_posts() ) {
 					$return_data['placeholder'] = fusion_builder_placeholder( 'product', 'products' );
 					echo wp_json_encode( $return_data );
@@ -486,7 +488,7 @@ function fusion_element_featured_products_slider() {
 					'name'      => esc_attr__( 'Woo Featured Products Slider', 'fusion-builder' ),
 					'shortcode' => 'fusion_featured_products_slider',
 					'icon'      => 'fusiona-star-empty',
-					'help_url'  => 'https://theme-fusion.com/documentation/fusion-builder/elements/woocommerce-featured-products-slider-element/',
+					'help_url'  => 'https://theme-fusion.com/documentation/avada/elements/woocommerce-featured-products-slider-element/',
 					'params'    => [
 						[
 							'type'        => 'radio_button_set',

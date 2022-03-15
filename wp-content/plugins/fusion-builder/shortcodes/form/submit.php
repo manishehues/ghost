@@ -65,8 +65,6 @@ if ( fusion_is_element_enabled( 'fusion_form_submit' ) ) {
 					'bevel_color'                        => ( '' !== $fusion_settings->get( 'button_bevel_color' ) ) ? strtolower( $fusion_settings->get( 'button_bevel_color' ) ) : '#54770F',
 					'border_color'                       => ( '' !== $fusion_settings->get( 'button_border_color' ) ) ? strtolower( $fusion_settings->get( 'button_border_color' ) ) : '#ffffff',
 					'border_hover_color'                 => ( '' !== $fusion_settings->get( 'button_border_hover_color' ) ) ? strtolower( $fusion_settings->get( 'button_border_hover_color' ) ) : '#ffffff',
-					'border_radius'                      => intval( $fusion_settings->get( 'button_border_radius' ) ) . 'px',
-					'border_width'                       => intval( $fusion_settings->get( 'button_border_width' ) ) . 'px',
 					'color'                              => 'default',
 					'gradient_colors'                    => '',
 					'icon'                               => '',
@@ -74,8 +72,8 @@ if ( fusion_is_element_enabled( 'fusion_form_submit' ) ) {
 					'icon_position'                      => 'left',
 					'link'                               => '',
 					'link_attributes'                    => '',
+					'size'                               => '',
 					'modal'                              => '',
-					'size'                               => ( '' !== $fusion_settings->get( 'button_size' ) ) ? strtolower( $fusion_settings->get( 'button_size' ) ) : 'large',
 					'margin_bottom'                      => '',
 					'margin_left'                        => '',
 					'margin_right'                       => '',
@@ -99,6 +97,29 @@ if ( fusion_is_element_enabled( 'fusion_form_submit' ) ) {
 					// Combined in accent_hover_color.
 					'icon_hover_color'                   => '',
 					'text_hover_color'                   => '',
+
+					'padding_top'                        => '',
+					'padding_right'                      => '',
+					'padding_bottom'                     => '',
+					'padding_left'                       => '',
+					'font_size'                          => '',
+					'line_height'                        => '',
+					'letter_spacing'                     => '',
+					'fusion_font_family_button_font'     => '',
+					'fusion_font_variant_button_font'    => '',
+					'gradient_start_position'            => $fusion_settings->get( 'button_gradient_start' ),
+					'gradient_end_position'              => $fusion_settings->get( 'button_gradient_end' ),
+					'gradient_type'                      => $fusion_settings->get( 'button_gradient_type' ),
+					'radial_direction'                   => $fusion_settings->get( 'button_radial_direction' ),
+					'linear_angle'                       => $fusion_settings->get( 'button_gradient_angle' ),
+					'border_radius_top_left'             => $fusion_settings->get( 'button_border_radius', 'top_left' ),
+					'border_radius_top_right'            => $fusion_settings->get( 'button_border_radius', 'top_right' ),
+					'border_radius_bottom_right'         => $fusion_settings->get( 'button_border_radius', 'bottom_right' ),
+					'border_radius_bottom_left'          => $fusion_settings->get( 'button_border_radius', 'bottom_left' ),
+					'border_top'                         => '',
+					'border_right'                       => '',
+					'border_bottom'                      => '',
+					'border_left'                        => '',
 
 					// Combined with gradient_colors.
 					'gradient_hover_colors'              => '',
@@ -126,17 +147,7 @@ if ( fusion_is_element_enabled( 'fusion_form_submit' ) ) {
 			public function render_input_field( $content ) {
 				global $shortcode_tags;
 
-				$element_data = $this->create_element_data( $this->args );
-
 				$html = '';
-
-				if ( 'email' === $this->params['form_meta']['form_type'] || 'database_email' === $this->params['form_meta']['form_type'] ) {
-					$html .= '<input type="hidden" value="' . $this->params['form_meta']['email'] . '" name="fusion_form_email" />';
-					$html .= '<input type="hidden" value="' . $this->params['form_meta']['email_from'] . '" name="fusion_form_email_from" />';
-					$html .= '<input type="hidden" value="' . $this->params['form_meta']['email_from_id'] . '" name="fusion_form_email_from_id" />';
-					$html .= '<input type="hidden" value="' . $this->params['form_meta']['email_subject'] . '" name="fusion_form_email_subject" />';
-					$html .= '<input type="hidden" value="' . $this->params['form_meta']['email_subject_encode'] . '" name="fusion_form_email_subject_encode" />';
-				}
 
 				$this->args['link_attributes'] .= " data-form-number='" . $this->params['form_number'] . "'";
 				$this->args['button_el_type']   = 'submit';
@@ -187,6 +198,14 @@ function fusion_form_submit() {
 				'icon'                => 'fusiona-check-empty',
 				'preview'             => FUSION_BUILDER_PLUGIN_DIR . 'inc/templates/previews/fusion-button-preview.php',
 				'preview_id'          => 'fusion-builder-block-module-button-preview-template',
+				'subparam_map'        => [
+					'fusion_font_family_button_font'  => 'main_typography',
+					'fusion_font_variant_button_font' => 'main_typography',
+					'font_size'                       => 'main_typography',
+					'line_height'                     => 'main_typography',
+					'letter_spacing'                  => 'main_typography',
+					'text_transform'                  => 'main_typography',
+				],
 				'params'              => [
 					[
 						'type'         => 'textfield',
@@ -195,18 +214,6 @@ function fusion_form_submit() {
 						'value'        => esc_attr__( 'Submit', 'fusion-builder' ),
 						'description'  => esc_attr__( 'Add the text that will display on button.', 'fusion-builder' ),
 						'dynamic_data' => true,
-					],
-					[
-						'type'        => 'radio_button_set',
-						'heading'     => esc_attr__( 'Text Transform', 'fusion-builder' ),
-						'description' => esc_attr__( 'Choose how the text is displayed.', 'fusion-builder' ),
-						'param_name'  => 'text_transform',
-						'default'     => '',
-						'value'       => [
-							''          => esc_attr__( 'Default', 'fusion-builder' ),
-							'none'      => esc_attr__( 'Normal', 'fusion-builder' ),
-							'uppercase' => esc_attr__( 'Uppercase', 'fusion-builder' ),
-						],
 					],
 					[
 						'type'        => 'textfield',
@@ -326,6 +333,117 @@ function fusion_form_submit() {
 						],
 					],
 					[
+						'type'        => 'range',
+						'heading'     => esc_attr__( 'Gradient Start Position', 'fusion-builder' ),
+						'description' => esc_attr__( 'Select start position for gradient.', 'fusion-builder' ),
+						'param_name'  => 'gradient_start_position',
+						'default'     => $fusion_settings->get( 'button_gradient_start' ),
+						'value'       => '',
+						'min'         => '0',
+						'max'         => '100',
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+						'dependency'  => [
+							[
+								'element'  => 'color',
+								'value'    => 'custom',
+								'operator' => '==',
+							],
+						],
+					],
+					[
+						'type'        => 'range',
+						'heading'     => esc_attr__( 'Gradient End Position', 'fusion-builder' ),
+						'description' => esc_attr__( 'Select end position for gradient.', 'fusion-builder' ),
+						'param_name'  => 'gradient_end_position',
+						'default'     => $fusion_settings->get( 'button_gradient_end' ),
+						'value'       => '100',
+						'min'         => '',
+						'max'         => '100',
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+						'dependency'  => [
+							[
+								'element'  => 'color',
+								'value'    => 'custom',
+								'operator' => '==',
+							],
+						],
+					],
+					[
+						'type'        => 'radio_button_set',
+						'heading'     => esc_attr__( 'Gradient Type', 'fusion-builder' ),
+						'description' => esc_attr__( 'Controls gradient type.', 'fusion-builder' ),
+						'param_name'  => 'gradient_type',
+						'default'     => '',
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+						'value'       => [
+							''       => esc_attr__( 'Default', 'fusion-builder' ),
+							'linear' => esc_attr__( 'Linear', 'fusion-builder' ),
+							'radial' => esc_attr__( 'Radial', 'fusion-builder' ),
+						],
+						'dependency'  => [
+							[
+								'element'  => 'color',
+								'value'    => 'custom',
+								'operator' => '==',
+							],
+						],
+					],
+					[
+						'type'        => 'select',
+						'heading'     => esc_attr__( 'Radial Direction', 'fusion-builder' ),
+						'description' => esc_attr__( 'Select direction for radial gradient.', 'fusion-builder' ),
+						'param_name'  => 'radial_direction',
+						'default'     => '',
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+						'value'       => [
+							''              => esc_attr__( 'Default', 'fusion-builder' ),
+							'left top'      => esc_attr__( 'Left Top', 'fusion-builder' ),
+							'left center'   => esc_attr__( 'Left Center', 'fusion-builder' ),
+							'left bottom'   => esc_attr__( 'Left Bottom', 'fusion-builder' ),
+							'right top'     => esc_attr__( 'Right Top', 'fusion-builder' ),
+							'right center'  => esc_attr__( 'Right Center', 'fusion-builder' ),
+							'right bottom'  => esc_attr__( 'Right Bottom', 'fusion-builder' ),
+							'center top'    => esc_attr__( 'Center Top', 'fusion-builder' ),
+							'center center' => esc_attr__( 'Center Center', 'fusion-builder' ),
+							'center bottom' => esc_attr__( 'Center Bottom', 'fusion-builder' ),
+						],
+						'dependency'  => [
+							[
+								'element'  => 'gradient_type',
+								'value'    => 'linear',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'color',
+								'value'    => 'custom',
+								'operator' => '==',
+							],
+						],
+					],
+					[
+						'type'        => 'range',
+						'heading'     => esc_attr__( 'Gradient Angle', 'fusion-builder' ),
+						'description' => esc_attr__( 'Controls the gradient angle. In degrees.', 'fusion-builder' ),
+						'param_name'  => 'linear_angle',
+						'default'     => $fusion_settings->get( 'button_gradient_angle' ),
+						'value'       => '180',
+						'min'         => '',
+						'max'         => '360',
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+						'dependency'  => [
+							[
+								'element'  => 'gradient_type',
+								'value'    => 'radial',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'color',
+								'value'    => 'custom',
+								'operator' => '==',
+							],
+						],
+					],
+					[
 						'type'        => 'colorpickeralpha',
 						'heading'     => esc_attr__( 'Button Text Color', 'fusion-builder' ),
 						'description' => esc_attr__( 'Controls the color of the button text, divider and icon.', 'fusion-builder' ),
@@ -397,35 +515,39 @@ function fusion_form_submit() {
 						],
 					],
 					[
-						'type'        => 'range',
-						'heading'     => esc_attr__( 'Button Border Size', 'fusion-builder' ),
-						'param_name'  => 'border_width',
-						'description' => esc_attr__( 'Controls the border size. In pixels.', 'fusion-builder' ),
-						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
-						'dependency'  => [
+						'type'             => 'dimension',
+						'remove_from_atts' => true,
+						'heading'          => esc_attr__( 'Button Border Size', 'fusion-builder' ),
+						'description'      => esc_attr__( 'Controls the border size. In pixels or percentage, ex: 10px or 10%.', 'fusion-builder' ),
+						'param_name'       => 'border_width',
+						'value'            => [
+							'border_top'    => '',
+							'border_right'  => '',
+							'border_bottom' => '',
+							'border_left'   => '',
+						],
+						'group'            => esc_attr__( 'Design', 'fusion-builder' ),
+						'dependency'       => [
 							[
 								'element'  => 'color',
 								'value'    => 'custom',
 								'operator' => '==',
 							],
 						],
-						'min'         => '0',
-						'max'         => '20',
-						'step'        => '1',
-						'value'       => '',
-						'default'     => $fusion_settings->get( 'button_border_width' ),
 					],
 					[
-						'type'        => 'range',
-						'heading'     => esc_attr__( 'Button Border Radius', 'fusion-builder' ),
-						'param_name'  => 'border_radius',
-						'description' => esc_attr__( 'Controls the border radius. In pixels.', 'fusion-builder' ),
-						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
-						'min'         => '0',
-						'max'         => '50',
-						'step'        => '1',
-						'value'       => '',
-						'default'     => $fusion_settings->get( 'button_border_radius' ),
+						'type'             => 'dimension',
+						'remove_from_atts' => true,
+						'heading'          => esc_html__( 'Button Border Radius', 'fusion-builder' ),
+						'description'      => esc_html__( 'Controls the border radius. Enter values including any valid CSS unit, ex: 10px.', 'fusion-builder' ),
+						'param_name'       => 'border_radius',
+						'group'            => esc_attr__( 'Design', 'fusion-builder' ),
+						'value'            => [
+							'border_radius_top_left'     => '',
+							'border_radius_top_right'    => '',
+							'border_radius_bottom_right' => '',
+							'border_radius_bottom_left'  => '',
+						],
 					],
 					[
 						'type'        => 'colorpickeralpha',
@@ -477,6 +599,52 @@ function fusion_form_submit() {
 							'medium' => esc_attr__( 'Medium', 'fusion-builder' ),
 							'large'  => esc_attr__( 'Large', 'fusion-builder' ),
 							'xlarge' => esc_attr__( 'XLarge', 'fusion-builder' ),
+						],
+					],
+					[
+						'type'             => 'dimension',
+						'remove_from_atts' => true,
+						'heading'          => esc_attr__( 'Padding', 'fusion-builder' ),
+						'description'      => esc_attr__( 'Controls the padding for the button.', 'fusion-builder' ),
+						'param_name'       => 'padding',
+						'group'            => esc_html__( 'Design', 'fusion-builder' ),
+						'value'            => [
+							'padding_top'    => '',
+							'padding_right'  => '',
+							'padding_bottom' => '',
+							'padding_left'   => '',
+						],
+						'dependency'       => [
+							[
+								'element'  => 'size',
+								'value'    => '',
+								'operator' => '==',
+							],
+						],
+					],
+					[
+						'type'             => 'typography',
+						'remove_from_atts' => true,
+						'global'           => true,
+						'heading'          => esc_attr__( 'Typography', 'fusion-builder' ),
+						/* translators: URL for the link. */
+						'description'      => esc_html__( 'Controls the button typography, if left empty will inherit from globals.', 'fusion-builder' ),
+						'param_name'       => 'main_typography',
+						'group'            => esc_attr__( 'Design', 'fusion-builder' ),
+						'choices'          => [
+							'font-family'    => 'button_font',
+							'font-size'      => 'font_size',
+							'line-height'    => 'line_height',
+							'letter-spacing' => 'letter_spacing',
+							'text-transform' => 'text_transform',
+						],
+						'default'          => [
+							'font-family'    => '',
+							'variant'        => '',
+							'font-size'      => '',
+							'line-height'    => '',
+							'letter-spacing' => '',
+							'text-transform' => '',
 						],
 					],
 					[

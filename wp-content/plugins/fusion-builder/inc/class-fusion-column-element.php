@@ -212,6 +212,7 @@ if ( ! class_exists( 'Fusion_Column_Element' ) ) {
 				'box_shadow_spread'          => '',
 				'box_shadow_style'           => '',
 				'box_shadow_vertical'        => '',
+				'overflow'                   => '',
 
 				'link_attributes'            => '',
 
@@ -256,6 +257,7 @@ if ( ! class_exists( 'Fusion_Column_Element' ) ) {
 				'animation_speed'            => '0.3',
 				'animation_offset'           => $fusion_settings->get( 'animation_offset' ),
 				'link'                       => '',
+				'link_description'           => '',
 				'target'                     => '_self',
 				'hover_type'                 => 'none',
 
@@ -406,7 +408,7 @@ if ( ! class_exists( 'Fusion_Column_Element' ) ) {
 			if ( $this->args['flex'] ) {
 				$this->set_responsive_column_styles();
 			} else {
-				// Enqueue legacy scripts
+				// Enqueue legacy scripts.
 				$this->add_legacy_scripts();
 			}
 
@@ -700,7 +702,15 @@ if ( ! class_exists( 'Fusion_Column_Element' ) ) {
 			// Border radius.
 			if ( '' !== $this->args['border_radius_style'] ) {
 				$attr['style'] .= $this->args['border_radius_style'];
+			}
+
+			// Overflow.
+			if ( '' !== $this->args['border_radius_style'] && '' === $this->args['overflow'] ) {
 				$attr['style'] .= 'overflow:hidden;';
+			}
+
+			if ( '' !== $this->args['overflow'] ) {
+				$attr['style'] .= 'overflow:' . $this->args['overflow'] . ';';
 			}
 
 			// Box shadow.
@@ -759,7 +769,7 @@ if ( ! class_exists( 'Fusion_Column_Element' ) ) {
 		public function ie_div_attr() {
 
 			$attr = [
-				'class' => 'fusion-column-wrapper-salman',
+				'class' => 'fusion-column-wrapper',
 				'style' => 'content:\'\';z-index:-1;position:absolute;top:0;right:0;bottom:0;left:0;',
 			];
 
@@ -882,6 +892,10 @@ if ( ! class_exists( 'Fusion_Column_Element' ) ) {
 				$attr['data-rel'] = 'iLightbox';
 			}
 
+			if ( ! empty( $this->args['link_description'] ) ) {
+				$attr['aria-label'] = esc_attr( $this->args['link_description'] );
+			}
+
 			$attr = fusion_get_link_attributes( $this->args, $attr );
 
 			return $attr;
@@ -902,7 +916,7 @@ if ( ! class_exists( 'Fusion_Column_Element' ) ) {
 				'src'   => call_user_func_array( [ fusion_library()->images, 'get_lazy_placeholder' ], [ $this->args['background_data']['width'], $this->args['background_data']['height'] ] ),
 			];
 
-			if ( 'stretch' === $this->args['flex_align_items'] && in_array( $this->args['align_self'], [ 'auto', 'stretch' ] ) ) {
+			if ( 'stretch' === $this->args['flex_align_items'] && in_array( $this->args['align_self'], [ 'auto', 'stretch' ], true ) ) {
 				$attr['class'] .= ' fusion-no-large-visibility';
 				$width_key      = 'type_medium';
 
@@ -1018,7 +1032,7 @@ if ( ! class_exists( 'Fusion_Column_Element' ) ) {
 
 					// Empty dims style.
 					if ( 'medium' === $size && $this->args['empty_dims_bg_img'] ) {
-						$this->styles .= '@media only screen and (min-width:' . $fusion_settings->get( 'visibility_' . $size ) . 'px) {' . '.fusion-body .' . $this->shortcode_classname . '-' . $this->args['column_counter'] . ' .fusion-empty-dims-img-placeholder { display: none; }' . '}';
+						$this->styles .= '@media only screen and (min-width:' . $fusion_settings->get( 'visibility_' . $size ) . 'px) {.fusion-body .' . $this->shortcode_classname . '-' . $this->args['column_counter'] . ' .fusion-empty-dims-img-placeholder { display: none; } }';
 					}
 				}
 			}
@@ -1470,6 +1484,8 @@ if ( ! class_exists( 'Fusion_Column_Element' ) ) {
 					if ( ! empty( fusion_builder_container()->column_map ) ) {
 						$this->args['column_map'] = fusion_builder_container()->column_map;
 					}
+				} elseif ( null === fusion_builder_container()->data && defined( 'STUDIO_VERSION' ) ) {
+					$this->args['flex'] = true;
 				}
 			}
 
@@ -2434,6 +2450,28 @@ if ( ! class_exists( 'Fusion_Column_Element' ) ) {
 						'_blank'   => esc_attr__( '_blank', 'fusion-builder' ),
 						'lightbox' => esc_attr__( 'Lightbox', 'fusion-builder' ),
 					],
+					'dependency'  => [
+						[
+							'element'  => 'link',
+							'value'    => '',
+							'operator' => '!=',
+						],
+					],
+				],
+				[
+					'type'         => 'textfield',
+					'heading'      => esc_attr__( 'Link Description', 'fusion-builder' ),
+					'description'  => esc_attr__( 'Add descriptive text to the link to make it easier accessible.', 'fusion-builder' ),
+					'param_name'   => 'link_description',
+					'value'        => '',
+					'dynamic_data' => true,
+					'dependency'   => [
+						[
+							'element'  => 'link',
+							'value'    => '',
+							'operator' => '!=',
+						],
+					],
 				],
 				[
 					'type'        => 'radio_button_set',
@@ -2728,6 +2766,21 @@ if ( ! class_exists( 'Fusion_Column_Element' ) ) {
 					],
 				],
 				[
+					'type'        => 'select',
+					'heading'     => esc_attr__( 'Overflow', 'fusion-builder' ),
+					'description' => esc_attr__( 'Value for column\'s overflow CSS property.', 'fusion-builder' ),
+					'param_name'  => 'overflow',
+					'value'       => [
+						''        => esc_attr__( 'Default', 'fusion-builder' ),
+						'visible' => esc_attr__( 'Visible', 'fusion-builder' ),
+						'scroll'  => esc_attr__( 'Scroll', 'fusion-builder' ),
+						'hidden'  => esc_attr__( 'Hidden', 'fusion-builder' ),
+						'auto'    => esc_attr__( 'Auto', 'fusion-builder' ),
+					],
+					'default'     => '',
+					'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+				],
+				[
 					'type'             => 'subgroup',
 					'heading'          => esc_attr__( 'Background Type', 'fusion-builder' ),
 					'description'      => esc_attr__( 'Use filters to see specific type of content.', 'fusion-builder' ),
@@ -2786,7 +2839,7 @@ if ( ! class_exists( 'Fusion_Column_Element' ) ) {
 				[
 					'type'        => 'select',
 					'heading'     => esc_attr__( 'Background Position', 'fusion-builder' ),
-					'description' => esc_attr__( 'Choose the postion of the background image.', 'fusion-builder' ),
+					'description' => esc_attr__( 'Choose the position of the background image.', 'fusion-builder' ),
 					'param_name'  => 'background_position',
 					'default'     => 'left top',
 					'group'       => esc_attr__( 'Background', 'fusion-builder' ),

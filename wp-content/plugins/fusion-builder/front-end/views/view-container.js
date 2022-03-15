@@ -356,7 +356,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				// If no blend mode is defined, check if we should set to overlay.
 				if ( 'undefined' === typeof params.background_blend_mode && '' !== values.background_color  ) {
-					alphaBackgroundColor = jQuery.Color( values.background_color ).alpha();
+					alphaBackgroundColor = jQuery.AWB_Color( values.background_color ).alpha();
 					if ( 1 > alphaBackgroundColor && 0 !== alphaBackgroundColor && ( '' !== params.background_image || '' !== params.video_bg ) ) {
 						params.background_blend_mode = 'overlay';
 					}
@@ -488,7 +488,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 * @return {void}
 			 */
 			setExtraValues: function() {
-				this.values.alpha_background_color = jQuery.Color( this.values.background_color ).alpha();
+				this.values.alpha_background_color = jQuery.AWB_Color( this.values.background_color ).alpha();
 			},
 
 			contentStyle: function() {
@@ -535,7 +535,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 			parallaxAttr: function() {
 				var attr 			= {},
-					bgColorAlpha 	= jQuery.Color( this.values.background_color ).alpha();
+					bgColorAlpha 	= jQuery.AWB_Color( this.values.background_color ).alpha();
 
 				attr[ 'class' ] = 'fusion-bg-parallax';
 
@@ -827,7 +827,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					overlayStyle += 'background-image:' + _.getGradientString( this.values ) + ';';
 				}
 
-				if ( '' !== this.values.background_color && 1 > jQuery.Color( this.values.background_color ).alpha() ) {
+				if ( '' !== this.values.background_color && 1 > jQuery.AWB_Color( this.values.background_color ).alpha() ) {
 					overlayStyle += 'background-color:' + this.values.background_color + ';';
 				}
 
@@ -2120,6 +2120,35 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				this.destroyResizable();
 				this.marginDrag();
 				this.paddingDrag();
+			},
+
+			/**
+			 * Runs just after render on cancel.
+			 *
+			 * @since 3.5
+			 * @return null
+			 */
+			beforeGenerateShortcode: function() {
+				var elementType = this.model.get( 'element_type' ),
+					options     = fusionAllElements[ elementType ].params,
+					values      = jQuery.extend( true, {}, fusionAllElements[ elementType ].defaults, _.fusionCleanParameters( this.model.get( 'params' ) ) );
+
+				if ( 'object' !== typeof options ) {
+					return;
+				}
+
+				// If images needs replaced lets check element to see if we have media being used to add to object.
+				if ( 'undefined' !== typeof FusionApp.data.replaceAssets && FusionApp.data.replaceAssets && ( 'undefined' !== typeof FusionApp.data.fusion_element_type || 'fusion_template' === FusionApp.getPost( 'post_type' ) ) ) {
+
+					this.mapStudioImages( options, values );
+
+					if ( '' !== values.video_mp4 ) {
+						// If its not within object already, add it.
+						if ( 'undefined' === typeof FusionPageBuilderApp.mediaMap.videos[ values.video_mp4 ] ) {
+							FusionPageBuilderApp.mediaMap.videos[ values.video_mp4 ] = true;
+						}
+					}
+				}
 			}
 		} );
 	} );

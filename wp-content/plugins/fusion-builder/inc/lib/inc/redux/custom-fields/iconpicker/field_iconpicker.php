@@ -45,7 +45,7 @@
 
 				$this->field = wp_parse_args( $this->field, $defaults );
 
-				echo '<fieldset id="' . $this->field['id'] . '" class="fusionredux-container-dimensions" data-id="' . $this->field['id'] . '">';
+				echo '<fieldset id="' . $this->field['id'] . '" class="fusionredux-container-iconpicker" data-id="' . $this->field['id'] . '">';
 				echo '<h4>' . esc_html__( 'Icon', 'fusion-builder' ) . '</h4>';
 				echo '<span class="description">' . esc_html__( 'Click an icon to select, click again to deselect.', 'fusion-builder' )  . '</span>';
 				echo '<div class="nav-menus-php"><div class="option-field fusion-iconpicker">';
@@ -76,7 +76,7 @@
 				wp_enqueue_script( 'fusion_app_option_icon_picker', FUSION_LIBRARY_URL . '/inc/fusion-app/options/icon-picker.js', [], $fusion_library_latest_version, true );
 
 				wp_enqueue_script(
-					'fusionredux_field_dimensions_js',
+					'fusionredux_field_iconpicker_js',
 					trailingslashit( FUSION_LIBRARY_URL ) . 'inc/redux/custom-fields/iconpicker/field_iconpicker.js',
 					array( 'jquery', 'fusionredux-js' ),
 					time(),
@@ -84,7 +84,7 @@
 				);
 
 				wp_enqueue_style(
-					'fusionredux-field-dimensions-css',
+					'fusionredux-field-iconpicker-css',
 					trailingslashit( FUSION_LIBRARY_URL ) . 'inc/redux/custom-fields/iconpicker/field_iconpicker.css',
 					array(),
 					time(),

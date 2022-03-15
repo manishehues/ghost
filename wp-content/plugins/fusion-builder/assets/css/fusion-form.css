@@ -32,8 +32,11 @@
 .fusion-form-form-wrapper .fusion-form-field.fusion-form-label-below .select-arrow {
   top: 1px;
 }
+.fusion-form-form-wrapper .fusion-form-field.fusion-form-textarea-field .fusion-form-input-with-icon > i {
+  line-height: 1.4 !important;
+}
 .fusion-form-form-wrapper .fusion-form-field.fusion-form-textarea-field .fusion-form-input-with-icon i {
-  top: 1.2em;
+  top: 1em;
   transform: inherit;
 }
 .fusion-form-form-wrapper .fusion-form-field textarea {

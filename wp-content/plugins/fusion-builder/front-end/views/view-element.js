@@ -251,7 +251,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 * @return {void}
 			 */
 			needsGoogle: function() {
-				var variant = ':regular',
+				var variant    = ':regular',
 					$fontNodes = this.$el.find( '[data-fusion-google-font]' ),
 					script,
 					scriptID;
@@ -266,8 +266,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 						scriptID = script.replace( /:/g, '' ).replace( /"/g, '' ).replace( /'/g, '' ).replace( / /g, '' ).replace( /,/, '' );
 
-						if ( ! jQuery( '#fb-preview' ).contents().find( '#' + scriptID ).length ) {
-							jQuery( '#fb-preview' ).contents().find( 'head' ).append( '<script id="' + scriptID + '">WebFont.load({google:{families:["' + script + '"]},context:FusionApp.previewWindow,active: function(){ jQuery( window ).trigger( "fusion-font-loaded"); },});</script>' );
+						if ( ! jQuery( 'head' ).find( '#' + scriptID ).length ) {
+							jQuery( 'head' ).first().append( '<script id="' + scriptID + '">WebFont.load({google:{families:["' + script + '"]},context:FusionApp.previewWindow,active: function(){ jQuery( window ).trigger( "fusion-font-loaded"); },});</script>' );
 						}
 					} );
 				}

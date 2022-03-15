@@ -1,5 +1,11 @@
 /* stylelint-disable length-zero-no-unit */
 /* stylelint-enable length-zero-no-unit */
+.fusion-slider-sc .slides > li.fusion-flex-column {
+  display: none;
+}
+.fusion-slider-sc .slides > li.fusion-flex-column:first-child {
+  display: block;
+}
 .fusion-slider-sc .slides > li:first-child {
   display: block;
 }

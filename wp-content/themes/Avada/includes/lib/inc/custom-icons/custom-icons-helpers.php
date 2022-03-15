@@ -58,6 +58,7 @@ function fusion_get_custom_icons_array( $args = [] ) {
 		if ( '' !== $meta ) {
 			$custom_icons[ $post->post_name ]            = $meta;
 			$custom_icons[ $post->post_name ]['name']    = get_the_title( $post->ID );
+			$custom_icons[ $post->post_name ]['post_id'] = $post->ID;
 			$custom_icons[ $post->post_name ]['css_url'] = fusion_get_custom_icons_css_url( $post->ID );
 		}
 	}

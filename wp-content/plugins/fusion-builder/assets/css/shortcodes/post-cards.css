@@ -19,4 +19,5 @@
 }
 .fusion-post-cards.fusion-carousel .fusion-carousel-item {
   display: block !important;
+  position: relative;
 }

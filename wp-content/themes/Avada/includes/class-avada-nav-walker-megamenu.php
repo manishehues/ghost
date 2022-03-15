@@ -118,7 +118,11 @@ if ( ! class_exists( 'Avada_Nav_Walker_Megamenu' ) ) {
 			<li id="menu-item-<?php echo esc_attr( $item_id ); ?>" class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>">
 				<dl class="menu-item-bar">
 					<dt class="menu-item-handle">
-						<span class="item-title"><span class="menu-item-title"><?php echo esc_html( $title ); ?></span> <span class="is-submenu" <?php echo $submenu_text; // phpcs:ignore WordPress.Security.EscapeOutput ?>><?php esc_attr_e( 'sub item', 'Avada' ); ?></span></span>
+						<label class="item-title" for="menu-item-checkbox-<?php echo $item_id; // phpcs:ignore WordPress.Security.EscapeOutput ?>">
+							<input id="menu-item-checkbox-<?php echo $item_id; // phpcs:ignore WordPress.Security.EscapeOutput ?>" type="checkbox" class="menu-item-checkbox" data-menu-item-id="<?php echo $item_id; // phpcs:ignore WordPress.Security.EscapeOutput ?>" disabled="disabled" />
+							<span class="menu-item-title"><?php echo esc_html( $title ); ?></span>
+							<span class="is-submenu" <?php echo $submenu_text; // phpcs:ignore WordPress.Security.EscapeOutput ?>><?php esc_attr_e( 'sub item', 'Avada' ); ?></span>
+						</label>
 						<span class="item-controls">
 							<span class="item-type"><?php echo esc_html( $item->type_label ); ?></span>
 							<span class="item-order hide-if-js">

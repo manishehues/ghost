@@ -98,6 +98,7 @@ if ( fusion_is_element_enabled( 'fusion_title' ) ) {
 					'animated_font_size'             => '',
 					'letter_spacing'                 => '',
 					'line_height'                    => '',
+					'link_attributes'                => '',
 					'margin_bottom'                  => $fusion_settings->get( 'title_margin', 'bottom' ),
 					'margin_bottom_medium'           => '',
 					'margin_bottom_mobile'           => '',
@@ -122,6 +123,7 @@ if ( fusion_is_element_enabled( 'fusion_title' ) ) {
 					'text_shadow_color'              => '',
 					'text_shadow_horizontal'         => '',
 					'text_shadow_vertical'           => '',
+					'text_transform'                 => '',
 					'animated_text_color'            => '',
 					'highlight_color'                => '',
 					'responsive_typography'          => 0.0 < $fusion_settings->get( 'typography_sensitivity' ),
@@ -470,7 +472,7 @@ if ( fusion_is_element_enabled( 'fusion_title' ) ) {
 				$this->args['text_shadow_styles'] = '';
 
 				if ( 'yes' === $this->args['text_shadow'] ) {
-					$text_shadow_styles               = Fusion_Builder_Text_Shadow_Helper::get_text_shadow_styles(
+					$text_shadow_styles = Fusion_Builder_Text_Shadow_Helper::get_text_shadow_styles(
 						[
 							'text_shadow_horizontal' => $this->args['text_shadow_horizontal'],
 							'text_shadow_vertical'   => $this->args['text_shadow_vertical'],
@@ -478,7 +480,12 @@ if ( fusion_is_element_enabled( 'fusion_title' ) ) {
 							'text_shadow_color'      => $this->args['text_shadow_color'],
 						]
 					);
-					$this->args['text_shadow_styles'] = 'text-shadow:' . esc_attr( trim( $text_shadow_styles ) ) . ';';
+
+					if ( 'yes' === $this->args['gradient_font'] ) {
+						$this->args['text_shadow_styles'] = 'filter:drop-shadow(' . esc_attr( trim( $text_shadow_styles ) ) . ');';
+					} else {
+						$this->args['text_shadow_styles'] = 'text-shadow:' . esc_attr( trim( $text_shadow_styles ) ) . ';';
+					}
 				}
 			}
 
@@ -559,11 +566,6 @@ if ( fusion_is_element_enabled( 'fusion_title' ) ) {
 					$attr['style'] .= 'font-size:' . fusion_library()->sanitize->get_value_with_unit( $this->args['font_size'] ) . ';';
 				}
 
-				// Text shadow.
-				if ( '' !== $this->args['text_shadow_styles'] ) {
-					$attr['style'] .= $this->args['text_shadow_styles'];
-				}
-
 				$attr['style'] .= Fusion_Builder_Margin_Helper::get_margins_style( $this->args );
 
 				if ( '' === $this->args['margin_top'] && '' === $this->args['margin_bottom'] ) {
@@ -630,6 +632,10 @@ if ( fusion_is_element_enabled( 'fusion_title' ) ) {
 					$attr['style'] .= 'letter-spacing:' . fusion_library()->sanitize->get_value_with_unit( $this->args['letter_spacing'] ) . ';';
 				}
 
+				if ( ! empty( $this->args['text_transform'] ) && 'none' !== $this->args['text_transform'] ) {
+					$attr['style'] .= 'text-transform:' . $this->args['text_transform'] . ';';
+				}
+
 				if ( $this->args['text_color'] ) {
 					$attr['style'] .= 'color:' . fusion_library()->sanitize->color( $this->args['text_color'] ) . ';';
 				}
@@ -651,6 +657,11 @@ if ( fusion_is_element_enabled( 'fusion_title' ) ) {
 					$attr['style'] .= $data['line_height'];
 				} elseif ( $this->args['line_height'] ) {
 					$attr['style'] .= 'line-height:' . fusion_library()->sanitize->size( $this->args['line_height'] ) . ';';
+				}
+
+				// Text shadow.
+				if ( '' !== $this->args['text_shadow_styles'] ) {
+					$attr['style'] .= $this->args['text_shadow_styles'];
 				}
 
 				return $attr;
@@ -801,7 +812,7 @@ if ( fusion_is_element_enabled( 'fusion_title' ) ) {
 					'class' => '',
 				];
 
-				if ( FusionBuilder()->post_card_data['is_rendering'] ) {
+				if ( FusionBuilder()->post_card_data['is_rendering'] && empty( $attr['href'] ) ) {
 					$attr['href'] = get_permalink( get_the_ID() );
 				}
 
@@ -816,6 +827,9 @@ if ( fusion_is_element_enabled( 'fusion_title' ) ) {
 						$attr['class'] .= ' awb-custom-text-hover-color';
 					}
 				}
+
+				// Add additional, custom link attributes correctly formatted to the anchor.
+				$attr = fusion_get_link_attributes( $this->args, $attr );
 
 				return $attr;
 
@@ -868,11 +882,29 @@ if ( fusion_is_element_enabled( 'fusion_title' ) ) {
 						'type'        => 'accordion',
 						'icon'        => 'fusiona-H',
 						'fields'      => [
-							'title_style_type'    => [
+							'title_text_transform' => [
+								'label'       => esc_attr__( 'Text Transform', 'fusion-builder' ),
+								'description' => esc_attr__( 'Choose how the text is displayed.', 'fusion-builder' ),
+								'id'          => 'title_text_transform',
+								'default'     => 'none',
+								'type'        => 'select',
+								'choices'     => [
+									'none'       => esc_attr__( 'None', 'fusion-builder' ),
+									'uppercase'  => esc_attr__( 'Uppercase', 'fusion-builder' ),
+									'lowercase'  => esc_attr__( 'Lowercase', 'fusion-builder' ),
+									'capitalize' => esc_attr__( 'Capitalize', 'fusion-builder' ),
+								],
+								'css_vars'    => [
+									[
+										'name' => '--title_text_transform',
+									],
+								],
+							],
+							'title_style_type'     => [
 								'label'       => esc_html__( 'Title Separator', 'fusion-builder' ),
 								'description' => esc_html__( 'Controls the type of title separator that will display.', 'fusion-builder' ),
 								'id'          => 'title_style_type',
-								'default'     => 'double solid',
+								'default'     => 'none',
 								'type'        => 'select',
 								'transport'   => 'postMessage',
 								'choices'     => [
@@ -888,11 +920,11 @@ if ( fusion_is_element_enabled( 'fusion_title' ) ) {
 									'none'             => esc_html__( 'None', 'fusion-builder' ),
 								],
 							],
-							'title_border_color'  => [
+							'title_border_color'   => [
 								'label'       => esc_html__( 'Title Separator Color', 'fusion-builder' ),
 								'description' => esc_html__( 'Controls the color of the title separators.', 'fusion-builder' ),
 								'id'          => 'title_border_color',
-								'default'     => '#e2e2e2',
+								'default'     => 'var(--awb-color3)',
 								'type'        => 'color-alpha',
 								'transport'   => 'postMessage',
 								'css_vars'    => [
@@ -902,7 +934,7 @@ if ( fusion_is_element_enabled( 'fusion_title' ) ) {
 									],
 								],
 							],
-							'title_margin'        => [
+							'title_margin'         => [
 								'label'       => esc_html__( 'Title Margins', 'fusion-builder' ),
 								'description' => esc_html__( 'Controls the margin of the titles. Leave empty to use corresponding heading margins.', 'fusion-builder' ),
 								'id'          => 'title_margin',
@@ -921,7 +953,7 @@ if ( fusion_is_element_enabled( 'fusion_title' ) ) {
 									'left'   => true,
 								],
 							],
-							'title_margin_mobile' => [
+							'title_margin_mobile'  => [
 								'label'       => esc_html__( 'Title Mobile Margins', 'fusion-builder' ),
 								'description' => esc_html__( 'Controls the margin of the titles on mobiles. Leave empty together with desktop margins to use corresponding heading margins.', 'fusion-builder' ),
 								'id'          => 'title_margin_mobile',
@@ -1011,7 +1043,15 @@ function fusion_element_title() {
 				'preview_id'      => 'fusion-builder-block-module-title-preview-template',
 				'allow_generator' => true,
 				'inline_editor'   => true,
-				'help_url'        => 'https://theme-fusion.com/documentation/fusion-builder/elements/title-element/',
+				'help_url'        => 'https://theme-fusion.com/documentation/avada/elements/title-element/',
+				'subparam_map'    => [
+					'fusion_font_family_title_font'  => 'main_typography',
+					'fusion_font_variant_title_font' => 'main_typography',
+					'font_size'                      => 'main_typography',
+					'line_height'                    => 'main_typography',
+					'letter_spacing'                 => 'main_typography',
+					'text_transform'                 => 'main_typography',
+				],
 				'params'          => [
 					[
 						'type'        => 'radio_button_set',
@@ -1273,7 +1313,7 @@ function fusion_element_title() {
 					[
 						'type'         => 'link_selector',
 						'heading'      => esc_attr__( 'Link URL', 'fusion-builder' ),
-						'description'  => esc_attr__( 'Add a url for the link. E.g: http://example.com.', 'fusion-builder' ),
+						'description'  => esc_attr__( 'Add an URL for the link. E.g: https://example.com.', 'fusion-builder' ),
 						'param_name'   => 'link_url',
 						'value'        => '',
 						'dynamic_data' => true,
@@ -1354,15 +1394,6 @@ function fusion_element_title() {
 					],
 					[
 						'type'        => 'textfield',
-						'heading'     => esc_attr__( 'Font Size', 'fusion-builder' ),
-						/* translators: URL for the link. */
-						'description' => sprintf( esc_html__( 'Controls the font size of the title. Enter value including any valid CSS unit, ex: 20px. Leave empty if the global font size for the corresponding heading size (h1-h6) should be used: %s.', 'fusion-builder' ), $to_link ),
-						'param_name'  => 'font_size',
-						'value'       => '',
-						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
-					],
-					[
-						'type'        => 'textfield',
 						'heading'     => esc_attr__( 'Animated Text Font Size', 'fusion-builder' ),
 						/* translators: URL for the link. */
 						'description' => sprintf( esc_html__( 'Controls the font size of the animated text. Enter value including any valid CSS unit, ex: 20px. Leave empty if the global font size for the corresponding heading size (h1-h6) should be used: %s.', 'fusion-builder' ), $to_link ),
@@ -1378,35 +1409,102 @@ function fusion_element_title() {
 						],
 					],
 					[
-						'type'             => 'font_family',
+						'type'             => 'typography',
 						'remove_from_atts' => true,
-						'heading'          => esc_attr__( 'Font Family', 'fusion-builder' ),
+						'global'           => true,
+						'heading'          => esc_attr__( 'Typography', 'fusion-builder' ),
 						/* translators: URL for the link. */
-						'description'      => sprintf( esc_html__( 'Controls the font family of the title text.  Leave empty if the global font family for the corresponding heading size (h1-h6) should be used: %s.', 'fusion-builder' ), $to_link ),
-						'param_name'       => 'title_font',
+						'description'      => sprintf( esc_html__( 'Controls the title text typography.  Leave empty if the global typography for the corresponding heading size (h1-h6) should be used: %s.', 'fusion-builder' ), $to_link ),
+						'param_name'       => 'main_typography',
 						'group'            => esc_attr__( 'Design', 'fusion-builder' ),
+						'choices'          => [
+							'font-family'    => 'title_font',
+							'font-size'      => 'font_size',
+							'line-height'    => 'line_height',
+							'letter-spacing' => 'letter_spacing',
+							'text-transform' => 'text_transform',
+						],
 						'default'          => [
-							'font-family'  => '',
-							'font-variant' => '400',
+							'font-family'    => '',
+							'variant'        => '',
+							'font-size'      => '',
+							'line-height'    => '',
+							'letter-spacing' => '',
+							'text-transform' => '',
 						],
 					],
 					[
-						'type'        => 'textfield',
-						'heading'     => esc_attr__( 'Line Height', 'fusion-builder' ),
+						'type'        => 'colorpickeralpha',
+						'heading'     => esc_attr__( 'Font Color', 'fusion-builder' ),
 						/* translators: URL for the link. */
-						'description' => sprintf( esc_html__( 'Controls the line height of the title. Enter value including any valid CSS unit, ex: 28px. Leave empty if the global line height for the corresponding heading size (h1-h6) should be used: %s.', 'fusion-builder' ), $to_link ),
-						'param_name'  => 'line_height',
+						'description' => sprintf( esc_html__( 'Controls the color of the title, ex: #000. Leave empty if the global color for the corresponding heading size (h1-h6) should be used: %s.', 'fusion-builder' ), $to_link ),
+						'param_name'  => 'text_color',
 						'value'       => '',
 						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
 					],
 					[
-						'type'        => 'textfield',
-						'heading'     => esc_attr__( 'Letter Spacing', 'fusion-builder' ),
+						'type'        => 'colorpickeralpha',
+						'heading'     => esc_attr__( 'Animated Text Font Color', 'fusion-builder' ),
 						/* translators: URL for the link. */
-						'description' => sprintf( esc_html__( 'Controls the letter spacing of the title. Enter value including any valid CSS unit, ex: 2px. Leave empty if the global letter spacing for the corresponding heading size (h1-h6) should be used: %s.', 'fusion-builder' ), $to_link ),
-						'param_name'  => 'letter_spacing',
+						'description' => sprintf( esc_html__( 'Controls the color of the animated title, ex: #000. Leave empty if the global color for the corresponding heading size (h1-h6) should be used: %s.', 'fusion-builder' ), $to_link ),
+						'param_name'  => 'animated_text_color',
 						'value'       => '',
 						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+						'dependency'  => [
+							[
+								'element'  => 'title_type',
+								'value'    => 'text',
+								'operator' => '!=',
+							],
+						],
+					],
+					[
+						'type'        => 'radio_button_set',
+						'heading'     => esc_attr__( 'Text Transform', 'fusion-builder' ),
+						'description' => esc_attr__( 'Choose how to capitalize the text.', 'fusion-builder' ),
+						'param_name'  => 'text_transform',
+						'value'       => [
+							''           => esc_attr__( 'Default', 'fusion-builder' ),
+							'none'       => esc_attr__( 'None', 'fusion-builder' ),
+							'uppercase'  => esc_attr__( 'Uppercase', 'fusion-builder' ),
+							'lowercase'  => esc_attr__( 'Lowercase', 'fusion-builder' ),
+							'capitalize' => esc_attr__( 'Capitalize', 'fusion-builder' ),
+						],
+						'icons'       => [
+							''           => '<span class="fusiona-cog onlyIcon"></span>',
+							'none'       => '<span class="fusiona-minus onlyIcon"></span>',
+							'uppercase'  => '<span class="fusiona-uppercase onlyIcon"></span>',
+							'lowercase'  => '<span class="fusiona-lowercase onlyIcon"></span>',
+							'capitalize' => '<span class="fusiona-caps onlyIcon"></span>',
+						],
+						'back_icons'  => true,
+						'default'     => '',
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+					],
+					[
+						'type'        => 'colorpickeralpha',
+						'heading'     => esc_attr__( 'Font Color', 'fusion-builder' ),
+						/* translators: URL for the link. */
+						'description' => sprintf( esc_html__( 'Controls the color of the title, ex: #000. Leave empty if the global color for the corresponding heading size (h1-h6) should be used: %s.', 'fusion-builder' ), $to_link ),
+						'param_name'  => 'text_color',
+						'value'       => '',
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+					],
+					[
+						'type'        => 'colorpickeralpha',
+						'heading'     => esc_attr__( 'Animated Text Font Color', 'fusion-builder' ),
+						/* translators: URL for the link. */
+						'description' => sprintf( esc_html__( 'Controls the color of the animated title, ex: #000. Leave empty if the global color for the corresponding heading size (h1-h6) should be used: %s.', 'fusion-builder' ), $to_link ),
+						'param_name'  => 'animated_text_color',
+						'value'       => '',
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+						'dependency'  => [
+							[
+								'element'  => 'title_type',
+								'value'    => 'text',
+								'operator' => '!=',
+							],
+						],
 					],
 					'fusion_text_shadow_placeholder'       => [],
 					'fusion_margin_placeholder'            => [
@@ -1434,31 +1532,6 @@ function fusion_element_title() {
 								'element'  => 'fusion_builder_container',
 								'param'    => 'type',
 								'value'    => 'flex',
-								'operator' => '!=',
-							],
-						],
-					],
-					[
-						'type'        => 'colorpickeralpha',
-						'heading'     => esc_attr__( 'Font Color', 'fusion-builder' ),
-						/* translators: URL for the link. */
-						'description' => sprintf( esc_html__( 'Controls the color of the title, ex: #000. Leave empty if the global color for the corresponding heading size (h1-h6) should be used: %s.', 'fusion-builder' ), $to_link ),
-						'param_name'  => 'text_color',
-						'value'       => '',
-						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
-					],
-					[
-						'type'        => 'colorpickeralpha',
-						'heading'     => esc_attr__( 'Animated Text Font Color', 'fusion-builder' ),
-						/* translators: URL for the link. */
-						'description' => sprintf( esc_html__( 'Controls the color of the animated title, ex: #000. Leave empty if the global color for the corresponding heading size (h1-h6) should be used: %s.', 'fusion-builder' ), $to_link ),
-						'param_name'  => 'animated_text_color',
-						'value'       => '',
-						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
-						'dependency'  => [
-							[
-								'element'  => 'title_type',
-								'value'    => 'text',
 								'operator' => '!=',
 							],
 						],

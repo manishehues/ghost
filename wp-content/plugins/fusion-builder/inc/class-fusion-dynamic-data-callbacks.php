@@ -159,7 +159,7 @@ class Fusion_Dynamic_Data_Callbacks {
 	public static function post_featured_image( $args ) {
 		$src = '';
 
-		if ( is_tax() ) {
+		if ( is_tax() || is_category() || is_tag() ) {
 			return fusion_get_term_image();
 		}
 
@@ -254,7 +254,7 @@ class Fusion_Dynamic_Data_Callbacks {
 	public static function fusion_get_object_title( $args ) {
 		$include_context = ( isset( $args['include_context'] ) && 'yes' === $args['include_context'] ) ? true : false;
 
-		if ( FusionBuilder()->post_card_data['is_rendering'] ) {
+		if ( FusionBuilder()->post_card_data['is_rendering'] && FusionBuilder()->post_card_data['is_post_card_archives'] ) {
 			$title = self::fusion_get_post_title( $args );
 		} elseif ( is_search() ) {
 			/* translators: The search keyword(s). */
@@ -392,7 +392,7 @@ class Fusion_Dynamic_Data_Callbacks {
 	 * @return int
 	 */
 	public static function fusion_get_post_id( $args ) {
-		return self::get_post_id();
+		return (string) self::get_post_id();
 	}
 
 	/**
@@ -424,7 +424,13 @@ class Fusion_Dynamic_Data_Callbacks {
 		}
 
 		$format = isset( $args['format'] ) ? $args['format'] : '';
-		return 'modified' === $args['type'] ? get_the_modified_date( $format, $post_id ) : get_the_date( $format, $post_id );
+		$date   = 'modified' === $args['type'] ? get_the_modified_date( $format, $post_id ) : get_the_date( $format, $post_id );
+
+		if ( ! $date ) {
+			$date = self::fusion_get_date( $args );
+		}
+
+		return $date;
 	}
 
 	/**
@@ -512,6 +518,93 @@ class Fusion_Dynamic_Data_Callbacks {
 
 		$format = isset( $args['format'] ) && '' !== $args['format'] ? $args['format'] : 'U';
 		return get_post_time( $format, false, $post_id );
+	}
+
+	/**
+	 * Get post total views.
+	 *
+	 * @since 3.5
+	 * @param array $args    Arguments.
+	 * @param int   $post_id The post-ID.
+	 * @return string Empty string if no total views exist.
+	 */
+	public static function get_post_total_views( $args, $post_id = 0 ) {
+		if ( ! $post_id ) {
+			$post_id = self::get_post_id();
+		}
+
+		$total_views = avada_get_post_views( $post_id );
+
+		if ( empty( $total_views ) ) {
+			return '';
+		}
+
+		return number_format_i18n( $total_views );
+	}
+
+	/**
+	 * Get post today views.
+	 *
+	 * @since 3.5
+	 * @param array $args    Arguments.
+	 * @param int   $post_id The post-ID.
+	 * @return string Empty string if no today views exist.
+	 */
+	public static function get_post_today_views( $args, $post_id = 0 ) {
+		if ( ! $post_id ) {
+			$post_id = self::get_post_id();
+		}
+
+		$today_views = avada_get_today_post_views( $post_id );
+
+		if ( empty( $today_views ) ) {
+			return '';
+		}
+
+		return number_format_i18n( $today_views );
+	}
+
+	/**
+	 * Get the post reading time.
+	 *
+	 * @since 3.5
+	 * @param array $args    Arguments.
+	 * @param int   $post_id The post-ID.
+	 * @return string Empty string if no today views exist.
+	 */
+	public static function get_post_reading_time( $args, $post_id = 0 ) {
+		if ( ! $post_id ) {
+			$post_id = self::get_post_id();
+		}
+
+		$reading_time = awb_get_reading_time( $post_id, $args );
+
+		return (string) $reading_time;
+	}
+
+	/**
+	 * Post type.
+	 *
+	 * @static
+	 * @access public
+	 * @since 3.5
+	 * @param array $args    Arguments.
+	 * @param int   $post_id The post-ID.
+	 * @return string
+	 */
+	public static function fusion_get_post_type( $args, $post_id = 0 ) {
+		if ( ! $post_id ) {
+			$post_id = self::get_post_id();
+		}
+
+		$post_type_label = '';
+		$post_type_obj   = get_post_type_object( get_post_type( $post_id ) );
+
+		if ( $post_type_obj ) {
+			$post_type_label = $post_type_obj->labels->singular_name;
+		}
+
+		return $post_type_label;
 	}
 
 	/**
@@ -740,6 +833,62 @@ class Fusion_Dynamic_Data_Callbacks {
 	}
 
 	/**
+	 * Toggle Off Canvas.
+	 *
+	 * @static
+	 * @access public
+	 * @since 3.6
+	 * @param array $args Arguments.
+	 * @return string
+	 */
+	public static function fusion_toggle_off_canvas( $args ) {
+		if ( ! isset( $args['off_canvas_id'] ) ) {
+			return '';
+		}
+
+		// Add Off Canvas to stack, so it's markup is added to the page.
+		AWB_Off_Canvas_Front_End::add_off_canvas_to_stack( $args['off_canvas_id'] );
+
+		return '#awb-oc__' . $args['off_canvas_id'];
+	}
+
+	/**
+	 * Open Off Canvas.
+	 *
+	 * @static
+	 * @access public
+	 * @since 3.6
+	 * @param array $args Arguments.
+	 * @return string
+	 */
+	public static function fusion_open_off_canvas( $args ) {
+		if ( ! isset( $args['off_canvas_id'] ) ) {
+			return '';
+		}
+
+		// Add Off Canvas to stack, so it's markup is added to the page.
+		AWB_Off_Canvas_Front_End::add_off_canvas_to_stack( $args['off_canvas_id'] );
+
+		return '#awb-open-oc__' . $args['off_canvas_id'];
+	}
+
+	/**
+	 * Close Off Canvas.
+	 *
+	 * @static
+	 * @access public
+	 * @since 3.6
+	 * @param array $args Arguments.
+	 * @return string
+	 */
+	public static function fusion_close_off_canvas( $args ) {
+		if ( ! isset( $args['off_canvas_id'] ) ) {
+			return '';
+		}
+		return '#awb-close-oc__' . $args['off_canvas_id'];
+	}
+
+	/**
 	 * ACF text field.
 	 *
 	 * @static
@@ -754,11 +903,43 @@ class Fusion_Dynamic_Data_Callbacks {
 		}
 
 		$post_id = self::get_post_id();
+
 		if ( false !== strpos( $post_id, '-archive' ) ) {
 			return get_field( $args['field'], get_term_by( 'term_taxonomy_id', str_replace( '-archive', '', $post_id ) ) );
 		}
 
-		return get_field( $args['field'], get_post( self::get_post_id() ) );
+		return get_field( $args['field'], get_post( $post_id ) );
+	}
+
+	/**
+	 * ACF get link field.
+	 *
+	 * @static
+	 * @access public
+	 * @since 3.6
+	 * @param array $args Arguments.
+	 * @return string
+	 */
+	public static function acf_get_link_field( $args ) {
+		if ( ! isset( $args['field'] ) ) {
+			return '';
+		}
+		$link = '';
+
+		$post_id = self::get_post_id();
+		if ( false !== strpos( $post_id, '-archive' ) ) {
+			$image_data = get_field( $args['field'], get_term_by( 'term_taxonomy_id', str_replace( '-archive', '', $post_id ) ) );
+		} else {
+			$image_data = get_field( $args['field'], get_post( $post_id ) );
+		}
+
+		if ( is_array( $image_data ) && isset( $image_data['url'] ) ) {
+			$link = $image_data['url'];
+		} elseif ( is_string( $image_data ) ) {
+			$link = $image_data;
+		}
+
+		return $link;
 	}
 
 	/**
@@ -794,45 +975,118 @@ class Fusion_Dynamic_Data_Callbacks {
 	}
 
 	/**
-	 * Gets Events Calendar start or end date value
+	 * ACF get file field.
 	 *
-	 * @param array   $args    The args.
-	 * @param integer $post_id The post ID.
+	 * @static
+	 * @access public
+	 * @since 3.6
+	 * @param array $args Arguments.
 	 * @return string
 	 */
-	public static function get_event_date( $args, $post_id = 0 ) {
+	public static function acf_get_file_field( $args ) {
+		if ( ! isset( $args['field'] ) ) {
+			return '';
+		}
 
+		$post_id = self::get_post_id();
+		if ( false !== strpos( $post_id, '-archive' ) ) {
+			$video_data = get_field( $args['field'], get_term_by( 'term_taxonomy_id', str_replace( '-archive', '', $post_id ) ) );
+		} else {
+			$video_data = get_field( $args['field'], get_post( $post_id ) );
+		}
+
+		if ( is_array( $video_data ) && isset( $video_data['url'] ) ) {
+			return $video_data['url'];
+		} elseif ( is_integer( $video_data ) ) {
+			return wp_get_attachment_url( $video_data );
+		} elseif ( is_string( $video_data ) ) {
+			return $video_data;
+		}
+
+		return '';
+	}
+
+	/**
+	 * Gets Events Calendar date of the event. Return a string with the date.
+	 *
+	 * @param array $args    The args.
+	 * @param int   $post_id The post ID.
+	 * @return string
+	 */
+	public static function get_event_date_to_display( $args, $post_id = 0 ) {
+		if ( ! $post_id ) {
+			$post_id = self::get_post_id();
+		}
+		$post = get_post( $post_id );
+		if ( ! $post instanceof WP_Post ) {
+			return '';
+		}
+
+		$post_is_event_type = ( 'tribe_events' === $post->post_type ? true : false );
+		if ( ! $post_is_event_type ) {
+			return '';
+		}
+
+		$date = '';
+		if ( ! isset( $args['event_date_type'] ) ) {
+			$args['event_date_type'] = 'both';
+		}
+
+		if ( 'start_event_date' === $args['event_date_type'] ) {
+			$date = tribe_get_start_date( $post_id );
+		} elseif ( 'end_event_date' === $args['event_date_type'] ) {
+			$date = tribe_get_end_date( $post_id );
+		} else {
+			add_filter( 'tribe_events_recurrence_tooltip', [ self::class, 'remove_event_recurring_info' ], 999 );
+			$date = tribe_events_event_schedule_details( $post_id );
+			remove_filter( 'tribe_events_recurrence_tooltip', [ self::class, 'remove_event_recurring_info' ], 999 );
+		}
+
+		if ( ! $date ) {
+			$date = '';
+		}
+
+		return $date;
+	}
+
+	/**
+	 * Remove the recurring event after the meta, since the HTML will take a
+	 * lot of space.
+	 *
+	 * @param string $tooltip The recurring tooltip.
+	 * @return string Empty string, containing no tooltip.
+	 */
+	public static function remove_event_recurring_info( $tooltip ) {
+		return '';
+	}
+
+	/**
+	 * Gets Events Calendar date value. Returns an array with a date.
+	 *
+	 * @param array $args    The args.
+	 * @param int   $post_id The post ID.
+	 * @return array
+	 */
+	public static function get_event_date( $args, $post_id = 0 ) {
 		if ( isset( $args['event_id'] ) && ! empty( $args['event_id'] ) ) {
 			$post_id = $args['event_id'];
 		}
 		if ( ! $post_id ) {
 			$post_id = self::get_post_id();
 		}
+
 		if ( 'end_event_date' === $args['event_date'] ) {
-			$field_name         = '_EventEndDate';
-			$start_date         = $date = self::fusion_get_post_custom_field(
-				[
-					'key'     => '_EventStartDate',
-					'post_id' => $post_id,
-				]
-			);
-			$args['start_date'] = $start_date;
+			$date               = tribe_get_end_date( $post_id, true, Tribe__Date_Utils::DBDATETIMEFORMAT );
+			$args['start_date'] = tribe_get_start_date( $post_id, true, Tribe__Date_Utils::DBDATETIMEFORMAT );
 		} else {
-			$field_name = '_EventStartDate';
+			$date = tribe_get_start_date( $post_id, true, Tribe__Date_Utils::DBDATETIMEFORMAT );
 		}
 
-		$date = self::fusion_get_post_custom_field(
-			[
-				'key'     => $field_name,
-				'post_id' => $post_id,
-			]
-		);
 		return [
 			'date' => $date,
 			'args' => $args,
 		];
 	}
-
 
 	/**
 	 * Gets Woo start or end sale date value
@@ -938,7 +1192,7 @@ class Fusion_Dynamic_Data_Callbacks {
 			return;
 		}
 
-		return '<span class="awb-sku product_meta"><span class="sku">' . esc_html__( $_product->get_sku() ) . '</span></span>';
+		return '<span class="awb-sku product_meta"><span class="sku">' . esc_html( $_product->get_sku() ) . '</span></span>';
 	}
 
 	/**
@@ -1006,11 +1260,14 @@ class Fusion_Dynamic_Data_Callbacks {
 	public static function get_term_count( $args, $post_id = 0 ) {
 		$term_count = '0';
 
-		if ( ! is_tax() ) {
+		if ( ! is_tax() && ! is_category() && ! is_tag() && ! is_author() ) {
 			return $term_count;
 		}
 
-		if ( isset( get_queried_object()->count ) ) {
+		if ( is_author() ) {
+			$author     = get_user_by( 'slug', get_query_var( 'author_name' ) );
+			$term_count = isset( $author->ID ) ? (string) count_user_posts( $author->ID ) : '0';
+		} elseif ( isset( get_queried_object()->count ) ) {
 			$term_count = (string) get_queried_object()->count;
 		}
 
@@ -1063,6 +1320,27 @@ class Fusion_Dynamic_Data_Callbacks {
 	}
 
 	/**
+	 * Get cart total.
+	 *
+	 * @static
+	 * @access public
+	 * @since 3.6
+	 * @param array $args    Arguments.
+	 * @param int   $post_id The post-ID.
+	 * @return string
+	 */
+	public static function woo_get_cart_total( $args, $post_id = 0 ) {
+		$cart_total  = 0;
+		$opening_tag = '<span class="fusion-dynamic-cart-total-wrapper"';
+
+		if ( is_object( WC()->cart ) ) {
+			$cart_total = WC()->cart->get_cart_total();
+		}
+
+		return '<span class="fusion-dynamic-cart-total-wrapper"><span class="fusion-dynamic-cart-total">' . $cart_total . '</span></span>';
+	}
+
+	/**
 	 * Get add to cart link.
 	 *
 	 * @static
@@ -1109,8 +1387,16 @@ class Fusion_Dynamic_Data_Callbacks {
 	 * @return array
 	 */
 	public function woo_fragments( $fragments ) {
-		$cart_contents_count                     = is_object( WC()->cart ) ? WC()->cart->get_cart_contents_count() : '';
+		$cart_contents_count = '';
+		$cart_total          = '';
+
+		if ( is_object( WC()->cart ) ) {
+			$cart_contents_count = WC()->cart->get_cart_contents_count();
+			$cart_total          = WC()->cart->get_cart_total();
+		}
+
 		$fragments['.fusion-dynamic-cart-count'] = '<span class="fusion-dynamic-cart-count">' . $cart_contents_count . '</span>';
+		$fragments['.fusion-dynamic-cart-total'] = '<span class="fusion-dynamic-cart-total">' . $cart_total . '</span>';
 
 		return $fragments;
 	}
@@ -1295,5 +1581,42 @@ class Fusion_Dynamic_Data_Callbacks {
 	public static function fusion_get_logged_in_username( $args ) {
 		$user = wp_get_current_user();
 		return is_user_logged_in() ? $user->display_name : '';
+	}
+
+	/**
+	 * Get search count.
+	 *
+	 * @static
+	 * @access public
+	 * @since 3.5
+	 * @param array $args    Arguments.
+	 * @param int   $post_id The post-ID.
+	 * @return string
+	 */
+	public static function get_search_count( $args, $post_id = 0 ) {
+		$search_count = 0;
+
+		if ( is_search() ) {
+			global $wp_query;
+			$search_count = $wp_query->found_posts;
+		} elseif ( isset( $_GET['awb-studio-content'] ) && isset( $_GET['search'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$query        = fusion_cached_query( Fusion_Template_Builder()->archives_type( [] ) );
+			$search_count = $query->found_posts;
+		}
+
+		if ( ! isset( $args['plural_text'] ) ) {
+			$args['plural_text'] = '';
+		}
+
+		if ( ! isset( $args['singular_text'] ) ) {
+			$args['singular_text'] = '';
+		}
+
+		$search_string = ( 1 === $search_count ? $args['singular_text'] : $args['plural_text'] );
+		$space_before  = ( ! empty( $args['before'] ) ) ? ' ' : '';
+		$space_after   = ( ! empty( $args['after'] ) ) ? ' ' : '';
+
+		/* translators: 1: The search count, 2: The search string. */
+		return $space_before . sprintf( __( '%1$d %2$s', 'fusion-builder' ), $search_count, $search_string ) . $space_after;
 	}
 }

@@ -189,7 +189,6 @@ if ( fusion_is_element_enabled( 'fusion_login' ) ||
 					'rememberme_text'   => esc_html__( 'Remember Me', 'fusion-builder' ),
 					'lost_text'         => esc_attr__( 'Lost password?', 'fusion-builder' ),
 					'register_text'     => esc_attr__( 'Register', 'fusion-builder' ),
-					'button_size'       => strtolower( $fusion_settings->get( 'button_size', false, 'medium' ) ),
 					'lostfull_text'     => esc_attr__( 'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.', 'fusion-builder' ),
 					'useroremail_text'  => esc_attr__( 'Username or Email', 'fusion-builder' ),
 					'reset_text'        => esc_attr__( 'Reset Password', 'fusion-builder' ),
@@ -208,21 +207,6 @@ if ( fusion_is_element_enabled( 'fusion_login' ) ||
 					$extras['logout_text']    = esc_attr__( 'Logout', 'fusion-builder' );
 				}
 				return $extras;
-			}
-
-			/**
-			 * Maps settings to extra variables.
-			 *
-			 * @static
-			 * @access public
-			 * @since 2.0.0
-			 * @return array
-			 */
-			public static function settings_to_extras() {
-
-				return [
-					'button_size' => 'button_size',
-				];
 			}
 
 			/**
@@ -861,7 +845,7 @@ if ( fusion_is_element_enabled( 'fusion_login' ) ||
 							$redirection_link = add_query_arg( [ 'email_exists' => '1' ], $redirection_link );
 						}
 
-						// ReCAPTCHA fails
+						// ReCAPTCHA fails.
 						if ( $this->recaptcha_has_error ) {
 							$redirection_link = add_query_arg( [ 'recaptcha' => '1' ], $redirection_link );
 						}
@@ -943,15 +927,15 @@ if ( fusion_is_element_enabled( 'fusion_login' ) ||
 			}
 
 			/**
-			 * wp_authenticate hook. Prevent creating user session if captcha is failed.
+			 * The wp_authenticate hook. Prevent creating user session if captcha is failed.
 			 *
-			 * @param string $login
-			 * @param string $password
+			 * @param string $login     The login name.
+			 * @param string $password  The password.
 			 * @return void
 			 */
 			public function login_auth( $login, $password ) {
 				global $fusion_settings;
-				if ( ! isset( $_POST['fusion_login_box'] ) || ! $fusion_settings->get( 'recaptcha_login_form' ) ) {
+				if ( ! isset( $_POST['fusion_login_box'] ) || ! $fusion_settings->get( 'recaptcha_login_form' ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 					return;
 				}
 
@@ -966,8 +950,8 @@ if ( fusion_is_element_enabled( 'fusion_login' ) ||
 			 *
 			 * @since 3.3
 			 *
-			 * @param boolean|string $shortcode
-			 * @param boolean|string $param_name
+			 * @param boolean|string $shortcode  The shortcode.
+			 * @param boolean|string $param_name The param name.
 			 * @return boolean
 			 */
 			public function is_captcha_enabled( $shortcode = false, $param_name = false ) {
@@ -1229,7 +1213,7 @@ if ( fusion_is_element_enabled( 'fusion_login' ) ||
 				if ( $this->args['form_background_color'] ) {
 					$attr['style'] = 'background-color:' . $this->args['form_background_color'] . ';';
 
-					if ( fusion_is_color_transparent( $this->args['form_background_color'] ) ) {
+					if ( Fusion_Color::new_color( $this->args['form_background_color'] )->is_color_transparent() ) {
 						$attr['style'] .= 'padding:0;';
 					}
 				}
@@ -1260,12 +1244,8 @@ if ( fusion_is_element_enabled( 'fusion_login' ) ||
 			 * @return array The attributes.
 			 */
 			public function button_attr() {
-				$fusion_settings = awb_get_fusion_settings();
-
-				$button_size = strtolower( $fusion_settings->get( 'button_size', false, 'medium' ) );
-
 				$attr = [
-					'class' => 'fusion-login-button fusion-button button-default button-' . $button_size,
+					'class' => 'fusion-login-button fusion-button button-default fusion-button-default-size',
 				];
 
 				if ( 'yes' !== $this->args['button_fullwidth'] ) {
@@ -1396,7 +1376,7 @@ if ( fusion_is_element_enabled( 'fusion_login' ) ||
 								'label'       => esc_html__( 'User Login Form Background Color', 'fusion-builder' ),
 								'description' => esc_html__( 'Controls the color of the form background.', 'fusion-builder' ),
 								'id'          => 'user_login_form_background_color',
-								'default'     => '#f9f9fb',
+								'default'     => 'var(--awb-color2)',
 								'type'        => 'color-alpha',
 								'transport'   => 'postMessage',
 							],
@@ -1458,7 +1438,7 @@ function fusion_element_login() {
 				'description' => esc_html__( 'Enter some content for this block', 'fusion-builder' ),
 				'shortcode'   => 'fusion_login',
 				'icon'        => 'fusiona-calendar-check-o',
-				'help_url'    => 'https://theme-fusion.com/documentation/fusion-builder/elements/user-login-element/',
+				'help_url'    => 'https://theme-fusion.com/documentation/avada/elements/user-login-element/',
 				'params'      => [
 					[
 						'type'        => 'radio_button_set',
@@ -1659,7 +1639,7 @@ function fusion_element_lost_password() {
 				'name'      => esc_html__( 'User Lost Password', 'fusion-builder' ),
 				'shortcode' => 'fusion_lost_password',
 				'icon'      => 'fusiona-calendar-check-o',
-				'help_url'  => 'https://theme-fusion.com/documentation/fusion-builder/elements/user-lost-password-element/',
+				'help_url'  => 'https://theme-fusion.com/documentation/avada/elements/user-lost-password-element/',
 				'params'    => [
 					[
 						'type'        => 'radio_button_set',
@@ -1822,7 +1802,7 @@ function fusion_element_register() {
 				'name'      => esc_html__( 'User Register', 'fusion-builder' ),
 				'shortcode' => 'fusion_register',
 				'icon'      => 'fusiona-calendar-check-o',
-				'help_url'  => 'https://theme-fusion.com/documentation/fusion-builder/elements/user-register-element/',
+				'help_url'  => 'https://theme-fusion.com/documentation/avada/elements/user-register-element/',
 				'params'    => [
 					[
 						'type'        => 'radio_button_set',

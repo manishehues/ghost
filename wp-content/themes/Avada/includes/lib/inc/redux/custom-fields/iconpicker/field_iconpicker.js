@@ -1,3 +1,4 @@
+
 /*global jQuery, document, fusionredux*/
 
 (function( $ ) {

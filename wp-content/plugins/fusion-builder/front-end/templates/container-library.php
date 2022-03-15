@@ -18,6 +18,9 @@
 			<li><a href="#default-columns">{{ fusionBuilderText.builder_sections }}</a></li>
 			<li><a href="#custom-sections">{{ fusionBuilderText.library_sections }}</a></li>
 			<li><a href="#misc">{{ fusionBuilderText.library_misc }}</a></li>
+			<# if ( '1' === fusionAppConfig.studio_status ) { #>
+				<li><a href="#fusion-builder-sections-studio"><i class="fusiona-avada-logo"></i> <?php esc_html_e( 'Studio', 'fusion-builder' ); ?></a></li>
+			<# } #>
 		</ul>
 	</div>
 
@@ -31,6 +34,23 @@
 				<div id="custom-sections" class="fusion-tab-content">
 					<div id="fusion-loader"><span class="fusion-builder-loader"></span></div>
 				</div>
+				<# if ( '1' === fusionAppConfig.studio_status ) { #>
+					<div id="fusion-builder-sections-studio" class="fusion-tab-content">
+						<?php if ( Avada()->registration->is_registered() ) : ?>
+							<div class="studio-wrapper">
+								<aside>
+									<ul></ul>
+								</aside>
+								<section>
+									<div class="fusion-builder-element-content fusion-loader"><span class="fusion-builder-loader"></span></div>
+									<ul class="studio-imports"></ul>
+								</section>
+							</div>
+						<?php else : ?>
+							<h2><?php esc_html_e( 'You need to be registered to access the Avada Studio.', 'fusion-builder' ); ?></h2>
+						<?php endif; ?>
+					</div>
+				<# } #>
 				<div id="misc" class="fusion-tab-content">
 					<div class="fusion-builder-layouts-header">
 						<div class="fusion-builder-layouts-header-info">

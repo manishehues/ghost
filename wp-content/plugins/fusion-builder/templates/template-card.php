@@ -10,10 +10,17 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit( 'Direct script access denied.' );
 }
+
+$studio_styles = false;
+
+if ( isset( $_GET['awb-studio-post-card'] ) && ! isset( $_GET['fb-edit'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+	$width         = fusion_data()->post_meta( get_queried_object_id() )->get( 'preview_width' );
+	$studio_styles = ! empty( $width ) ? 'style="width:' . intval( $width ) . '%"' : false;
+}
 ?>
 <?php get_header(); ?>
 <section id="content" <?php ( class_exists( 'Avada' ) ? Avada()->layout->add_style( 'content_style' ) : '' ); ?>>
-	<div class="post-content">
+	<div class="post-content" <?php echo ( $studio_styles ? $studio_styles : '' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
 		<?php
 			global $post, $wp_query;
 			$post_card                         = $post;

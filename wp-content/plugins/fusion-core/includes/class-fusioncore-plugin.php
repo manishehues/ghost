@@ -1110,7 +1110,6 @@ s	 * @since 5.1.2
 		<div class="fusion-dbw-wrapper">
 			<div class="fusion-dbw-header">
 				<div class="fusion-dbw-logo">
-					<i class="fusiona-avada-logo"></i>
 					<span class="fusion-dbw-image-wrapper">
 						<img src="<?php echo esc_url( get_template_directory_uri() . '/assets/images/logo@2x.png' ); ?>" width="115" height="25" alt="<?php esc_attr_e( 'Avada Logo', 'fusion-core' ); ?>">
 					</span>

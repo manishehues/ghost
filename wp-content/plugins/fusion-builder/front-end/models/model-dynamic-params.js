@@ -90,7 +90,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				beforeString = 'string' === typeof data.before ? data.before : '',
 				afterString  = 'string' === typeof data.after ? data.after : '',
 				fallback     = 'undefined' !== typeof data.fallback ? data.fallback : false,
-				hasValue     = 'undefined' !== typeof value && false !== value && '' !== value,
+				hasValue     = 'undefined' !== typeof value && null !== value && false !== value && '' !== value,
 				elementView  = this.get( 'elementView' );
 
 			if ( ! hasValue && fallback ) {
@@ -173,9 +173,14 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 			if ( 'object' === typeof valueReturn && 'function' === typeof valueReturn.then ) {
 				elementView.addLoadingOverlay();
-				valueReturn.then( function() {
-					elementView.reRender();
-				} );
+				valueReturn.then(
+					function() {
+						elementView.reRender();
+					},
+					function() {
+						elementView.removeLoadingOverlay();
+					}
+				);
 			} else {
 				elementView.reRender();
 			}

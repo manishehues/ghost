@@ -116,9 +116,15 @@ abstract class Fusion_Form_Component extends Fusion_Element {
 			$data['upload_size'] = ' data-size="' . esc_attr( $args['upload_size'] ) . '"';
 		}
 
-		if ( isset( $args['required'] ) && 'yes' === $args['required'] ) {
-			$data['required']             = ' required="true" aria-required="true"';
-			$data['required_label']       = ' <abbr class="fusion-form-element-required" title="' . esc_attr( __( 'required', 'fusion-builder' ) ) . '">*</abbr>';
+		if ( isset( $args['required'] ) && ( 'yes' === $args['required'] || 'selection' === $args['required'] ) ) {
+			if ( 'selection' !== $args['required'] ) {
+				$data['required'] = ' required="true" aria-required="true"';
+			}
+			$data['required_label_text'] = __( 'required', 'fusion-builder' );
+			if ( ! empty( $args['required_label_text'] ) ) {
+				$data['required_label_text'] = $args['required_label_text'];
+			}
+			$data['required_label']       = ' <abbr class="fusion-form-element-required" title="' . esc_attr( $data['required_label_text'] ) . '">*</abbr>';
 			$data['required_placeholder'] = '*';
 		}
 
@@ -296,7 +302,11 @@ abstract class Fusion_Form_Component extends Fusion_Element {
 			$options       .= '</div>';
 		}
 
-		$element_html  = '<fieldset>';
+		$fieldset_attr_string = '';
+		if ( isset( $args['fieldset_attr_string'] ) && $args['fieldset_attr_string'] ) {
+			$fieldset_attr_string = ' ' . $args['fieldset_attr_string'];
+		}
+		$element_html  = '<fieldset' . $fieldset_attr_string . '>';
 		$element_html .= $options;
 		$element_html .= '</fieldset>';
 
@@ -399,6 +409,10 @@ abstract class Fusion_Form_Component extends Fusion_Element {
 				$fusion_form = Fusion_Builder_Form_Helper::fusion_form_set_form_data( (int) sanitize_text_field( wp_unslash( $_POST['post_id'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification, WordPress.PHP.StrictComparisons.LooseComparison
 			} elseif ( ! fusion_doing_ajax() && isset( $_POST['post_ID'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 				$fusion_form = Fusion_Builder_Form_Helper::fusion_form_set_form_data( (int) sanitize_text_field( wp_unslash( $_POST['post_ID'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification, WordPress.PHP.StrictComparisons.LooseComparison
+			} elseif ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+
+				// We need default form params, otherwise REST request triggers PHP notices when content is rendered.
+				$fusion_form = Fusion_Builder_Form_Helper::fusion_form_set_form_data( 0 );
 			}
 		}
 

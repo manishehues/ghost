@@ -48,6 +48,10 @@ $rule_color_default       = $fusion_settings->get( 'text_rule_color' );
 		}
 	});
 
+	if ( 'none' !== params.text_transform ) {
+		style += 'text-transform: ' + params.text_transform + ';';
+	}
+
 	if ( 1 < parseInt( params.columns ) ) {
 
 		jQuery.each( [ '-webkit-', '-moz-', '' ], function( index, value ) {

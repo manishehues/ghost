@@ -21,6 +21,25 @@ function avada_page_options_tab_form_appearance( $sections ) {
 		'alt_icon' => 'fusiona-customize',
 		'id'       => 'form_appearance',
 		'fields'   => [
+			'preview_width'            => [
+				'type'        => 'radio-buttonset',
+				'label'       => esc_attr__( 'Preview Width', 'Avada' ),
+				/* translators: Additional description (defaults). */
+				'description' => esc_html__( 'Select the width to preview the form at in the live editor.  Note: this is only used for previewing purposes.', 'fusion-builder' ),
+				'id'          => 'preview_width',
+				'dependency'  => [],
+				'type'        => 'slider',
+				'transport'   => 'postMessage',
+				'events'      => [
+					'fusion-content-preview-width',
+				],
+				'default'     => '100',
+				'choices'     => [
+					'min'  => '0',
+					'max'  => '100',
+					'step' => '1',
+				],
+			],
 			'label_position'           => [
 				'type'        => 'radio-buttonset',
 				'label'       => esc_html__( 'Label Position', 'fusion-builder' ),

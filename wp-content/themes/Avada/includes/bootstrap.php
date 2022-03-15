@@ -73,6 +73,16 @@ if ( ( ( defined( 'FUSION_BUILDER_PLUGIN_DIR' ) && is_admin() ) || ! is_admin() 
 require_once Avada::$template_dir_path . '/includes/fusion-functions.php';
 
 /**
+ * Load global color class.
+ */
+require_once Avada::$template_dir_path . '/includes/class-awb-global-colors.php';
+
+/**
+ * Load global typography class.
+ */
+require_once Avada::$template_dir_path . '/includes/class-awb-global-typography.php';
+
+/**
  * Make sure language-all works correctly.
  * Uses Fusion_Multilingual action.
  *
@@ -199,8 +209,9 @@ if ( ! is_admin() && class_exists( 'bbPress' ) ) {
  * Instantiate Avada_EventsCalendar
  * We only need to do this on the frontend if Events Calendar is installed or on customizer preview.
  */
-if ( ( ! is_admin() || is_customize_preview() || fusion_doing_ajax() ) && class_exists( 'Tribe__Events__Main' ) ) {
-	new Avada_EventsCalendar();
+global $avada_events_calender;
+if ( ( ! is_admin() || is_customize_preview() || fusion_doing_ajax() ) && class_exists( 'Tribe__Events__Main' ) && class_exists( 'Tribe\Events\Views\V2\Template_Bootstrap' ) ) {
+	$avada_events_calender = new Avada_EventsCalendar();
 }
 
 /**
@@ -259,10 +270,11 @@ if ( $http_referer && false !== strpos( $http_referer, 'avada_options' ) ) {
 	$load_avadaredux   = true;
 	$load_avada_gfonts = true;
 }
-$avadaredux_export = ( isset( $_GET['action'] ) && 'fusionredux_link_options-fusion_options' === $_GET['action'] && isset( $_GET['secret'] ) && '' !== $_GET['secret'] ) ? true : false; // phpcs:ignore WordPress.Security.NonceVerification
+$avadaredux_export = ( isset( $_GET['action'] ) && false !== strpos( $_GET['action'], 'fusionredux_link_options-fusion_options' ) && isset( $_GET['secret'] ) && '' !== $_GET['secret'] ) ? true : false; // phpcs:ignore WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 if ( $avadaredux_export ) {
-	$load_avadaredux   = true;
-	$load_avada_gfonts = false;
+	$load_avadaredux                      = true;
+	$load_avada_gfonts                    = false;
+	$avada_avadaredux_args['option_name'] = str_replace( 'fusionredux_link_options-', '', $_GET['action'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 }
 
 if ( $load_avadaredux ) {
@@ -386,21 +398,6 @@ function avada_cat_count_span( $links ) {
 }
 add_filter( 'get_archives_link', 'avada_cat_count_span' );
 add_filter( 'wp_list_categories', 'avada_cat_count_span' );
-
-/**
- * Add admin messages.
- */
-function avada_admin_notice() {
-	?>
-	<?php if ( isset( $_GET['imported'] ) && 'success' === $_GET['imported'] ) : // phpcs:ignore WordPress.Security.NonceVerification ?>
-		<div id="setting-error-settings_updated" class="updated settings-error avada-db-card avada-db-notice avada-db-notice-success">
-			<h2><?php esc_html_e( 'Sucessfully imported demo data!', 'Avada' ); ?></h2>
-			<p><?php esc_html_e( 'Congratulations, your demo data was successfully imported to you your install.', 'Avada' ); ?></p>
-		</div>
-	<?php endif; ?>
-	<?php
-}
-add_action( 'admin_notices', 'avada_admin_notice' );
 
 /**
  * Ignore nag messages.

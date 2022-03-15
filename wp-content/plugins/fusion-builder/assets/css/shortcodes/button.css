@@ -1,5 +1,103 @@
 /* stylelint-disable length-zero-no-unit */
 /* stylelint-enable length-zero-no-unit */
+.fusion-builder-elements-button-all {
+  display: inline-block;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  font-family: var(--button_typography-font-family);
+  font-weight: var(--button_typography-font-weight);
+  font-style: var(--button_typography-font-style, normal);
+  letter-spacing: var(--button_typography-letter-spacing);
+  border-width: var(--button_border_width-top, 0) var(--button_border_width-right, 0) var(--button_border_width-bottom, 0) var(--button_border_width-left, 0);
+  border-style: solid;
+  border-radius: var(--button-border-radius-top-left, 0) var(--button-border-radius-top-right, 0) var(--button-border-radius-bottom-right, 0) var(--button-border-radius-bottom-left, 0);
+  text-transform: var(--button_text_transform);
+  transition: all 200ms;
+}
+button.button,
+.fusion-body .fusion-button-default-size {
+  padding-top: var(--button_padding-top, 13px);
+  padding-right: var(--button_padding-right, 29px);
+  padding-bottom: var(--button_padding-bottom, 13px);
+  padding-left: var(--button_padding-left, 29px);
+  line-height: var(--button_line_height, 1);
+  font-size: var(--button_font_size, 14px);
+}
+button.button .fusion-button-text-left,
+.fusion-body .fusion-button-default-size .fusion-button-text-left {
+  display: inline-block;
+  padding-left: calc(var(--button_padding-left, 29px) / 2 + var(--button_font_size, 14px) + 1px);
+}
+button.button .fusion-button-text-right,
+.fusion-body .fusion-button-default-size .fusion-button-text-right {
+  display: inline-block;
+  padding-right: calc(var(--button_padding-right, 29px) / 2 + var(--button_font_size, 14px) + 1px);
+}
+button.button .button-icon-divider-left,
+.fusion-body .fusion-button-default-size .button-icon-divider-left,
+button.button .button-icon-divider-right,
+.fusion-body .fusion-button-default-size .button-icon-divider-right {
+  padding: 0;
+  width: calc(var(--button_padding-left, 29px) + var(--button_font_size, 14px));
+  text-align: center;
+}
+button.button .button-icon-divider-left i,
+.fusion-body .fusion-button-default-size .button-icon-divider-left i,
+button.button .button-icon-divider-left img,
+.fusion-body .fusion-button-default-size .button-icon-divider-left img,
+button.button .button-icon-divider-right i,
+.fusion-body .fusion-button-default-size .button-icon-divider-right i,
+button.button .button-icon-divider-right img,
+.fusion-body .fusion-button-default-size .button-icon-divider-right img {
+  top: 50%;
+  transform: translateY(-50%);
+  display: block;
+}
+.fusion-builder-elements-button-main-default {
+  background: var(--button_gradient_top_color);
+  color: var(--button_accent_color);
+  border-color: var(--button_border_color);
+}
+.fusion-builder-elements-button-main-default .fusion-button-text {
+  color: var(--button_accent_color);
+}
+.fusion-builder-elements-button-main-default:hover .fusion-button-text,
+.fusion-builder-elements-button-main-default:focus .fusion-button-text,
+.fusion-builder-elements-button-main-default:active .fusion-button-text {
+  color: var(--button_accent_hover_color, var(--button_accent_color));
+}
+.fusion-builder-elements-button-main-gradient {
+  background-image: linear-gradient(var(--button_gradient_angle, 180deg), var(--button_gradient_top_color) var(--button_gradient_start, 0%), var(--button_gradient_bottom_color) var(--button_gradient_end, 100%));
+}
+.fusion-builder-elements-button-main-hover,
+.fusion-builder-elements-button-main-focus,
+.fusion-builder-elements-button-main-active {
+  background: var(--button_gradient_top_color_hover);
+  color: var(--button_accent_hover_color, var(--button_accent_color));
+  border-color: var(--button_border_hover_color);
+}
+.fusion-builder-elements-button-main-hover-gradient,
+.fusion-builder-elements-button-main-focus-gradient,
+.fusion-builder-elements-button-main-active-gradient {
+  background-image: linear-gradient(var(--button_gradient_angle, 180deg), var(--button_gradient_top_color_hover) var(--button_gradient_start, 0%), var(--button_gradient_bottom_color_hover) var(--button_gradient_end, 100%));
+}
+.fusion-builder-elements-button-main-radial-gradient {
+  background-image: radial-gradient(circle at var(--button_radial_direction, center center), var(--button_gradient_top_color) var(--button_gradient_start, 0%), var(--button_gradient_bottom_color) var(--button_gradient_end, 100%));
+}
+.fusion-builder-elements-button-main-radial-hover-gradient,
+.fusion-builder-elements-button-main-radial-focus-gradient,
+.fusion-builder-elements-button-main-radial-active-gradient {
+  background-image: radial-gradient(circle at var(--button_radial_direction, center center), var(--button_gradient_top_color_hover) var(--button_gradient_start, 0%), var(--button_gradient_bottom_color_hover) var(--button_gradient_end, 100%));
+}
+.fusion-builder-elements-button-main-visited {
+  color: var(--button_accent_color);
+}
+.fusion-builder-elements-button-main-span-yes {
+  width: 100%;
+}
 .fusion-button.button-flat {
   box-shadow: none !important;
 }
@@ -12,71 +110,6 @@
 }
 .fusion-button-wrapper.fusion-align-block {
   display: block;
-}
-.bbp-submit-wrapper .button,
-.fusion-button,
-.gform_wrapper .button,
-.gform_wrapper .gform_button,
-.post-password-form input[type="submit"],
-.tml-submit-wrap input[type="submit"],
-.tribe-events-tickets .button,
-.tribe-tickets button,
-.woocommerce .cart-collaterals .checkout-button,
-.woocommerce .checkout #place_order,
-.woocommerce.add_to_cart_inline .button,
-.wpcf7-submit {
-  display: inline-block;
-  position: relative;
-  zoom: 1;
-  border: 1px solid rgba(0, 0, 0, 0);
-  text-align: center;
-  text-transform: uppercase;
-  text-decoration: none;
-  font-weight: bold;
-  cursor: pointer;
-  box-sizing: border-box;
-  transition: all 0.2s;
-}
-.bbp-submit-wrapper .button:after,
-.fusion-button:after,
-.gform_wrapper .button:after,
-.gform_wrapper .gform_button:after,
-.post-password-form input[type="submit"]:after,
-.tml-submit-wrap input[type="submit"]:after,
-.tribe-events-tickets .button:after,
-.tribe-tickets button:after,
-.woocommerce .cart-collaterals .checkout-button:after,
-.woocommerce .checkout #place_order:after,
-.woocommerce.add_to_cart_inline .button:after,
-.wpcf7-submit:after,
-.bbp-submit-wrapper .button:before,
-.fusion-button:before,
-.gform_wrapper .button:before,
-.gform_wrapper .gform_button:before,
-.post-password-form input[type="submit"]:before,
-.tml-submit-wrap input[type="submit"]:before,
-.tribe-events-tickets .button:before,
-.tribe-tickets button:before,
-.woocommerce .cart-collaterals .checkout-button:before,
-.woocommerce .checkout #place_order:before,
-.woocommerce.add_to_cart_inline .button:before,
-.wpcf7-submit:before {
-  content: " ";
-  display: table;
-}
-.bbp-submit-wrapper .button:after,
-.fusion-button:after,
-.gform_wrapper .button:after,
-.gform_wrapper .gform_button:after,
-.post-password-form input[type="submit"]:after,
-.tml-submit-wrap input[type="submit"]:after,
-.tribe-events-tickets .button:after,
-.tribe-tickets button:after,
-.woocommerce .cart-collaterals .checkout-button:after,
-.woocommerce .checkout #place_order:after,
-.woocommerce.add_to_cart_inline .button:after,
-.wpcf7-submit:after {
-  clear: both;
 }
 .fusion-disable-outline .bbp-submit-wrapper .button,
 .fusion-disable-outline .fusion-button,
@@ -115,18 +148,9 @@
 .fusion-button-text {
   transition: all 0.2s;
 }
-.ls-container .button,
-.ls-container .fusion-button {
-  transition: none !important;
-}
-.ls-container .button:hover,
-.ls-container .fusion-button:hover {
-  transition: none !important;
-}
 #bbp_user_edit_submit,
 .bbp-submit-wrapper .button,
 .button-small,
-.fusion-button_size-small .fusion-button-default-size,
 .fusion-body .fusion-button-small,
 .single_add_to_cart_button,
 .wpcf7-form .wpcf7-submit.button-small,
@@ -135,20 +159,9 @@
   line-height: 14px;
   font-size: 12px;
 }
-#bbp_user_edit_submit.button-3d:active,
-.bbp-submit-wrapper .button.button-3d:active,
-.button-small.button-3d:active,
-.fusion-button_size-small .fusion-button-default-size.button-3d:active,
-.fusion-body .fusion-button-small.button-3d:active,
-.single_add_to_cart_button.button-3d:active,
-.wpcf7-form .wpcf7-submit.button-small.button-3d:active,
-.wpcf7-form .wpcf7-submit.fusion-button-small.button-3d:active {
-  top: 2px;
-}
 #bbp_user_edit_submit .fusion-button-text-left,
 .bbp-submit-wrapper .button .fusion-button-text-left,
 .button-small .fusion-button-text-left,
-.fusion-button_size-small .fusion-button-default-size .fusion-button-text-left,
 .fusion-body .fusion-button-small .fusion-button-text-left,
 .single_add_to_cart_button .fusion-button-text-left,
 .wpcf7-form .wpcf7-submit.button-small .fusion-button-text-left,
@@ -159,7 +172,6 @@
 #bbp_user_edit_submit .fusion-button-text-right,
 .bbp-submit-wrapper .button .fusion-button-text-right,
 .button-small .fusion-button-text-right,
-.fusion-button_size-small .fusion-button-default-size .fusion-button-text-right,
 .fusion-body .fusion-button-small .fusion-button-text-right,
 .single_add_to_cart_button .fusion-button-text-right,
 .wpcf7-form .wpcf7-submit.button-small .fusion-button-text-right,
@@ -170,7 +182,6 @@
 #bbp_user_edit_submit .button-icon-divider-left,
 .bbp-submit-wrapper .button .button-icon-divider-left,
 .button-small .button-icon-divider-left,
-.fusion-button_size-small .fusion-button-default-size .button-icon-divider-left,
 .fusion-body .fusion-button-small .button-icon-divider-left,
 .single_add_to_cart_button .button-icon-divider-left,
 .wpcf7-form .wpcf7-submit.button-small .button-icon-divider-left,
@@ -180,7 +191,6 @@
 #bbp_user_edit_submit .button-icon-divider-left.fusion-megamenu-image,
 .bbp-submit-wrapper .button .button-icon-divider-left.fusion-megamenu-image,
 .button-small .button-icon-divider-left.fusion-megamenu-image,
-.fusion-button_size-small .fusion-button-default-size .button-icon-divider-left.fusion-megamenu-image,
 .fusion-body .fusion-button-small .button-icon-divider-left.fusion-megamenu-image,
 .single_add_to_cart_button .button-icon-divider-left.fusion-megamenu-image,
 .wpcf7-form .wpcf7-submit.button-small .button-icon-divider-left.fusion-megamenu-image,
@@ -190,7 +200,6 @@
 #bbp_user_edit_submit .button-icon-divider-right,
 .bbp-submit-wrapper .button .button-icon-divider-right,
 .button-small .button-icon-divider-right,
-.fusion-button_size-small .fusion-button-default-size .button-icon-divider-right,
 .fusion-body .fusion-button-small .button-icon-divider-right,
 .single_add_to_cart_button .button-icon-divider-right,
 .wpcf7-form .wpcf7-submit.button-small .button-icon-divider-right,
@@ -200,7 +209,6 @@
 #bbp_user_edit_submit .button-icon-divider-right.fusion-megamenu-image,
 .bbp-submit-wrapper .button .button-icon-divider-right.fusion-megamenu-image,
 .button-small .button-icon-divider-right.fusion-megamenu-image,
-.fusion-button_size-small .fusion-button-default-size .button-icon-divider-right.fusion-megamenu-image,
 .fusion-body .fusion-button-small .button-icon-divider-right.fusion-megamenu-image,
 .single_add_to_cart_button .button-icon-divider-right.fusion-megamenu-image,
 .wpcf7-form .wpcf7-submit.button-small .button-icon-divider-right.fusion-megamenu-image,
@@ -210,7 +218,6 @@
 #bbp_user_edit_submit .button-icon-divider-left i,
 .bbp-submit-wrapper .button .button-icon-divider-left i,
 .button-small .button-icon-divider-left i,
-.fusion-button_size-small .fusion-button-default-size .button-icon-divider-left i,
 .fusion-body .fusion-button-small .button-icon-divider-left i,
 .single_add_to_cart_button .button-icon-divider-left i,
 .wpcf7-form .wpcf7-submit.button-small .button-icon-divider-left i,
@@ -218,7 +225,6 @@
 #bbp_user_edit_submit .button-icon-divider-left img,
 .bbp-submit-wrapper .button .button-icon-divider-left img,
 .button-small .button-icon-divider-left img,
-.fusion-button_size-small .fusion-button-default-size .button-icon-divider-left img,
 .fusion-body .fusion-button-small .button-icon-divider-left img,
 .single_add_to_cart_button .button-icon-divider-left img,
 .wpcf7-form .wpcf7-submit.button-small .button-icon-divider-left img,
@@ -226,7 +232,6 @@
 #bbp_user_edit_submit .button-icon-divider-right i,
 .bbp-submit-wrapper .button .button-icon-divider-right i,
 .button-small .button-icon-divider-right i,
-.fusion-button_size-small .fusion-button-default-size .button-icon-divider-right i,
 .fusion-body .fusion-button-small .button-icon-divider-right i,
 .single_add_to_cart_button .button-icon-divider-right i,
 .wpcf7-form .wpcf7-submit.button-small .button-icon-divider-right i,
@@ -234,17 +239,15 @@
 #bbp_user_edit_submit .button-icon-divider-right img,
 .bbp-submit-wrapper .button .button-icon-divider-right img,
 .button-small .button-icon-divider-right img,
-.fusion-button_size-small .fusion-button-default-size .button-icon-divider-right img,
 .fusion-body .fusion-button-small .button-icon-divider-right img,
 .single_add_to_cart_button .button-icon-divider-right img,
 .wpcf7-form .wpcf7-submit.button-small .button-icon-divider-right img,
 .wpcf7-form .wpcf7-submit.fusion-button-small .button-icon-divider-right img {
   top: 50%;
-  margin-top: -6px;
+  transform: translateY(-50%);
   display: block;
 }
 .button-medium,
-.fusion-button_size-medium .fusion-button-default-size,
 .fusion-body .fusion-button-medium,
 .ticket-selector-submit-btn[type=submit],
 .wpcf7-form .wpcf7-submit.button-medium,
@@ -253,16 +256,7 @@
   line-height: 16px;
   font-size: 13px;
 }
-.button-medium.button-3d:active,
-.fusion-button_size-medium .fusion-button-default-size.button-3d:active,
-.fusion-body .fusion-button-medium.button-3d:active,
-.ticket-selector-submit-btn[type=submit].button-3d:active,
-.wpcf7-form .wpcf7-submit.button-medium.button-3d:active,
-.wpcf7-form .wpcf7-submit.fusion-button-medium.button-3d:active {
-  top: 3px;
-}
 .button-medium .fusion-button-text-left,
-.fusion-button_size-medium .fusion-button-default-size .fusion-button-text-left,
 .fusion-body .fusion-button-medium .fusion-button-text-left,
 .ticket-selector-submit-btn[type=submit] .fusion-button-text-left,
 .wpcf7-form .wpcf7-submit.button-medium .fusion-button-text-left,
@@ -271,7 +265,6 @@
   padding-left: 28px;
 }
 .button-medium .fusion-button-text-right,
-.fusion-button_size-medium .fusion-button-default-size .fusion-button-text-right,
 .fusion-body .fusion-button-medium .fusion-button-text-right,
 .ticket-selector-submit-btn[type=submit] .fusion-button-text-right,
 .wpcf7-form .wpcf7-submit.button-medium .fusion-button-text-right,
@@ -280,7 +273,6 @@
   padding-right: 28px;
 }
 .button-medium .button-icon-divider-left,
-.fusion-button_size-medium .fusion-button-default-size .button-icon-divider-left,
 .fusion-body .fusion-button-medium .button-icon-divider-left,
 .ticket-selector-submit-btn[type=submit] .button-icon-divider-left,
 .wpcf7-form .wpcf7-submit.button-medium .button-icon-divider-left,
@@ -288,7 +280,6 @@
   padding: 0 12.5px;
 }
 .button-medium .button-icon-divider-left.fusion-megamenu-image,
-.fusion-button_size-medium .fusion-button-default-size .button-icon-divider-left.fusion-megamenu-image,
 .fusion-body .fusion-button-medium .button-icon-divider-left.fusion-megamenu-image,
 .ticket-selector-submit-btn[type=submit] .button-icon-divider-left.fusion-megamenu-image,
 .wpcf7-form .wpcf7-submit.button-medium .button-icon-divider-left.fusion-megamenu-image,
@@ -296,7 +287,6 @@
   padding: 0 6.25px;
 }
 .button-medium .button-icon-divider-right,
-.fusion-button_size-medium .fusion-button-default-size .button-icon-divider-right,
 .fusion-body .fusion-button-medium .button-icon-divider-right,
 .ticket-selector-submit-btn[type=submit] .button-icon-divider-right,
 .wpcf7-form .wpcf7-submit.button-medium .button-icon-divider-right,
@@ -304,7 +294,6 @@
   padding: 0 12.5px;
 }
 .button-medium .button-icon-divider-right.fusion-megamenu-image,
-.fusion-button_size-medium .fusion-button-default-size .button-icon-divider-right.fusion-megamenu-image,
 .fusion-body .fusion-button-medium .button-icon-divider-right.fusion-megamenu-image,
 .ticket-selector-submit-btn[type=submit] .button-icon-divider-right.fusion-megamenu-image,
 .wpcf7-form .wpcf7-submit.button-medium .button-icon-divider-right.fusion-megamenu-image,
@@ -312,36 +301,31 @@
   padding: 0 6.25px;
 }
 .button-medium .button-icon-divider-left i,
-.fusion-button_size-medium .fusion-button-default-size .button-icon-divider-left i,
 .fusion-body .fusion-button-medium .button-icon-divider-left i,
 .ticket-selector-submit-btn[type=submit] .button-icon-divider-left i,
 .wpcf7-form .wpcf7-submit.button-medium .button-icon-divider-left i,
 .wpcf7-form .wpcf7-submit.fusion-button-medium .button-icon-divider-left i,
 .button-medium .button-icon-divider-left img,
-.fusion-button_size-medium .fusion-button-default-size .button-icon-divider-left img,
 .fusion-body .fusion-button-medium .button-icon-divider-left img,
 .ticket-selector-submit-btn[type=submit] .button-icon-divider-left img,
 .wpcf7-form .wpcf7-submit.button-medium .button-icon-divider-left img,
 .wpcf7-form .wpcf7-submit.fusion-button-medium .button-icon-divider-left img,
 .button-medium .button-icon-divider-right i,
-.fusion-button_size-medium .fusion-button-default-size .button-icon-divider-right i,
 .fusion-body .fusion-button-medium .button-icon-divider-right i,
 .ticket-selector-submit-btn[type=submit] .button-icon-divider-right i,
 .wpcf7-form .wpcf7-submit.button-medium .button-icon-divider-right i,
 .wpcf7-form .wpcf7-submit.fusion-button-medium .button-icon-divider-right i,
 .button-medium .button-icon-divider-right img,
-.fusion-button_size-medium .fusion-button-default-size .button-icon-divider-right img,
 .fusion-body .fusion-button-medium .button-icon-divider-right img,
 .ticket-selector-submit-btn[type=submit] .button-icon-divider-right img,
 .wpcf7-form .wpcf7-submit.button-medium .button-icon-divider-right img,
 .wpcf7-form .wpcf7-submit.fusion-button-medium .button-icon-divider-right img {
   top: 50%;
-  margin-top: -6.5px;
+  transform: translateY(-50%);
   display: block;
 }
 #tribe-bar-form .tribe-bar-submit input[type=submit],
 .button-large,
-.fusion-button_size-large .fusion-button-default-size,
 .fusion-body .fusion-button-large,
 .tml-submit-wrap input[type="submit"],
 .wpcf7-form .wpcf7-submit.button-large,
@@ -350,18 +334,8 @@
   line-height: 17px;
   font-size: 14px;
 }
-#tribe-bar-form .tribe-bar-submit input[type=submit].button-3d:active,
-.button-large.button-3d:active,
-.fusion-button_size-large .fusion-button-default-size.button-3d:active,
-.fusion-body .fusion-button-large.button-3d:active,
-.tml-submit-wrap input[type="submit"].button-3d:active,
-.wpcf7-form .wpcf7-submit.button-large.button-3d:active,
-.wpcf7-form .wpcf7-submit.fusion-button-large.button-3d:active {
-  top: 4px;
-}
 #tribe-bar-form .tribe-bar-submit input[type=submit] .fusion-button-text-left,
 .button-large .fusion-button-text-left,
-.fusion-button_size-large .fusion-button-default-size .fusion-button-text-left,
 .fusion-body .fusion-button-large .fusion-button-text-left,
 .tml-submit-wrap input[type="submit"] .fusion-button-text-left,
 .wpcf7-form .wpcf7-submit.button-large .fusion-button-text-left,
@@ -371,7 +345,6 @@
 }
 #tribe-bar-form .tribe-bar-submit input[type=submit] .fusion-button-text-right,
 .button-large .fusion-button-text-right,
-.fusion-button_size-large .fusion-button-default-size .fusion-button-text-right,
 .fusion-body .fusion-button-large .fusion-button-text-right,
 .tml-submit-wrap input[type="submit"] .fusion-button-text-right,
 .wpcf7-form .wpcf7-submit.button-large .fusion-button-text-right,
@@ -381,7 +354,6 @@
 }
 #tribe-bar-form .tribe-bar-submit input[type=submit] .button-icon-divider-left,
 .button-large .button-icon-divider-left,
-.fusion-button_size-large .fusion-button-default-size .button-icon-divider-left,
 .fusion-body .fusion-button-large .button-icon-divider-left,
 .tml-submit-wrap input[type="submit"] .button-icon-divider-left,
 .wpcf7-form .wpcf7-submit.button-large .button-icon-divider-left,
@@ -390,7 +362,6 @@
 }
 #tribe-bar-form .tribe-bar-submit input[type=submit] .button-icon-divider-left.fusion-megamenu-image,
 .button-large .button-icon-divider-left.fusion-megamenu-image,
-.fusion-button_size-large .fusion-button-default-size .button-icon-divider-left.fusion-megamenu-image,
 .fusion-body .fusion-button-large .button-icon-divider-left.fusion-megamenu-image,
 .tml-submit-wrap input[type="submit"] .button-icon-divider-left.fusion-megamenu-image,
 .wpcf7-form .wpcf7-submit.button-large .button-icon-divider-left.fusion-megamenu-image,
@@ -399,7 +370,6 @@
 }
 #tribe-bar-form .tribe-bar-submit input[type=submit] .button-icon-divider-right,
 .button-large .button-icon-divider-right,
-.fusion-button_size-large .fusion-button-default-size .button-icon-divider-right,
 .fusion-body .fusion-button-large .button-icon-divider-right,
 .tml-submit-wrap input[type="submit"] .button-icon-divider-right,
 .wpcf7-form .wpcf7-submit.button-large .button-icon-divider-right,
@@ -408,7 +378,6 @@
 }
 #tribe-bar-form .tribe-bar-submit input[type=submit] .button-icon-divider-right.fusion-megamenu-image,
 .button-large .button-icon-divider-right.fusion-megamenu-image,
-.fusion-button_size-large .fusion-button-default-size .button-icon-divider-right.fusion-megamenu-image,
 .fusion-body .fusion-button-large .button-icon-divider-right.fusion-megamenu-image,
 .tml-submit-wrap input[type="submit"] .button-icon-divider-right.fusion-megamenu-image,
 .wpcf7-form .wpcf7-submit.button-large .button-icon-divider-right.fusion-megamenu-image,
@@ -417,38 +386,33 @@
 }
 #tribe-bar-form .tribe-bar-submit input[type=submit] .button-icon-divider-left i,
 .button-large .button-icon-divider-left i,
-.fusion-button_size-large .fusion-button-default-size .button-icon-divider-left i,
 .fusion-body .fusion-button-large .button-icon-divider-left i,
 .tml-submit-wrap input[type="submit"] .button-icon-divider-left i,
 .wpcf7-form .wpcf7-submit.button-large .button-icon-divider-left i,
 .wpcf7-form .wpcf7-submit.fusion-button-large .button-icon-divider-left i,
 #tribe-bar-form .tribe-bar-submit input[type=submit] .button-icon-divider-left img,
 .button-large .button-icon-divider-left img,
-.fusion-button_size-large .fusion-button-default-size .button-icon-divider-left img,
 .fusion-body .fusion-button-large .button-icon-divider-left img,
 .tml-submit-wrap input[type="submit"] .button-icon-divider-left img,
 .wpcf7-form .wpcf7-submit.button-large .button-icon-divider-left img,
 .wpcf7-form .wpcf7-submit.fusion-button-large .button-icon-divider-left img,
 #tribe-bar-form .tribe-bar-submit input[type=submit] .button-icon-divider-right i,
 .button-large .button-icon-divider-right i,
-.fusion-button_size-large .fusion-button-default-size .button-icon-divider-right i,
 .fusion-body .fusion-button-large .button-icon-divider-right i,
 .tml-submit-wrap input[type="submit"] .button-icon-divider-right i,
 .wpcf7-form .wpcf7-submit.button-large .button-icon-divider-right i,
 .wpcf7-form .wpcf7-submit.fusion-button-large .button-icon-divider-right i,
 #tribe-bar-form .tribe-bar-submit input[type=submit] .button-icon-divider-right img,
 .button-large .button-icon-divider-right img,
-.fusion-button_size-large .fusion-button-default-size .button-icon-divider-right img,
 .fusion-body .fusion-button-large .button-icon-divider-right img,
 .tml-submit-wrap input[type="submit"] .button-icon-divider-right img,
 .wpcf7-form .wpcf7-submit.button-large .button-icon-divider-right img,
 .wpcf7-form .wpcf7-submit.fusion-button-large .button-icon-divider-right img {
   top: 50%;
-  margin-top: -7px;
+  transform: translateY(-50%);
   display: block;
 }
 .button-xlarge,
-.fusion-button_size-xlarge .fusion-button-default-size,
 .fusion-body .fusion-button-xlarge,
 .fusion-body .wpcf7-form .wpcf7-submit.button-xlarge,
 .fusion-body .wpcf7-form .wpcf7-submit.fusion-button-xlarge {
@@ -456,15 +420,7 @@
   line-height: 21px;
   font-size: 18px;
 }
-.button-xlarge.button-3d:active,
-.fusion-button_size-xlarge .fusion-button-default-size.button-3d:active,
-.fusion-body .fusion-button-xlarge.button-3d:active,
-.fusion-body .wpcf7-form .wpcf7-submit.button-xlarge.button-3d:active,
-.fusion-body .wpcf7-form .wpcf7-submit.fusion-button-xlarge.button-3d:active {
-  top: 6px;
-}
 .button-xlarge .fusion-button-text-left,
-.fusion-button_size-xlarge .fusion-button-default-size .fusion-button-text-left,
 .fusion-body .fusion-button-xlarge .fusion-button-text-left,
 .fusion-body .wpcf7-form .wpcf7-submit.button-xlarge .fusion-button-text-left,
 .fusion-body .wpcf7-form .wpcf7-submit.fusion-button-xlarge .fusion-button-text-left {
@@ -472,7 +428,6 @@
   padding-left: 45px;
 }
 .button-xlarge .fusion-button-text-right,
-.fusion-button_size-xlarge .fusion-button-default-size .fusion-button-text-right,
 .fusion-body .fusion-button-xlarge .fusion-button-text-right,
 .fusion-body .wpcf7-form .wpcf7-submit.button-xlarge .fusion-button-text-right,
 .fusion-body .wpcf7-form .wpcf7-submit.fusion-button-xlarge .fusion-button-text-right {
@@ -480,68 +435,57 @@
   padding-right: 45px;
 }
 .button-xlarge .button-icon-divider-left,
-.fusion-button_size-xlarge .fusion-button-default-size .button-icon-divider-left,
 .fusion-body .fusion-button-xlarge .button-icon-divider-left,
 .fusion-body .wpcf7-form .wpcf7-submit.button-xlarge .button-icon-divider-left,
 .fusion-body .wpcf7-form .wpcf7-submit.fusion-button-xlarge .button-icon-divider-left {
   padding: 0 18.5px;
 }
 .button-xlarge .button-icon-divider-left.fusion-megamenu-image,
-.fusion-button_size-xlarge .fusion-button-default-size .button-icon-divider-left.fusion-megamenu-image,
 .fusion-body .fusion-button-xlarge .button-icon-divider-left.fusion-megamenu-image,
 .fusion-body .wpcf7-form .wpcf7-submit.button-xlarge .button-icon-divider-left.fusion-megamenu-image,
 .fusion-body .wpcf7-form .wpcf7-submit.fusion-button-xlarge .button-icon-divider-left.fusion-megamenu-image {
   padding: 0 9.25px;
 }
 .button-xlarge .button-icon-divider-right,
-.fusion-button_size-xlarge .fusion-button-default-size .button-icon-divider-right,
 .fusion-body .fusion-button-xlarge .button-icon-divider-right,
 .fusion-body .wpcf7-form .wpcf7-submit.button-xlarge .button-icon-divider-right,
 .fusion-body .wpcf7-form .wpcf7-submit.fusion-button-xlarge .button-icon-divider-right {
   padding: 0 18.5px;
 }
 .button-xlarge .button-icon-divider-right.fusion-megamenu-image,
-.fusion-button_size-xlarge .fusion-button-default-size .button-icon-divider-right.fusion-megamenu-image,
 .fusion-body .fusion-button-xlarge .button-icon-divider-right.fusion-megamenu-image,
 .fusion-body .wpcf7-form .wpcf7-submit.button-xlarge .button-icon-divider-right.fusion-megamenu-image,
 .fusion-body .wpcf7-form .wpcf7-submit.fusion-button-xlarge .button-icon-divider-right.fusion-megamenu-image {
   padding: 0 9.25px;
 }
 .button-xlarge .button-icon-divider-left i,
-.fusion-button_size-xlarge .fusion-button-default-size .button-icon-divider-left i,
 .fusion-body .fusion-button-xlarge .button-icon-divider-left i,
 .fusion-body .wpcf7-form .wpcf7-submit.button-xlarge .button-icon-divider-left i,
 .fusion-body .wpcf7-form .wpcf7-submit.fusion-button-xlarge .button-icon-divider-left i,
 .button-xlarge .button-icon-divider-left img,
-.fusion-button_size-xlarge .fusion-button-default-size .button-icon-divider-left img,
 .fusion-body .fusion-button-xlarge .button-icon-divider-left img,
 .fusion-body .wpcf7-form .wpcf7-submit.button-xlarge .button-icon-divider-left img,
 .fusion-body .wpcf7-form .wpcf7-submit.fusion-button-xlarge .button-icon-divider-left img,
 .button-xlarge .button-icon-divider-right i,
-.fusion-button_size-xlarge .fusion-button-default-size .button-icon-divider-right i,
 .fusion-body .fusion-button-xlarge .button-icon-divider-right i,
 .fusion-body .wpcf7-form .wpcf7-submit.button-xlarge .button-icon-divider-right i,
 .fusion-body .wpcf7-form .wpcf7-submit.fusion-button-xlarge .button-icon-divider-right i,
 .button-xlarge .button-icon-divider-right img,
-.fusion-button_size-xlarge .fusion-button-default-size .button-icon-divider-right img,
 .fusion-body .fusion-button-xlarge .button-icon-divider-right img,
 .fusion-body .wpcf7-form .wpcf7-submit.button-xlarge .button-icon-divider-right img,
 .fusion-body .wpcf7-form .wpcf7-submit.fusion-button-xlarge .button-icon-divider-right img {
   top: 50%;
-  margin-top: -9px;
+  transform: translateY(-50%);
   display: block;
 }
 .button span {
   line-height: normal;
 }
-button.fusion-button.button-3d:active {
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 1px 2px 3px 2px rgba(0, 0, 0, 0.3), 0 0 0 #000;
-}
 .button-icon-left {
-  margin-right: 10px;
+  margin-right: 0.7em;
 }
 .button-icon-right {
-  margin-left: 10px;
+  margin-left: 0.7em;
 }
 .button-icon-divider-left,
 .button-icon-divider-right {
@@ -583,279 +527,52 @@ button.fusion-button.button-3d:active {
   border-left: 1px solid;
 }
 .fusion-builder-elements-button-default-size-default {
-  padding: 11px 23px;
-  line-height: 16px;
-  font-size: 13px;
+  padding-top: var(--button_padding-top, 13px);
+  padding-right: var(--button_padding-right, 29px);
+  padding-bottom: var(--button_padding-bottom, 13px);
+  padding-left: var(--button_padding-left, 29px);
+  line-height: var(--button_line_height, 1);
+  font-size: var(--button_font_size, 14px);
 }
-.fusion-builder-elements-button-default-size-3d {
-  box-shadow: inset 0 1px 0 #fff, 0 3px 0 var(--button_bevel_color), 1px 5px 5px 3px rgba(0, 0, 0, 0.3);
+.fusion-button.button-3d:active {
+  transform: translateY(calc(0.15em - 1px));
+  box-shadow: inset 0 1px 0 #fff, 0 1px 0 var(--button_bevel_color), 0.05em 0.1em 0.1em 0.07em rgba(0, 0, 0, 0.3);
 }
-.fusion-builder-elements-button-default-size-small-default {
-  padding: 9px 20px;
-  line-height: 14px;
-  font-size: 12px;
+.fusion-button.button-3d:hover {
+  box-shadow: inset 0 1px 0 #fff, 0 0.15em 0 var(--button_bevel_color_hover), 0.1em 0.2em 0.2em 0.15em rgba(0, 0, 0, 0.3);
 }
-.fusion-builder-elements-button-default-size-small-3d {
-  box-shadow: inset 0 1px 0 #fff, 0 2px 0 var(--button_bevel_color), 1px 4px 4px 2px rgba(0, 0, 0, 0.3);
+.fusion-button.button-3d:hover:active {
+  box-shadow: inset 0 1px 0 #fff, 0 1px 0 var(--button_bevel_color_hover), 0.05em 0.1em 0.1em 0.07em rgba(0, 0, 0, 0.3);
 }
-.fusion-builder-elements-button-default-size-large-default {
-  padding: 13px 29px;
-  line-height: 17px;
-  font-size: 14px;
+.fusion-builder-elements-button-3d {
+  box-shadow: inset 0 1px 0 #fff, 0 0.15em 0 var(--button_bevel_color), 0.1em 0.2em 0.2em 0.15em rgba(0, 0, 0, 0.3);
 }
-.fusion-builder-elements-button-default-size-large-3d {
-  box-shadow: inset 0 1px 0 #fff, 0 4px 0 var(--button_bevel_color), 1px 6px 6px 3px rgba(0, 0, 0, 0.3);
+.fusion-builder-elements-button-3d-active {
+  transform: translateY(calc(0.15em - 1px));
+  box-shadow: inset 0 1px 0 #fff, 0 1px 0 var(--button_bevel_color), 0.05em 0.1em 0.1em 0.07em rgba(0, 0, 0, 0.3);
 }
-.fusion-builder-elements-button-default-size-xlarge-default {
-  padding: 17px 40px;
-  line-height: 21px;
-  font-size: 18px;
+.fusion-builder-elements-button-3d-hover {
+  box-shadow: inset 0 1px 0 #fff, 0 0.15em 0 var(--button_bevel_color_hover), 0.1em 0.2em 0.2em 0.15em rgba(0, 0, 0, 0.3);
 }
-.fusion-builder-elements-button-default-size-xlarge-3d {
-  box-shadow: inset 0 1px 0 #fff, 0 5px 0 var(--button_bevel_color), 1px 7px 7px 3px rgba(0, 0, 0, 0.3);
+.fusion-builder-elements-button-3d-hover-active {
+  box-shadow: inset 0 1px 0 #fff, 0 1px 0 var(--button_bevel_color_hover), 0.05em 0.1em 0.1em 0.07em rgba(0, 0, 0, 0.3);
+}
+.fusion-builder-elements-button-quantity-default-qty {
+  width: var(--qty_size-width, 38px);
 }
 .fusion-builder-elements-button-quantity-default {
-  line-height: 16px;
-  font-size: 13px;
-  width: 36px;
-  height: 36px;
+  font-size: var(--qty_font_size, 14px);
+  width: var(--qty_size-height, 36px);
+  height: var(--qty_size-height, 36px);
+  line-height: 1;
 }
-.fusion-builder-elements-button-quantity-small {
-  line-height: 14px;
-  font-size: 12px;
-  width: 31px;
-  height: 31px;
-}
-.fusion-builder-elements-button-quantity-large {
-  line-height: 17px;
-  font-size: 14px;
-  width: 40px;
-  height: 40px;
-}
-.fusion-builder-elements-button-quantity-xlarge {
-  line-height: 21px;
-  font-size: 18px;
-  width: 53px;
-  height: 53px;
-}
-.fusion-button_size-small .quantity {
-  width: 95px;
-}
-.fusion-button_size-medium .quantity,
-.fusion-button_size-medium .single-product .product .summary .cart .quantity {
-  width: 110px;
-}
-.fusion-button_size-large .quantity {
-  width: 122px;
-}
-.fusion-button_size-xlarge .quantity {
-  width: 161px;
-}
-.fusion-builder-elements-button-main-default {
-  background: var(--button_gradient_top_color);
-  color: var(--button_accent_color);
-  border-color: var(--button_border_color);
-}
-.fusion-builder-elements-button-main-default .fusion-button-text {
-  color: var(--button_accent_color);
-}
-.fusion-builder-elements-button-main-default:hover .fusion-button-text,
-.fusion-builder-elements-button-main-default:focus .fusion-button-text,
-.fusion-builder-elements-button-main-default:active .fusion-button-text {
-  color: var(--button_accent_hover_color, var(--button_accent_color));
-}
-.fusion-builder-elements-button-main-gradient {
-  background-image: linear-gradient(to top, var(--button_gradient_bottom_color), var(--button_gradient_top_color));
-}
-.fusion-builder-elements-button-main-hover,
-.fusion-builder-elements-button-main-focus,
-.fusion-builder-elements-button-main-active {
-  background: var(--button_gradient_top_color_hover);
-  color: var(--button_accent_hover_color, var(--button_accent_color));
-  border-color: var(--button_border_hover_color);
-}
-.fusion-builder-elements-button-main-hover-gradient,
-.fusion-builder-elements-button-main-focus-gradient,
-.fusion-builder-elements-button-main-active-gradient {
-  background-image: linear-gradient(to top, var(--button_gradient_bottom_color_hover), var(--button_gradient_top_color_hover));
-}
-.fusion-builder-elements-button-main-visited {
-  color: var(--button_accent_color);
-}
-.fusion-builder-elements-button-main-small-3d-default {
-  box-shadow: inset 0 1px 0 #fff, 0 2px 0 var(--button_bevel_color), 1px 4px 4px 2px rgba(0, 0, 0, 0.3);
-}
-.fusion-builder-elements-button-main-small-3d-active {
-  box-shadow: inset 0 1px 0 #fff, 0 1px 0 var(--button_bevel_color), 1px 5px 5px 3px rgba(0, 0, 0, 0.3);
-}
-.fusion-builder-elements-button-main-medium-3d-default {
-  box-shadow: inset 0 1px 0 #fff, 0 3px 0 var(--button_bevel_color), 1px 5px 5px 3px rgba(0, 0, 0, 0.3);
-}
-.fusion-builder-elements-button-main-medium-3d-active {
-  box-shadow: inset 0 1px 0 #fff, 0 1px 0 var(--button_bevel_color), 1px 5px 5px 3px rgba(0, 0, 0, 0.3);
-}
-.fusion-builder-elements-button-main-large-3d-default {
-  box-shadow: inset 0 1px 0 #fff, 0 4px 0 var(--button_bevel_color), 1px 5px 6px 3px rgba(0, 0, 0, 0.3);
-}
-.fusion-builder-elements-button-main-large-3d-active {
-  box-shadow: inset 0 1px 0 #fff, 0 1px 0 var(--button_bevel_color), 1px 6px 6px 3px rgba(0, 0, 0, 0.3);
-}
-.fusion-builder-elements-button-main-xlarge-3d-default {
-  box-shadow: inset 0 1px 0 #fff, 0 5px 0 var(--button_bevel_color), 1px 7px 7px 3px rgba(0, 0, 0, 0.3);
-}
-.fusion-builder-elements-button-main-span-yes {
-  width: 100%;
-}
-.fusion-builder-elements-button-all {
-  font-family: var(--button_typography-font-family);
-  font-weight: var(--button_typography-font-weight);
-  font-style: var(--button_typography-font-style, normal);
-  letter-spacing: var(--button_typography-letter-spacing);
-  border-width: var(--button_border_width);
-  border-style: solid;
-  border-radius: var(--button_border_radius);
-  text-transform: var(--button_text_transform);
-  transition: all 200ms;
+.fusion-body .quantity,
+.single-product .product .summary .cart .quantity {
+  width: calc(var(--qty_size-width, 38px) + var(--qty_size-height, 36px) + var(--qty_size-height, 36px));
 }
 .fusion-button-span-yes {
   width: 100%;
 }
 body.fusion-button_span-yes .fusion-button-default-span {
   width: 100%;
-}
-body.fusion-button_size-small .fusion-button-default-size,
-body.fusion-button_size-small button.button {
-  padding: 9px 20px;
-  line-height: 14px;
-  font-size: 12px;
-}
-body.fusion-button_size-small .fusion-button-default-size.button-3d:active,
-body.fusion-button_size-small button.button.button-3d:active {
-  top: 2px;
-}
-body.fusion-button_size-small .fusion-button-default-size .fusion-button-text-left,
-body.fusion-button_size-small button.button .fusion-button-text-left {
-  padding-left: 25px;
-}
-body.fusion-button_size-small .fusion-button-default-size .fusion-button-text-right,
-body.fusion-button_size-small button.button .fusion-button-text-right {
-  padding-right: 25px;
-}
-body.fusion-button_size-small .fusion-button-default-size .button-icon-divider-left,
-body.fusion-button_size-small button.button .button-icon-divider-left {
-  padding: 0 10px;
-}
-body.fusion-button_size-small .fusion-button-default-size .button-icon-divider-right,
-body.fusion-button_size-small button.button .button-icon-divider-right {
-  padding: 0 10px;
-}
-body.fusion-button_size-small .fusion-button-default-size .button-icon-divider-left i,
-body.fusion-button_size-small button.button .button-icon-divider-left i,
-body.fusion-button_size-small .fusion-button-default-size .button-icon-divider-right i,
-body.fusion-button_size-small button.button .button-icon-divider-right i {
-  top: 50%;
-  margin-top: -6px;
-  display: block;
-}
-body.fusion-button_size-medium .fusion-button-default-size,
-body.fusion-button_size-medium button.button {
-  padding: 11px 23px;
-  line-height: 16px;
-  font-size: 13px;
-}
-body.fusion-button_size-medium .fusion-button-default-size.button-3d:active,
-body.fusion-button_size-medium button.button.button-3d:active {
-  top: 3px;
-}
-body.fusion-button_size-medium .fusion-button-default-size .fusion-button-text-left,
-body.fusion-button_size-medium button.button .fusion-button-text-left {
-  padding-left: 28px;
-}
-body.fusion-button_size-medium .fusion-button-default-size .fusion-button-text-right,
-body.fusion-button_size-medium button.button .fusion-button-text-right {
-  padding-right: 28px;
-}
-body.fusion-button_size-medium .fusion-button-default-size .button-icon-divider-left,
-body.fusion-button_size-medium button.button .button-icon-divider-left {
-  padding: 0 12.5px;
-}
-body.fusion-button_size-medium .fusion-button-default-size .button-icon-divider-right,
-body.fusion-button_size-medium button.button .button-icon-divider-right {
-  padding: 0 12.5px;
-}
-body.fusion-button_size-medium .fusion-button-default-size .button-icon-divider-left i,
-body.fusion-button_size-medium button.button .button-icon-divider-left i,
-body.fusion-button_size-medium .fusion-button-default-size .button-icon-divider-right i,
-body.fusion-button_size-medium button.button .button-icon-divider-right i {
-  top: 50%;
-  margin-top: -6.5px;
-  display: block;
-}
-body.fusion-button_size-large .fusion-button-default-size,
-body.fusion-button_size-large button.button {
-  padding: 13px 29px;
-  line-height: 17px;
-  font-size: 14px;
-}
-body.fusion-button_size-large .fusion-button-default-size.button-3d:active,
-body.fusion-button_size-large button.button.button-3d:active {
-  top: 4px;
-}
-body.fusion-button_size-large .fusion-button-default-size .fusion-button-text-left,
-body.fusion-button_size-large button.button .fusion-button-text-left {
-  padding-left: 34px;
-}
-body.fusion-button_size-large .fusion-button-default-size .fusion-button-text-right,
-body.fusion-button_size-large button.button .fusion-button-text-right {
-  padding-right: 34px;
-}
-body.fusion-button_size-large .fusion-button-default-size .button-icon-divider-left,
-body.fusion-button_size-large button.button .button-icon-divider-left {
-  padding: 0 14.5px;
-}
-body.fusion-button_size-large .fusion-button-default-size .button-icon-divider-right,
-body.fusion-button_size-large button.button .button-icon-divider-right {
-  padding: 0 14.5px;
-}
-body.fusion-button_size-large .fusion-button-default-size .button-icon-divider-left i,
-body.fusion-button_size-large button.button .button-icon-divider-left i,
-body.fusion-button_size-large .fusion-button-default-size .button-icon-divider-right i,
-body.fusion-button_size-large button.button .button-icon-divider-right i {
-  top: 50%;
-  margin-top: -7px;
-  display: block;
-}
-body.fusion-button_size-xlarge .fusion-button-default-size,
-body.fusion-button_size-xlarge button.button {
-  padding: 17px 40px;
-  line-height: 21px;
-  font-size: 18px;
-}
-body.fusion-button_size-xlarge .fusion-button-default-size.button-3d:active,
-body.fusion-button_size-xlarge button.button.button-3d:active {
-  top: 6px;
-}
-body.fusion-button_size-xlarge .fusion-button-default-size .fusion-button-text-left,
-body.fusion-button_size-xlarge button.button .fusion-button-text-left {
-  padding-left: 45px;
-}
-body.fusion-button_size-xlarge .fusion-button-default-size .fusion-button-text-right,
-body.fusion-button_size-xlarge button.button .fusion-button-text-right {
-  padding-right: 45px;
-}
-body.fusion-button_size-xlarge .fusion-button-default-size .button-icon-divider-left,
-body.fusion-button_size-xlarge button.button .button-icon-divider-left {
-  padding: 0 18.5px;
-}
-body.fusion-button_size-xlarge .fusion-button-default-size .button-icon-divider-right,
-body.fusion-button_size-xlarge button.button .button-icon-divider-right {
-  padding: 0 18.5px;
-}
-body.fusion-button_size-xlarge .fusion-button-default-size .button-icon-divider-left i,
-body.fusion-button_size-xlarge button.button .button-icon-divider-left i,
-body.fusion-button_size-xlarge .fusion-button-default-size .button-icon-divider-right i,
-body.fusion-button_size-xlarge button.button .button-icon-divider-right i {
-  top: 50%;
-  margin-top: -9px;
-  display: block;
 }

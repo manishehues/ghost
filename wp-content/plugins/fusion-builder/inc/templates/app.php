@@ -7,7 +7,7 @@
 
 ?>
 <script type="text/template" id="fusion-builder-app-template">
-	<div id="fusion-loader"><span class="fusion-builder-loader"></span></div>
+	<div id="fusion-loader"><span class="fusion-builder-loader"></span><span class="awb-studio-import-status"></span></div>
 	<div id="content-error" title="{{{ fusionBuilderText.content_error_title }}}" style="display:none;">
 		<p>{{{ fusionBuilderText.content_error_description }}}</p>
 	</div>
@@ -62,5 +62,15 @@
 		?>
 		<textarea name="_fusion_google_fonts" id="fusion-google-fonts-field"><?php echo wp_json_encode( $echo_google_fonts ); // phpcs:ignore WordPress.Security.EscapeOutput ?></textarea>
 		<div id="fusion-render-holder" style="display:none"></div>
+	</div>
+	<div id="fusion-studio-media-map-holdder" style="display:none">
+		<?php
+		$echo_media_map  = '';
+		$saved_media_map = get_post_meta( $post->ID, 'avada_media', true );
+		if ( ! empty( $saved_media_map ) ) {
+			$echo_media_map = $saved_media_map;
+		}
+		?>
+		<textarea name="avada_media" id="fusion-studio-media-map-field"><?php echo wp_json_encode( $echo_media_map ); // phpcs:ignore WordPress.Security.EscapeOutput ?></textarea>
 	</div>
 </script>

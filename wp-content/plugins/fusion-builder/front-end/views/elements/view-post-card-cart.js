@@ -1,4 +1,3 @@
-/* global avadaAddQuantityBoxes */
 var FusionPageBuilder = FusionPageBuilder || {};
 
 ( function () {
@@ -9,9 +8,39 @@ var FusionPageBuilder = FusionPageBuilder || {};
 		// Post Card Cart Component View.
 		FusionPageBuilder.fusion_post_card_cart = FusionPageBuilder.ElementView.extend( {
 
+			onInit: function() {
+				var params = this.model.get( 'params' );
+
+				// Check for newer margin params.  If unset but regular is, copy from there.
+				if ( 'object' === typeof params ) {
+
+					// Split border width into 4.
+					if ( 'undefined' === typeof params.button_border_top && 'undefined' !== typeof params.button_border_width && '' !== params.button_border_width ) {
+						params.button_border_top    = parseInt( params.button_border_width ) + 'px';
+						params.button_border_right  = params.button_border_top;
+						params.button_border_bottom = params.button_border_top;
+						params.button_border_left   = params.button_border_top;
+						delete params.button_border_width;
+					}
+
+					// Split border width into 4.
+					if ( 'undefined' === typeof params.button_details_border_top && 'undefined' !== typeof params.button_details_border_width && '' !== params.button_details_border_width ) {
+						params.button_details_border_top    = parseInt( params.button_details_border_width ) + 'px';
+						params.button_details_border_right  = params.button_details_border_top;
+						params.button_details_border_bottom = params.button_details_border_top;
+						params.button_details_border_left   = params.button_details_border_top;
+						delete params.button_details_border_width;
+					}
+					this.model.set( 'params', params );
+				}
+			},
+
 			afterPatch: function () {
 				var $quantityBoxes = this.$el.find( 'div.quantity:not(.buttons_added), td.quantity:not(.buttons_added)' ).find( '.qty' );
-				avadaAddQuantityBoxes( '.qty', $quantityBoxes );
+
+				if ( $quantityBoxes.length && 'function' === typeof jQuery( '#fb-preview' )[ 0 ].contentWindow.avadaAddQuantityBoxes ) {
+					jQuery( '#fb-preview' )[ 0 ].contentWindow.avadaAddQuantityBoxes( '.qty', $quantityBoxes );
+				}
 			},
 
 			/**
@@ -469,8 +498,17 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 					}
 
-					if ( !this.isDefault( 'button_border_width' ) ) {
-						this.addCssProperty( button, 'border-width', _.fusionGetValueWithUnit( this.values.button_border_width ) );
+					if (  !  this.isDefault( 'button_border_top' ) ) {
+						this.addCssProperty( button, 'border-top-width',  _.fusionGetValueWithUnit( this.values.button_border_top ) );
+					}
+					if (  !  this.isDefault( 'button_border_right' ) ) {
+						this.addCssProperty( button, 'border-right-width',  _.fusionGetValueWithUnit( this.values.button_border_right ) );
+					}
+					if (  !  this.isDefault( 'button_border_bottom' ) ) {
+						this.addCssProperty( button, 'border-bottom-width',  _.fusionGetValueWithUnit( this.values.button_border_bottom ) );
+					}
+					if (  !  this.isDefault( 'button_border_left' ) ) {
+						this.addCssProperty( button, 'border-left-width',  _.fusionGetValueWithUnit( this.values.button_border_left ) );
 					}
 
 					if ( !this.isDefault( 'button_color' ) ) {
@@ -548,9 +586,19 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 					}
 
-					if ( !this.isDefault( 'button_details_border_width' ) ) {
-						this.addCssProperty( button, 'border-width', _.fusionGetValueWithUnit( this.values.button_details_border_width ) );
+					if (  !  this.isDefault( 'button_details_border_top' ) ) {
+						this.addCssProperty( button, 'border-top-width',  _.fusionGetValueWithUnit( this.values.button_details_border_top ) );
 					}
+					if (  !  this.isDefault( 'button_details_border_right' ) ) {
+						this.addCssProperty( button, 'border-right-width',  _.fusionGetValueWithUnit( this.values.button_details_border_right ) );
+					}
+					if (  !  this.isDefault( 'button_details_border_bottom' ) ) {
+						this.addCssProperty( button, 'border-bottom-width',  _.fusionGetValueWithUnit( this.values.button_details_border_bottom ) );
+					}
+					if (  !  this.isDefault( 'button_details_border_left' ) ) {
+						this.addCssProperty( button, 'border-left-width',  _.fusionGetValueWithUnit( this.values.button_details_border_left ) );
+					}
+
 					if ( !this.isDefault( 'button_details_color' ) ) {
 						this.addCssProperty( button, 'color', this.values.button_details_color );
 					}

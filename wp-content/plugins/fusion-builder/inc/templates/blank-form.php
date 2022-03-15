@@ -17,11 +17,7 @@
 		</h3>
 		<h4 class="subtitle">{{ fusionBuilderText.to_get_started_sub }}</h4>
 		<a href="#" class="fusion-builder-new-section-add fusion-builder-submit-button"><span class="fusiona-plus"></span> {{ fusionBuilderText.full_width_section }}</a>
-		<?php if ( 'fusion_form' === get_post_type() ) : ?>
-			<a href="#" id="fusion-load-template-dialog" class="fusion-builder-submit-button"><span class="fusiona-plus"></span> {{ fusionBuilderText.pre_built_form }}</a>
-		<?php else : ?>
-			<a href="#" id="fusion-load-template-dialog" class="fusion-builder-submit-button"><span class="fusiona-plus"></span> {{ fusionBuilderText.pre_built_page }}</a>
-		<?php endif; ?>
+		<a href="#" id="fusion-load-studio-dialog" class="fusion-builder-submit-button" data-target="#fusion-builder-fusion_template-studio"><span class="fusiona-avada-logo"></span> {{ fusionBuilderText.avada_studio }}</a>
 	</div>
 
 	<div class="fusion-builder-blank-page-info fusion-builder-blank-page-icons">

@@ -102,10 +102,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				_.each( childrenData, function( child ) {
 					var params = ( 'undefined' !== typeof child.get ) ? child.get( 'params' ) : child.params,
-						cid    = ( 'undefined' !== typeof child.get ) ? child.get( 'cid' ) : child.cid,
-						image  = params.image;
+						imageIdIsValid = ( 'undefined' !== typeof params.image_id && null !== params.image_id && '' !== params.image_id );
 
-					if ( 'undefined' === typeof view.imageMap.images[ params.image_id ] || forceQuery ) {
+					if ( imageIdIsValid && ( 'undefined' === typeof view.imageMap.images[ params.image_id ] || forceQuery ) ) {
 						queryData[ params.image_id ] = params;
 					}
 				} );
@@ -181,9 +180,12 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				// Validate values.
 				this.validateValues( atts.values );
+				this.values = atts.values;
+				this.extras = atts.extras;
 
 				attributes.values     = atts.values;
 				attributes.query_data = atts.query_data;
+				attributes.captionStyles = this.buildCaptionStyles( atts );
 
 				// // Create attribute objects.
 				attributes.attr       = this.buildAttr( atts.values );
@@ -231,7 +233,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			buildAttr: function( values ) {
 				var totalNumOfColumns = this.model.children.length,
 					attr              = _.fusionVisibilityAtts( values.hide_on_mobile, {
-						class: 'fusion-gallery fusion-gallery-container fusion-child-element fusion-grid-' + values.columns + ' fusion-columns-total-' + totalNumOfColumns + ' fusion-gallery-layout-' + values.layout
+						class: 'fusion-gallery fusion-gallery-container fusion-child-element fusion-grid-' + values.columns + ' fusion-columns-total-' + totalNumOfColumns + ' fusion-gallery-layout-' + values.layout + ' fusion-gallery-' + this.model.get( 'cid' )
 					} ),
 					margin;
 
@@ -243,6 +245,145 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				attr[ 'data-empty' ] = this.emptyPlaceholderText;
 
 				return attr;
+			},
+
+			/**
+			 * Builds caption styles.
+			 *
+			 * @since 3.5
+			 * @param {Object} atts - The atts object.
+			 * @return {string}
+			 */
+			buildCaptionStyles: function( atts ) {
+				var selectors, font_styles, sides, marginName, css, media,
+responsive = '';
+				this.dynamic_css  = {};
+				this.baseSelector = '.fusion-gallery.fusion-gallery-' + this.model.get( 'cid' );
+
+				if ( 'off' === atts.values.caption_style ) {
+					return '';
+				}
+
+				if ( -1 !== jQuery.inArray( atts.values.caption_style, [ 'above', 'below' ] ) ) {
+					this.baseSelector = '.awb-imageframe-style.awb-imageframe-style-' + this.model.get( 'cid' );
+				}
+
+				selectors = [ this.baseSelector + ' .awb-imageframe-caption-container .awb-imageframe-caption-title' ];
+				// title color.
+				if ( ! this.isDefault( 'caption_title_color' ) ) {
+					this.addCssProperty( selectors, 'color', atts.values.caption_title_color, true );
+				}
+				// title size.
+				if ( ! this.isDefault( 'caption_title_size' ) ) {
+					this.addCssProperty( selectors, 'font-size', _.fusionGetValueWithUnit( atts.values.caption_title_size ), true );
+				}
+				// title font.
+				font_styles = _.fusionGetFontStyle( 'caption_title_font', atts.values, 'object' );
+				for ( rule in font_styles ) { // eslint-disable-line
+					var value = font_styles[ rule ]; // eslint-disable-line
+
+					this.addCssProperty( selectors, rule, value, true ); // eslint-disable-line
+				}
+				// title transform.
+				if ( ! this.isDefault( 'caption_title_transform' ) ) {
+					this.addCssProperty( selectors, 'text-transform', atts.values.caption_title_transform );
+				}
+
+				selectors = [ this.baseSelector + ' .awb-imageframe-caption-container .awb-imageframe-caption-text' ];
+				// text color.
+				if ( ! this.isDefault( 'caption_text_color' ) ) {
+					this.addCssProperty( selectors, 'color', atts.values.caption_text_color );
+				}
+				// text size.
+				if ( ! this.isDefault( 'caption_text_size' ) ) {
+					this.addCssProperty( selectors, 'font-size', _.fusionGetValueWithUnit( atts.values.caption_text_size ) );
+				}
+				// text font.
+				font_styles = _.fusionGetFontStyle( 'caption_text_font', atts.values, 'object' );
+				for ( rule in font_styles ) { // eslint-disable-line
+					var value = font_styles[ rule ]; // eslint-disable-line
+
+					this.addCssProperty( selectors, rule, value, true ); // eslint-disable-line
+				}
+				// text transform.
+				if ( ! this.isDefault( 'caption_text_transform' ) ) {
+					this.addCssProperty( selectors, 'text-transform', atts.values.caption_text_transform );
+				}
+
+				// Border color.
+				if ( 'resa' === atts.values.caption_style && ! this.isDefault( 'caption_border_color' ) ) {
+					selectors = [ this.baseSelector + ' .awb-imageframe-caption-container:before' ];
+					this.addCssProperty( selectors, 'border-top-color', atts.values.caption_border_color );
+					this.addCssProperty( selectors, 'border-bottom-color', atts.values.caption_border_color );
+					selectors = [ this.baseSelector + ' .awb-imageframe-caption-container:after' ];
+					this.addCssProperty( selectors, 'border-right-color', atts.values.caption_border_color );
+					this.addCssProperty( selectors, 'border-left-color', atts.values.caption_border_color );
+				}
+
+				if ( 'dario' === atts.values.caption_style && ! this.isDefault( 'caption_border_color' ) ) {
+					selectors = [ this.baseSelector + ' .awb-imageframe-caption .awb-imageframe-caption-title:after' ];
+					this.addCssProperty( selectors, 'background', atts.values.caption_border_color );
+				}
+
+				// Overlay color.
+				if ( -1 !== jQuery.inArray( atts.values.caption_style, [ 'dario', 'resa', 'schantel', 'dany', 'navin' ] ) ) {
+					selectors = [ this.baseSelector + ' .awb-imageframe-style' ];
+					this.addCssProperty( selectors, 'background', atts.values.caption_overlay_color );
+				}
+
+				// Background color.
+				if ( -1 !== jQuery.inArray( atts.values.caption_style, [ 'schantel', 'dany' ] ) && ! this.isDefault( 'caption_background_color' ) ) {
+					selectors = [ this.baseSelector + ' .awb-imageframe-caption-container .awb-imageframe-caption-text' ];
+					this.addCssProperty( selectors, 'background', atts.values.caption_background_color );
+				}
+
+				// Caption margin.
+				if ( -1 !== jQuery.inArray( atts.values.caption_style, [ 'above', 'below' ] ) ) {
+					sides     = [ 'top', 'right', 'bottom', 'left' ];
+					selectors = [ this.baseSelector + ' .awb-imageframe-caption-container' ];
+
+					_.each( sides, function( side ) {
+						marginName = 'caption_margin_' + side;
+
+						if ( ! this.isDefault( marginName ) ) {
+							this.addCssProperty( selectors, 'margin-' + side, _.fusionGetValueWithUnit( atts.values[ marginName ] ) );
+						}
+					}, this );
+
+					if ( ! this.isDefault( 'caption_title' ) ) {
+						selectors = [ this.baseSelector + ' .awb-imageframe-caption-container .awb-imageframe-caption-text' ];
+						this.addCssProperty( selectors, 'margin-top', '0.5em' );
+					}
+				}
+
+				css = this.parseCSS();
+
+				if ( -1 !== jQuery.inArray( atts.values.caption_style, [ 'above', 'below' ] ) ) {
+					_.each( [ '', 'medium', 'small' ], function( size ) {
+						var key = 'caption_align' + ( '' === size ? '' : '_' + size );
+
+						// Check for default value.
+						if ( this.isDefault( key ) ) {
+							return;
+						}
+
+						this.dynamic_css  = {};
+
+						// Build responsive alignment.
+						selectors = [ this.baseSelector + ' .awb-imageframe-caption-container' ];
+						this.addCssProperty( selectors, 'text-align', atts.values[ key ] );
+
+						if ( '' === size ) {
+							responsive += this.parseCSS();
+						} else {
+							media       = '@media only screen and (max-width:' + this.extras[ 'visibility_' + size ] + 'px)';
+							responsive += media + '{' + this.parseCSS() + '}';
+						}
+					}, this );
+					css += responsive;
+				}
+
+				return ( css ) ? '<style>' + css + '</style>' : '';
 			}
 
 		} );

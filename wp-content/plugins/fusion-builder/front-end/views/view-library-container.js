@@ -7,24 +7,15 @@ var FusionPageBuilder = FusionPageBuilder || {};
 	jQuery( document ).ready( function() {
 
 		// Column Library View
-		FusionPageBuilder.ContainerLibraryView = window.wp.Backbone.View.extend( {
+		FusionPageBuilder.ContainerLibraryView = FusionPageBuilder.BaseLibraryView.extend( {
 
 			className: 'fusion_builder_modal_settings',
 			template: FusionPageBuilder.template( jQuery( '#fusion-builder-container-library-template' ).html() ),
 			events: {
 				'click .fusion-builder-column-layouts li': 'addColumns',
 				'click .fusion_builder_custom_sections_load': 'addCustomSection',
-				'click .fusion-special-item': 'addSpecialItem'
-			},
-
-			/**
-			 * Init.
-			 *
-			 * @since 2.0.0
-			 * @return {void}
-			 */
-			initialize: function( attributes ) {
-				this.options = attributes;
+				'click .fusion-special-item': 'addSpecialItem',
+				'click .fusion-studio-load': 'loadStudioContainer'
 			},
 
 			/**
@@ -42,6 +33,9 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				FusionApp.elementSearchFilter( this.$el );
 
 				FusionApp.dialog.dialogTabs( this.$el );
+
+				// TODO: move to tab change and only if registered.
+				this.loadStudio( 'sections' );
 
 				return this;
 			},
@@ -278,13 +272,185 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			},
 
 			/**
-			 * Removes the view.
+			 * Loads the container via AJAX.
 			 *
-			 * @since 4.0.0
+			 * @since 2.0.0
+			 * @param {Object} event - The event.
 			 * @return {void}
 			 */
-			removeView: function() {
-				this.remove();
+			loadStudioContainer: function( event ) {
+				var self              = this,
+					parentID          = this.model.get( 'parent' ),
+					parentView        = FusionPageBuilderViewManager.getView( parentID ),
+					$layout           = jQuery( event.currentTarget ).closest( '.fusion-page-layout' ),
+					layoutID,
+					targetContainer;
+
+				targetContainer = parentView.$el.prev( '.fusion-builder-container' );
+				FusionPageBuilderApp.targetContainerCID = targetContainer.data( 'cid' );
+
+				if ( event ) {
+					event.preventDefault();
+				}
+
+				if ( 'undefined' !== typeof parentView ) {
+					parentView.removeContainer();
+				}
+
+				if ( true === FusionPageBuilderApp.layoutIsLoading ) {
+					return;
+				}
+
+				FusionPageBuilderApp.layoutIsLoading = true;
+
+				layoutID = $layout.data( 'layout_id' );
+
+				jQuery.ajax( {
+					type: 'POST',
+					url: fusionAppConfig.ajaxurl,
+					dataType: 'JSON',
+					data: {
+						action: 'fusion_builder_load_layout',
+						fusion_load_nonce: fusionAppConfig.fusion_load_nonce,
+						fusion_is_global: false,
+						fusion_layout_id: layoutID,
+						fusion_studio: true,
+						category: 'sections',
+						post_id: FusionApp.getPost( 'post_id' )
+					},
+
+					beforeSend: function() {
+						self.beforeStudioItemImport();
+					},
+
+					success: function( data ) {
+						var i,
+							promises = [],
+							dfd      = jQuery.Deferred(),  // Master deferred.
+							dfdNext  = dfd; // Next deferred in the chain.
+
+						dfd.resolve();
+
+						// Reset array.
+						self.mediaImportKeys = [];
+
+						// We have the content, let's check for assets.
+						// Filter out empty properties (now those are empty arrays).
+						if ( 'object' === typeof data.avada_media ) {
+							Object.keys( data.avada_media ).forEach( function( key ) {
+								// We expect and object.
+								if ( 'object' === typeof data.avada_media[ key ] && ! Array.isArray( data.avada_media[ key ] ) ) {
+									self.mediaImportKeys.push( key );
+								}
+							} );
+						}
+
+						// Import studio media if needed.
+						if ( 0 < self.mediaImportKeys.length ) {
+
+							// Set first AJAX response as initial data.
+							FusionPageBuilderApp.studio.setImportData( data );
+
+							for ( i = 0; i < self.mediaImportKeys.length; i++ ) {
+
+								// IIFE to freeze the value of i.
+								( function( k ) { // eslint-disable-line no-loop-func
+
+									dfdNext = dfdNext.then( function() {
+										return self.importStudioMedia( FusionPageBuilderApp.studio.getImportData(), self.mediaImportKeys[ k ] );
+									} );
+
+									promises.push( dfdNext );
+								}( i ) );
+
+							}
+
+							jQuery.when.apply( null, promises ).then(
+								function() {
+
+									/*
+									var lastAjaxResponse;
+
+									if ( 1 === promises.length ) {
+										lastAjaxResponse = arguments[ 0 ];
+									} else {
+										lastAjaxResponse = arguments[ promises.length - 1 ][ 0 ];
+									}
+									*/
+
+									FusionPageBuilderApp.shortcodesToBuilder( FusionPageBuilderApp.studio.getImportData().post_content, FusionPageBuilderApp.parentRowId );
+									FusionPageBuilderApp.layoutIsLoading = false;
+
+									FusionEvents.trigger( 'fusion-studio-content-imported', FusionPageBuilderApp.studio.getImportData() );
+
+									self.studioContainerImportComplete( event, targetContainer );
+
+									// Reset import data.
+									FusionPageBuilderApp.studio.resetImportData();
+								},
+								function() {
+
+									self.studioImportModalView.updateStatus( fusionBuilderText.studio_importing_content_failed );
+
+									self.studioContainerImportComplete( event, targetContainer );
+
+									// Reset import data.
+									FusionPageBuilderApp.studio.resetImportData();
+								}
+							);
+						} else {
+
+							FusionPageBuilderApp.shortcodesToBuilder( data.post_content, FusionPageBuilderApp.parentRowId );
+							FusionPageBuilderApp.layoutIsLoading = false;
+							FusionEvents.trigger( 'fusion-studio-content-imported', data );
+
+							self.studioContainerImportComplete( event, targetContainer );
+						}
+
+					}
+				} );
+			},
+
+			/**
+			 * Does what needs to be done when container is imported.
+			 *
+			 * @since 3.5
+			 * @param {Object} event - The event.
+			 * @param {jQuery} targetContainer - The container after which the new container is inserted.
+			 */
+			studioContainerImportComplete: function( event, targetContainer ) {
+				var $scroll_elem    = jQuery( '#fb-preview' )[ 0 ].contentWindow.jQuery( '.fusion-one-page-text-link' ),
+					cid             = '',
+					thisModel       = this.model,
+					$layout         = jQuery( event.currentTarget ).closest( '.fusion-page-layout' ),
+					title           = $layout.find( '.fusion_module_title' ).text();
+
+				FusionPageBuilderApp.loaded = true;
+				FusionEvents.trigger( 'fusion-builder-loaded' );
+
+				// Unset 'added' attribute from newly created section model
+				thisModel.unset( 'added' );
+
+				// Scroll to container.
+				if ( targetContainer.length ) {
+					cid = targetContainer.next( '.fusion-builder-container' ).attr( 'data-cid' );
+					if ( 'undefined' !== typeof cid && cid ) {
+						$scroll_elem.attr( 'href', '#fusion-container-' + cid ).fusion_scroll_to_anchor_target( 15 );
+					}
+				}
+
+				// Save history state
+				FusionEvents.trigger( 'fusion-history-save-step', fusionBuilderText.added_studio_section + title );
+
+				jQuery( '.fusion-builder-live' ).removeClass( 'fusion-builder-blank-page-active' );
+
+				FusionEvents.trigger( 'fusion-content-changed' );
+
+				// Remove modal view.
+				this.studioImportModalView.remove();
+
+				// Close library modal.
+				this.removeView();
 			}
 		} );
 	} );

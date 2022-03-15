@@ -8,9 +8,7 @@
 
 ?>
 <script type="text/html" id="tmpl-fusion_checklist-shortcode">
-<# if ( 'yes' === values.divider ) { #>
-	<style type="text/css">.fusion-checklist-{{ cid }}.fusion-checklist-divider .fusion-li-item { border-bottom-color:{{ values.divider_color }} !important ;}</style>
-<# } #>
+{{{styles}}}
 <ul {{{ _.fusionGetAttributes( checklistShortcode ) }}}></ul>
 </script>
 

@@ -13,6 +13,7 @@
 	<# } else { #>
 		<div {{{ _.fusionGetAttributes( attr ) }}}></div>
 	<# } #>
+	{{{captionStyles}}}
 	<div class="fusion-clearfix"></div>
 </script>
 
@@ -32,7 +33,16 @@
 	}
 
 	images_html += '<div ' + _.fusionGetAttributes( imagesAttr.images ) + '>';
+
+	if ( 'above' === parentValues.caption_style && 'undefined' !== typeof captionHtml ) {
+		images_html += captionHtml;
+	}
+
 	images_html += '<div ' + _.fusionGetAttributes( imageWrapperAttr ) + '>';
+
+	if ( -1 === jQuery.inArray( parentValues.caption_style, [ 'off', 'above', 'below' ] ) && 'undefined' !== typeof captionHtml ) {
+		image_html += captionHtml;
+	}
 
 	if ( galleryLightbox && 'no' !== galleryLightbox ) {
 		images_html += '<a ' + _.fusionGetAttributes( imagesAttr.link ) + '>' + image_html + '</a>';
@@ -40,6 +50,11 @@
 		images_html += image_html;
 	}
 	images_html += '</div>';
+
+	if ( 'below' === parentValues.caption_style && 'undefined' !== typeof captionHtml ) {
+		images_html += captionHtml;
+	}
+
 	images_html += '</div>';
 
 	// TODO: between child views ?

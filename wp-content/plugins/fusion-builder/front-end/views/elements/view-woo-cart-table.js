@@ -1,4 +1,3 @@
-/* global avadaAddQuantityBoxes */
 var FusionPageBuilder = FusionPageBuilder || {};
 
 ( function() {
@@ -10,7 +9,10 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 			afterPatch: function() {
 				var $quantityBoxes = this.$el.find( 'div.quantity:not(.buttons_added), td.quantity:not(.buttons_added)' ).find( '.qty' );
-				avadaAddQuantityBoxes( '.qty', $quantityBoxes );
+
+				if ( $quantityBoxes.length && 'function' === typeof jQuery( '#fb-preview' )[ 0 ].contentWindow.avadaAddQuantityBoxes ) {
+					jQuery( '#fb-preview' )[ 0 ].contentWindow.avadaAddQuantityBoxes( '.qty', $quantityBoxes );
+				}
 			},
 
 			/**

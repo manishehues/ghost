@@ -53,7 +53,7 @@ class Avada_Block_Editor {
 			add_filter( 'gutenberg_use_widgets_block_editor', '__return_false' );
 
 			// Disables the block editor from managing widgets.
-			add_filter( 'use_widgets_block_editor', '__return_false' );			
+			add_filter( 'use_widgets_block_editor', '__return_false' );
 
 		} else { // Front-end only.
 
@@ -283,7 +283,14 @@ class Avada_Block_Editor {
 			'button_gradient_top_color_hover'    => Fusion_Sanitize::color( Avada()->settings->get( 'button_gradient_top_color_hover' ) ),
 			'button_gradient_bottom_color'       => Fusion_Sanitize::color( Avada()->settings->get( 'button_gradient_bottom_color' ) ),
 			'button_gradient_bottom_color_hover' => Fusion_Sanitize::color( Avada()->settings->get( 'button_gradient_bottom_color_hover' ) ),
-			'button_border_width'                => Fusion_Sanitize::size( Avada()->settings->get( 'button_border_width' ) ) . 'px',
+			'button_border_width-top'            => Fusion_Sanitize::size( Avada()->settings->get( 'button_border_width', 'top' ), 'px' ),
+			'button_border_width-right'          => Fusion_Sanitize::size( Avada()->settings->get( 'button_border_width', 'right' ), 'px' ),
+			'button_border_width-bottom'         => Fusion_Sanitize::size( Avada()->settings->get( 'button_border_width', 'bottom' ), 'px' ),
+			'button_border_width-left'           => Fusion_Sanitize::size( Avada()->settings->get( 'button_border_width', 'left' ), 'px' ),
+			'button-border-radius-top-left'      => Fusion_Sanitize::size( Avada()->settings->get( 'button_border_radius', 'top_left' ), 'px' ),
+			'button-border-radius-top-right'     => Fusion_Sanitize::size( Avada()->settings->get( 'button_border_radius', 'top_right' ), 'px' ),
+			'button-border-radius-bottom-right'  => Fusion_Sanitize::size( Avada()->settings->get( 'button_border_radius', 'bottom_right' ), 'px' ),
+			'button-border-radius-bottom-left'   => Fusion_Sanitize::size( Avada()->settings->get( 'button_border_radius', 'bottom_left' ), 'px' ),
 			'button_typography-font-family'      => $dynamic_css_helpers->combined_font_family( Avada()->settings->get( 'button_typography' ) ),
 			'button_typography-font-weight'      => intval( Avada()->settings->get( 'button_typography', 'font-weight' ) ),
 			'button_typography-font-style'       => Avada()->settings->get( 'button_typography', 'font-style' ),
@@ -327,7 +334,7 @@ class Avada_Block_Editor {
 			$bg_color         = $this->get_post_bg_color();
 			$brightness_level = Fusion_Color::new_color( $bg_color )->brightness;
 
-			if ( $brightness_level['total'] < 140 ) {
+			if ( isset( $brightness_level['total'] ) && $brightness_level['total'] < 140 ) {
 				add_theme_support( 'dark-editor-style' );
 			}
 		}
@@ -455,7 +462,7 @@ class Avada_Block_Editor {
 	 * @return string
 	 */
 	public function add_css_vars_to_css( $css ) {
-		return ':root{--button_padding:11px 23px;--button_font_size:13px;--button_line_height:16px;}' . $css;
+		return ':root{--button_padding:11px 23px;}' . $css;
 	}
 
 	/**

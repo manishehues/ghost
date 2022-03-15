@@ -106,7 +106,7 @@ class Avada_Server_Rules {
 			return true;
 		}
 
-		return isset( $_SERVER['SERVER_SOFTWARE'] ) && false !== stristr( $_SERVER['SERVER_SOFTWARE'], 'Apache' ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		return isset( $_SERVER['SERVER_SOFTWARE'] ) && false !== stristr( $_SERVER['SERVER_SOFTWARE'], 'Apache' ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 	}
 
 	/**

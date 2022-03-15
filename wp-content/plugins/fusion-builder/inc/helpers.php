@@ -277,6 +277,35 @@ function fusion_builder_get_revslider_slides() {
 }
 
 /**
+ * Get a list of all public post types.
+ *
+ * The arguments to get the types can be additionally changed.
+ *
+ * @since 3.5
+ * @param array  $args Additional arguments to filter post types.
+ * @param string $operator The operator to filter post types. can be 'and',
+ *                         'or', 'not'. See get_post_types().
+ * @return array
+ */
+function awb_get_post_types( $args = [], $operator = 'and' ) {
+	$returned_types = [];
+	$defaults       = [
+		'public'  => true,
+		'show_ui' => true,
+	];
+
+	$post_types_filter = array_merge( $defaults, $args );
+
+	$post_types = get_post_types( $post_types_filter, 'objects', $operator );
+
+	foreach ( $post_types as $post_type ) {
+		$returned_types[ $post_type->name ] = $post_type->label;
+	}
+
+	return $returned_types;
+}
+
+/**
  * Taxonomies.
  *
  * @since 1.0
@@ -1071,32 +1100,41 @@ function fusion_builder_build_social_links( $social_networks = '', $filter = '',
 						if ( ! isset( $social_media_icons['custom_source'][ $custom_key ] ) ) {
 							$social_media_icons['custom_source'][ $custom_key ] = '';
 						}
+						if ( ! isset( $social_media_icons['icon_mark'][ $custom_key ] ) ) {
+							$social_media_icons['icon_mark'][ $custom_key ] = '';
+						}
 
 						$icon_options = [
 							'social_network' => $social_media_icons['custom_title'][ $custom_key ],
 							'social_link'    => $url,
 							'icon_color'     => isset( $icon_colors[ $i ] ) ? $icon_colors[ $i ] : '',
 							'box_color'      => $custom_icon_box_color,
+							'icon_mark'      => str_replace( 'fusion-prefix-', '', $social_media_icons['icon_mark'][ $custom_key ] ),
 						];
 
 						$icons .= '<a ' . FusionBuilder::attributes( $filter, $icon_options ) . '>';
-						$icons .= '<img';
 
-						if ( isset( $social_media_icons['custom_source'][ $custom_key ]['url'] ) ) {
-							$icons .= ' src="' . $social_media_icons['custom_source'][ $custom_key ]['url'] . '"';
+						if ( empty( $social_media_icons['icon_mark'][ $custom_key ] ) ) {
+							$icons .= '<img';
+
+							if ( isset( $social_media_icons['custom_source'][ $custom_key ]['url'] ) ) {
+								$icons .= ' src="' . $social_media_icons['custom_source'][ $custom_key ]['url'] . '"';
+							}
+							if ( isset( $social_media_icons['custom_title'][ $custom_key ] ) && $social_media_icons['custom_title'][ $custom_key ] ) {
+								$icons .= ' alt="' . $social_media_icons['custom_title'][ $custom_key ] . '"';
+							}
+							if ( isset( $social_media_icons['custom_source'][ $custom_key ]['width'] ) && $social_media_icons['custom_source'][ $custom_key ]['width'] ) {
+								$width  = intval( $social_media_icons['custom_source'][ $custom_key ]['width'] );
+								$icons .= ' width="' . $width . '"';
+							}
+							if ( isset( $social_media_icons['custom_source'][ $custom_key ]['height'] ) && $social_media_icons['custom_source'][ $custom_key ]['height'] ) {
+								$height = intval( $social_media_icons['custom_source'][ $custom_key ]['height'] );
+								$icons .= ' height="' . $height . '"';
+							}
+							$icons .= ' />';
 						}
-						if ( isset( $social_media_icons['custom_title'][ $custom_key ] ) && $social_media_icons['custom_title'][ $custom_key ] ) {
-							$icons .= ' alt="' . $social_media_icons['custom_title'][ $custom_key ] . '"';
-						}
-						if ( isset( $social_media_icons['custom_source'][ $custom_key ]['width'] ) && $social_media_icons['custom_source'][ $custom_key ]['width'] ) {
-							$width  = intval( $social_media_icons['custom_source'][ $custom_key ]['width'] );
-							$icons .= ' width="' . $width . '"';
-						}
-						if ( isset( $social_media_icons['custom_source'][ $custom_key ]['height'] ) && $social_media_icons['custom_source'][ $custom_key ]['height'] ) {
-							$height = intval( $social_media_icons['custom_source'][ $custom_key ]['height'] );
-							$icons .= ' height="' . $height . '"';
-						}
-						$icons .= ' /></a>';
+
+						$icons .= '</a>';
 					}
 				} else {
 
@@ -1137,6 +1175,7 @@ function fusion_builder_get_social_networks( $defaults ) {
 	$fusion_settings    = awb_get_fusion_settings();
 	$social_links_array = [];
 
+	// Careful! The icons are also ordered by these.
 	if ( $defaults['facebook'] ) {
 		$social_links_array['facebook'] = $defaults['facebook'];
 	}
@@ -1152,6 +1191,9 @@ function fusion_builder_get_social_networks( $defaults ) {
 	if ( $defaults['instagram'] ) {
 		$social_links_array['instagram'] = $defaults['instagram'];
 	}
+	if ( $defaults['youtube'] ) {
+		$social_links_array['youtube'] = $defaults['youtube'];
+	}
 	if ( $defaults['linkedin'] ) {
 		$social_links_array['linkedin'] = $defaults['linkedin'];
 	}
@@ -1160,9 +1202,6 @@ function fusion_builder_get_social_networks( $defaults ) {
 	}
 	if ( $defaults['rss'] ) {
 		$social_links_array['rss'] = $defaults['rss'];
-	}
-	if ( $defaults['youtube'] ) {
-		$social_links_array['youtube'] = $defaults['youtube'];
 	}
 	if ( $defaults['pinterest'] ) {
 		$social_links_array['pinterest'] = $defaults['pinterest'];
@@ -1187,6 +1226,9 @@ function fusion_builder_get_social_networks( $defaults ) {
 	}
 	if ( $defaults['skype'] ) {
 		$social_links_array['skype'] = $defaults['skype'];
+	}
+	if ( $defaults['teams'] ) {
+		$social_links_array['teams'] = $defaults['teams'];
 	}
 	if ( $defaults['myspace'] ) {
 		$social_links_array['myspace'] = $defaults['myspace'];
@@ -1221,6 +1263,9 @@ function fusion_builder_get_social_networks( $defaults ) {
 	if ( $defaults['whatsapp'] ) {
 		$social_links_array['whatsapp'] = $defaults['whatsapp'];
 	}
+	if ( $defaults['telegram'] ) {
+		$social_links_array['telegram'] = $defaults['telegram'];
+	}
 	if ( $defaults['xing'] ) {
 		$social_links_array['xing'] = $defaults['xing'];
 	}
@@ -1244,7 +1289,7 @@ function fusion_builder_get_social_networks( $defaults ) {
 			foreach ( $social_media_icons_arr as $key => $icon ) {
 				$social_media_icons_url = $fusion_settings->get( 'social_media_icons', 'url' );
 				if ( 'custom' === $icon && is_array( $social_media_icons_url ) && isset( $social_media_icons_url[ $key ] ) && ! empty( $social_media_icons_url[ $key ] ) ) {
-					// Check if there is a default set for this, if so use that rather than TO link.
+					// Check if there is a default set for this, if so use that rather than GO link.
 					if ( isset( $defaults[ 'custom_' . $key ] ) && ! empty( $defaults[ 'custom_' . $key ] ) ) {
 						$social_links_array['custom'][ $key ] = $defaults[ 'custom_' . $key ];
 					} else {
@@ -1866,6 +1911,7 @@ if ( ! function_exists( 'fusion_builder_render_post_metadata' ) ) {
 		];
 
 		$settings  = wp_parse_args( $settings, $default_settings );
+		$post_type = get_post_type();
 		$post_meta = fusion_data()->post_meta( get_queried_object_id() )->get( 'post_meta' );
 
 		// Check if meta data is enabled.
@@ -1878,7 +1924,7 @@ if ( ! function_exists( 'fusion_builder_render_post_metadata' ) ) {
 
 			// Render post type meta data.
 			if ( isset( $settings['post_meta_type'] ) && $settings['post_meta_type'] ) {
-				$metadata .= '<span class="fusion-meta-post-type">' . esc_html( ucwords( get_post_type() ) ) . '</span>';
+				$metadata .= '<span class="fusion-meta-post-type">' . esc_html( ucwords( $post_type ) ) . '</span>';
 				$metadata .= '<span class="fusion-inline-sep">|</span>';
 			}
 
@@ -1916,9 +1962,16 @@ if ( ! function_exists( 'fusion_builder_render_post_metadata' ) ) {
 			// Render rest of meta data.
 			// Render categories.
 			if ( $settings['post_meta_cats'] ) {
-				ob_start();
-				the_category( ', ' );
-				$categories = ob_get_clean();
+				$taxonomies = [
+					'avada_portfolio' => 'portfolio_category',
+					'avada_faq'       => 'faq_category',
+					'product'         => 'product_cat',
+					'tribe_events'    => 'tribe_events_cat',
+				];
+
+				if ( 'post' === $post_type || isset( $taxonomies[ $post_type ] ) ) {
+					$categories = 'post' === $post_type ? get_the_category_list( ', ' ) : get_the_term_list( get_the_ID(), $taxonomies[ $post_type ], '', ', ' );
+				}
 
 				if ( $categories ) {
 					/* translators: The categories. */
@@ -1929,11 +1982,15 @@ if ( ! function_exists( 'fusion_builder_render_post_metadata' ) ) {
 
 			// Render tags.
 			if ( $settings['post_meta_tags'] ) {
-				ob_start();
-				the_tags( '' );
-				$tags = ob_get_clean();
+				if ( 'avada_portfolio' === $post_type ) {
+					$tags = get_the_term_list( get_the_ID(), $taxonomies[ $post_type ], '', ', ', '' );
+				} else {
+					ob_start();
+					the_tags( '' );
+					$tags = ob_get_clean();
+				}
 
-				if ( $tags ) {
+				if ( $tags && ! is_wp_error( $tags ) ) {
 					/* translators: The tags. */
 					$metadata .= '<span class="meta-tags">' . sprintf( esc_html__( 'Tags: %s', 'fusion-builder' ), $tags ) . '</span><span class="fusion-inline-sep">|</span>';
 				}
@@ -2160,26 +2217,22 @@ function fusion_builder_wp_link_query_args( $query ) {
 add_filter( 'wp_link_query_args', 'fusion_builder_wp_link_query_args' );
 
 /**
- * Determines if a color needs adjusting or not.
- *
- * @since 1.6
- * @param string $color The color.
- * @return bool
- */
-function fusion_color_needs_adjustment( $color ) {
-	if ( '#ffffff' === $color || fusion_is_color_transparent( $color ) ) {
-		return true;
-	}
-
-	return false;
-}
-
-/**
  * The template for options.
  *
  * @param array $params The parameters for the option.
  */
 function fusion_element_options_loop( $params ) {
+	$is_builder         = ( function_exists( 'fusion_is_preview_frame' ) && fusion_is_preview_frame() ) || ( function_exists( 'fusion_is_builder_frame' ) && fusion_is_builder_frame() || ( fusion_doing_ajax() && isset( $_POST['fusion_load_nonce'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification
+	$descriptions_class = '';
+	$descriptions_css   = '';
+
+	if ( $is_builder ) {
+		$preferences = Fusion_App()->preferences->get_preferences();
+		if ( isset( $preferences['descriptions'] ) && 'show' === $preferences['descriptions'] ) {
+			$descriptions_class = ' active';
+			$descriptions_css   = ' style="display: block;"';
+		}
+	}
 	?>
 	<#
 	function fusion_display_option( param ) {
@@ -2239,7 +2292,7 @@ function fusion_element_options_loop( $params ) {
 								{{ param.heading }}
 							</h3>
 							<ul class="fusion-panel-options">
-								<li> <a href="JavaScript:void(0);" class="fusion-panel-description"><i class="fusiona-question-circle" aria-hidden="true"></i></a> <span class="fusion-elements-option-tooltip fusion-tooltip-description">{{ fusionBuilderText.fusion_panel_desciption_toggle }}</span></li>
+								<li> <a href="JavaScript:void(0);" class="fusion-panel-description<?php echo esc_attr( $descriptions_class ); ?>"><i class="fusiona-question-circle" aria-hidden="true"></i></a> <span class="fusion-elements-option-tooltip fusion-tooltip-description">{{ fusionBuilderText.fusion_panel_desciption_toggle }}</span></li>
 								<# if ( 'undefined' !== param.default_option && '' !== param.default_option && param.default_option ) { #>
 									<li><a href="JavaScript:void(0);"><span class="fusion-panel-shortcut" data-fusion-option="{{ param.default_option }}"><i class="fusiona-cog" aria-hidden="true"></i></a><span class="fusion-elements-option-tooltip fusion-tooltip-global-settings"><?php esc_html_e( 'Global Options', 'fusion-builder' ); ?></span></li>
 								<# } #>
@@ -2263,7 +2316,7 @@ function fusion_element_options_loop( $params ) {
 					</div>
 
 					<# if ( 'undefined' !== typeof param.description ) { #>
-						<p class="description">{{{ param.description }}}</p>
+						<p class="description"<?php echo $descriptions_css; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>{{{ param.description }}}</p>
 					<# }; #>
 				</div>
 			<# } #>
@@ -2302,8 +2355,9 @@ function fusion_element_options_loop( $params ) {
 					'sortable',
 					'connected_sortable',
 					'info',
-					'font_family',
+					'typography',
 					'ajax_select',
+					'image_focus_point',
 				];
 
 				$fields = apply_filters( 'fusion_builder_fields', $field_types );
@@ -2375,6 +2429,14 @@ function is_fusion_editor() {
  * @param array $params The parameters for the option.
  */
 function fusion_builder_preferences_loop( $params ) {
+	$preferences        = Fusion_App()->preferences->get_preferences();
+	$descriptions_class = '';
+	$descriptions_css   = '';
+
+	if ( isset( $preferences['descriptions'] ) && 'show' === $preferences['descriptions'] ) {
+		$descriptions_class = ' active';
+		$descriptions_css   = ' style="display: block;"';
+	}
 	?>
 		<# _.each( <?php echo $params; // phpcs:ignore WordPress.Security.EscapeOutput ?>, function(param) { #>
 			<# option_value = _.unescape(param.default); #>
@@ -2386,13 +2448,13 @@ function fusion_builder_preferences_loop( $params ) {
 						<# if ( 'undefined' !== typeof param.heading ) { #>
 							<h3>{{ param.heading }}</h3>
 							<ul class="fusion-panel-options">
-								<li> <a href="JavaScript:void(0);" class="fusion-panel-description"><i class="fusiona-question-circle" aria-hidden="true"></i></a> <span class="fusion-elements-option-tooltip fusion-tooltip-description">{{ fusionBuilderText.fusion_panel_desciption_toggle }}</span></li>
+								<li> <a href="JavaScript:void(0);" class="fusion-panel-description<?php echo esc_attr( $descriptions_class ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"><i class="fusiona-question-circle" aria-hidden="true"></i></a> <span class="fusion-elements-option-tooltip fusion-tooltip-description">{{ fusionBuilderText.fusion_panel_desciption_toggle }}</span></li>
 							</ul>
 						<# }; #>
 					</div>
 
 					<# if ( 'undefined' !== typeof param.description ) { #>
-						<p class="description">{{{ param.description }}}</p>
+						<p class="description"<?php echo $descriptions_css; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>{{{ param.description }}}</p>
 					<# }; #>
 				</div>
 
@@ -2448,23 +2510,6 @@ function fusion_builder_preferences_loop( $params ) {
 
 		<# } ); #>
 	<?php
-}
-
-if ( ! function_exists( 'fusion_is_color_transparent' ) ) {
-	/**
-	 * Figure out if a color is transparent or not.
-	 *
-	 * @since 2.0
-	 * @param string $color The color we want to check.
-	 * @return bool
-	 */
-	function fusion_is_color_transparent( $color ) {
-		$color = trim( $color );
-		if ( 'transparent' === $color ) {
-			return true;
-		}
-		return ( 0 === Fusion_Color::new_color( $color )->alpha );
-	}
 }
 
 /**
@@ -2560,6 +2605,55 @@ function fusion_get_widget_data_forms() {
 }
 add_action( 'wp_ajax_fusion_get_widget_form', 'fusion_get_widget_data_forms' );
 
+/**
+ * Get a post reading time.
+ *
+ * @param WP_Post|int|null $post The post object, id, or null for default global.
+ * @param array            $args An array with 2 args, "reading_speed" and "image_reading_speed".
+ * @return float|int The time to read the post.
+ */
+function awb_get_reading_time( $post, $args = [] ) {
+	if ( -99 === $post || '-99' === $post ) {
+		$post = Fusion_Dummy_Post::get_dummy_post();
+	} else {
+		$post = get_post( $post );
+	}
+
+	if ( ! $post ) {
+		return 0;
+	}
+
+	if ( empty( $args['reading_speed'] ) ) {
+		$args['reading_speed'] = 200;
+	}
+
+	if ( empty( $args['image_reading_speed'] ) ) {
+		$args['image_reading_speed'] = 0.05;
+	}
+
+	$post_content = $post->post_content;
+	// Removes the shortcodes.
+	$post_content_wihout_shortcodes = preg_replace( '~(?:\[/?)[^/\]]+/?\]~s', '', $post_content );
+
+	$words_count_content = wp_strip_all_tags( $post_content_wihout_shortcodes );
+	$words_count         = str_word_count( $words_count_content );
+
+	$reading_speed = intval( $args['reading_speed'] );
+	if ( ! is_int( $words_count ) ) {
+		return 0;
+	}
+
+	// Calculate image reading time.
+	$image_additional_time = 0;
+	$preg_match_result     = [];
+	preg_match_all( '~<img~i', $post_content_wihout_shortcodes, $preg_match_result );
+	if ( count( $preg_match_result[0] ) > 0 ) {
+		$image_additional_time = count( $preg_match_result[0] ) * $args['image_reading_speed'];
+	}
+
+	$reading_time = round( ( $words_count / $reading_speed ) + $image_additional_time, 1 );
+	return $reading_time;
+}
 
 if ( ! function_exists( 'fusion_comment' ) ) {
 	/**
@@ -2666,4 +2760,48 @@ if ( ! function_exists( 'fusion_get_link_attributes' ) ) {
 		return $attr;
 	}
 }
+
+if ( ! function_exists( 'fusion_get_svg_from_file' ) ) {
+	/**
+	 * Get Svg tag from file.
+	 *
+	 * @access public
+	 * @param array $url    File URL.
+	 * @param array $args    The element arguments.
+	 * @return array
+	 */
+	function fusion_get_svg_from_file( $url, $args = [] ) {
+		if ( ! $url ) {
+			return;
+		}
+
+		$file = new DOMDocument();
+		$file->load( $url );
+		$svg = $file->saveHTML( $file->getElementsByTagName( 'svg' )[0] );
+
+		if ( ! $svg ) {
+			return [];
+		}
+
+		// Get the default height.
+		preg_match( '/viewBox="(.*?)"/', $svg, $view_box );
+		$view_box = isset( $view_box[1] ) ? explode( ' ', $view_box[1] ) : [];
+		$width    = isset( $view_box[2] ) ? $view_box[2] : '';
+		$height   = isset( $view_box[3] ) ? $view_box[3] : '';
+
+		// Replace fill wth background color.
+		if ( ! empty( $args['background-color'] ) ) {
+			$svg = preg_replace( '/fill="(.*?)"/', 'fill="' . Fusion_Color::new_color( $args['background-color'] )->toCss( 'rgba' ) . '"', $svg );
+		}
+
+		return [
+			'svg'    => $svg,
+			'height' => $height,
+			'width'  => $width,
+		];
+
+	}
+}
+
+
 /* Omit closing PHP tag to avoid "Headers already sent" issues. */

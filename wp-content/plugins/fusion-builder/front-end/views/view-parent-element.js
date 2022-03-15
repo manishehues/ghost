@@ -578,7 +578,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			 * @param {Object} event - The event.
 			 * @return {void}
 			 */
-			addChildElement: function( event ) {
+			addChildElement: function( event, predefinedParams ) {
 
 				var params = {},
 					defaultParams,
@@ -596,7 +596,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				childElement = fusionMultiElements[ this.model.get( 'element_type' ) ];
 
-				defaultParams = fusionAllElements[ childElement ].params;
+				defaultParams = predefinedParams ? predefinedParams : fusionAllElements[ childElement ].params;
 
 				allowGenerator = ( 'undefined' !== typeof fusionAllElements[ childElement ].allow_generator ) ? fusionAllElements[ childElement ].allow_generator : '';
 
@@ -631,7 +631,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					moduleSettings.selectors = jQuery.extend( true, {}, fusionAllElements[ childElement ].selectors );
 				}
 
-				if ( 'undefined' !== typeof event && jQuery( event.currentTarget ).closest( '.fusion-builder-live-child-element' ).length && ! FusionPageBuilderApp.wireframeActive ) {
+				if ( 'undefined' !== typeof event && null !== event && jQuery( event.currentTarget ).closest( '.fusion-builder-live-child-element' ).length && ! FusionPageBuilderApp.wireframeActive ) {
 					moduleSettings.targetElement = jQuery( event.currentTarget ).closest( '.fusion-builder-live-child-element' );
 				}
 

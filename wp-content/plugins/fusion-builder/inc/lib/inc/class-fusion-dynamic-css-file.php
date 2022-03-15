@@ -32,7 +32,7 @@ class Fusion_Dynamic_CSS_File {
 	public function __construct( $dynamic_css ) {
 
 		$this->dynamic_css = $dynamic_css;
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_dynamic_css' ], PHP_INT_MAX );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_dynamic_css' ], ( PHP_INT_MAX - 1 ) );
 
 		// Make sure file mode dynamic CSS is not created in backend.
 		if ( is_admin() ) {

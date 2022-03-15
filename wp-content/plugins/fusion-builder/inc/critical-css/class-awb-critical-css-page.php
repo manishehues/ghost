@@ -1,6 +1,13 @@
 <?php
 /**
- * Management of critical CSS.
+ * Critical CSS management.
+ *
+ * @package fusion-builder
+ * @since 3.4
+ */
+
+/**
+ * Critical CSS Page.
  *
  * @since 3.4
  */
@@ -104,8 +111,8 @@ class AWB_Critical_CSS_Page {
 			wp_send_json_error( __( 'Security check failed.', 'fusion-builder' ) );
 		}
 
-		$css_key = sanitize_text_field( wp_unslash( $_POST['post_id'] ) );
-		$css     = wp_unslash( $_POST['css'] );
+		$css_key = sanitize_text_field( wp_unslash( $_POST['post_id'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+		$css     = wp_unslash( $_POST['css'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 
 		if ( empty( $css ) ) {
 			wp_send_json_error( __( 'No compiled CSS available for page.', 'fusion-builder' ) );
@@ -123,8 +130,8 @@ class AWB_Critical_CSS_Page {
 			$db_data['mobile_css'] = is_array( $css['mobile'] ) ? $css['mobile'][0] : $css['mobile'];
 		}
 
-		// Check if we have any preloads
-		$preloads = isset( $_POST['preloads'] ) ? wp_unslash( $_POST['preloads'] ) : false;
+		// Check if we have any preloads.
+		$preloads = isset( $_POST['preloads'] ) ? wp_unslash( $_POST['preloads'] ) : false; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 
 		if ( $preloads ) {
 			if ( isset( $preloads['desktop'] ) ) {
@@ -181,7 +188,7 @@ class AWB_Critical_CSS_Page {
 			$this->redirect_to_critical_css_page();
 		}
 
-		$ids = wp_unslash( $_GET['post'] );
+		$ids = wp_unslash( $_GET['post'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 
 		AWB_Critical_CSS()->bulk_delete( $ids );
 
@@ -201,7 +208,7 @@ class AWB_Critical_CSS_Page {
 			return;
 		}
 
-		$id = sanitize_text_field( wp_unslash( $_GET['post'] ) );
+		$id = sanitize_text_field( wp_unslash( $_GET['post'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 
 		AWB_Critical_CSS()->delete(
 			[ 'id' => $id ],
@@ -224,7 +231,7 @@ class AWB_Critical_CSS_Page {
 			return;
 		}
 
-		$id = sanitize_text_field( wp_unslash( $_GET['post'] ) );
+		$id = sanitize_text_field( wp_unslash( $_GET['post'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 
 		AWB_Critical_CSS()->update(
 			[ 'desktop_css' => '' ],
@@ -249,7 +256,7 @@ class AWB_Critical_CSS_Page {
 			return;
 		}
 
-		$id = sanitize_text_field( wp_unslash( $_GET['post'] ) );
+		$id = sanitize_text_field( wp_unslash( $_GET['post'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 
 		AWB_Critical_CSS()->update(
 			[ 'mobile_css' => '' ],
@@ -271,9 +278,9 @@ class AWB_Critical_CSS_Page {
 	 */
 	protected function redirect_to_critical_css_page() {
 
-		$url = wp_unslash( $_SERVER['REQUEST_URI'] );
+		$url = wp_unslash( $_SERVER['REQUEST_URI'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 
-		if ( isset( $_REQUEST['_wp_http_referer'] ) ) {
+		if ( isset( $_REQUEST['_wp_http_referer'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			$referer = fusion_get_referer();
 
 			if ( $referer ) {
@@ -291,9 +298,10 @@ class AWB_Critical_CSS_Page {
 	/**
 	 * Generate preload link for images found.
 	 *
+	 * @param array $preloads Array of preloads.
 	 * @access public
 	 * @since 3.4
-	 * @return void
+	 * @return string
 	 */
 	public function preload_markup( $preloads = [] ) {
 		$markup = '';
@@ -342,7 +350,7 @@ class AWB_Critical_CSS_Page {
 			wp_send_json_error( __( 'Security check failed.', 'fusion-builder' ) );
 		}
 
-		$ids      = wp_unslash( $_GET['post'] );
+		$ids      = wp_unslash( $_GET['post'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 		$css_keys = AWB_Critical_CSS()->get_bulk_css_keys( $ids );
 
 		foreach ( $css_keys as $css_key ) {
@@ -355,9 +363,10 @@ class AWB_Critical_CSS_Page {
 	/**
 	 * Get the URLs for the selection.
 	 *
+	 * @param array $type The URL type.
 	 * @access protected
 	 * @since 3.4
-	 * @return void
+	 * @return array
 	 */
 	protected function get_urls( $type ) {
 		$urls = [];
@@ -381,10 +390,10 @@ class AWB_Critical_CSS_Page {
 				break;
 
 			case 'specific_pages':
-				if ( empty( $_GET['_fusion']['_specific_pages'] ) ) {
+				if ( empty( $_GET['_fusion']['_specific_pages'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 					wp_send_json_error( __( 'No selection made.', 'fusion-builder' ) );
 				}
-				$pages = wp_unslash( $_GET['_fusion']['_specific_pages'] );
+				$pages = wp_unslash( $_GET['_fusion']['_specific_pages'] ); // phpcs:ignore WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput
 
 				foreach ( (array) $pages as $page ) {
 					$url = get_permalink( $page );
@@ -553,7 +562,7 @@ class AWB_Critical_CSS_Page {
 	 * @return void
 	 */
 	public function add_menu_page() {
-		add_submenu_page( 'avada', esc_html__( 'Critical CSS', 'fusion-builder' ), esc_html__( 'Critical CSS', 'fusion-builder' ), 'switch_themes', 'avada-critical', [ $this, 'render_page' ], 13 );
+		add_submenu_page( 'avada', esc_html__( 'Critical CSS', 'fusion-builder' ), esc_html__( 'Critical CSS', 'fusion-builder' ), 'switch_themes', 'avada-critical', [ $this, 'render_page' ], 16 );
 	}
 
 	/**
@@ -625,21 +634,13 @@ class AWB_Critical_CSS_Page {
 			false
 		);
 
-		// Option type JS
+		// Option type JS.
 		wp_enqueue_script(
 			'avada-fusion-options',
 			Avada::$template_dir_url . '/assets/admin/js/avada-fusion-options.js',
 			[ 'jquery', 'jquery-ui-sortable' ],
-			'3.4',
+			FUSION_BUILDER_VERSION,
 			false
-		);
-
-		wp_enqueue_script(
-			'avada-fusion-options',
-			Avada::$template_dir_url . '/assets/admin/js/avada-fusion-options.js',
-			[ 'jquery', 'jquery-ui-sortable' ],
-			'3.4',
-			FUSION_BUILDER_VERSION
 		);
 		?>
 		<?php Fusion_Builder_Admin::header( 'critical' ); ?>
@@ -710,6 +711,7 @@ class AWB_Critical_CSS_Page {
 					}
 				}
 
+				/* translators: The name. */
 				$placeholder = sprintf( esc_attr__( 'Select %s', 'Avada' ), $post_type->labels->name );
 				$metaboxes->multiple( 'specific_pages', '', $selection, '', [], $ajax, $ajax_params, 50, $placeholder, false );
 				?>
@@ -731,7 +733,7 @@ class AWB_Critical_CSS_Page {
 				$css_table = new AWB_Critical_CSS_Table();
 				$css_table->get_status_links();
 			?>
-			<form id="awb-critical-css" method="get" data-nonce="<?php echo wp_create_nonce( 'critical-css' ); ?>">
+			<form id="awb-critical-css" method="get" data-nonce="<?php echo wp_create_nonce( 'critical-css' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>">
 				<?php
 				$css_table->prepare_items();
 				$css_table->display();

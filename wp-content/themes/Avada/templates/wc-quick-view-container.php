@@ -22,7 +22,7 @@
 	</div>
 
 	<div class="fusion-wqv-loader product">
-		<h2 class="product_title entry-title"></h2>
+		<h2 class="product_title entry-title"><?php esc_html_e( 'Title', 'Avada' ); ?></h2>
 		<div class="fusion-price-rating">
 			<div class="price"></div>
 			<div class="star-rating"></div>

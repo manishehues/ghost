@@ -50,6 +50,7 @@ if ( fusion_is_element_enabled( 'fusion_highlight' ) ) {
 
 				return [
 					'background'              => 'yes',
+					'background_style'        => 'full',
 					'class'                   => '',
 					'id'                      => '',
 					'color'                   => $fusion_settings->get( 'primary_color' ),
@@ -151,11 +152,16 @@ if ( fusion_is_element_enabled( 'fusion_highlight' ) ) {
 				}
 
 				if ( 'no' !== $this->args['background'] ) {
-					if ( 'yes' === $this->args['rounded'] ) {
-						$attr['class'] .= ' rounded';
+					if ( 'full' === $this->args['background_style'] ) {
+						$attr['class'] .= ' awb-highlight-background';
+						$attr['style'] .= 'background-color:' . $this->args['color'] . ';';
+
+						if ( 'yes' === $this->args['rounded'] ) {
+							$attr['class'] .= ' rounded';
+						}
+					} else {
+						$attr['style'] .= 'background:linear-gradient(to top, ' . $this->args['color'] . ' 40%, transparent 40%);';
 					}
-					$attr['class'] .= ' awb-highlight-background';
-					$attr['style'] .= 'background-color:' . $this->args['color'] . ';';
 				} elseif ( 'yes' === $this->args['gradient_font'] ) {
 					$attr['style'] .= Fusion_Builder_Gradient_Helper::get_gradient_font_string( $this->args );
 					$attr['class'] .= ' awb-gradient-text';
@@ -189,7 +195,7 @@ function fusion_element_highlight() {
 				'shortcode'      => 'fusion_highlight',
 				'icon'           => 'fusiona-H',
 				'generator_only' => true,
-				'help_url'       => 'https://theme-fusion.com/documentation/fusion-builder/elements/highlight-element/',
+				'help_url'       => 'https://theme-fusion.com/documentation/avada/elements/highlight-element/',
 				'params'         => [
 					[
 						'type'        => 'radio_button_set',
@@ -201,6 +207,24 @@ function fusion_element_highlight() {
 							'no'  => esc_attr__( 'No', 'fusion-builder' ),
 						],
 						'default'     => 'yes',
+					],
+					[
+						'type'        => 'radio_button_set',
+						'heading'     => esc_attr__( 'Background Style', 'fusion-builder' ),
+						'description' => esc_attr__( 'Select the background highlight style.', 'fusion-builder' ),
+						'param_name'  => 'background_style',
+						'value'       => [
+							'full'         => esc_attr__( 'Full', 'fusion-builder' ),
+							'marker_style' => esc_attr__( 'Marker Style', 'fusion-builder' ),
+						],
+						'default'     => 'full',
+						'dependency'  => [
+							[
+								'element'  => 'background',
+								'value'    => 'yes',
+								'operator' => '==',
+							],
+						],
 					],
 					[
 						'type'        => 'colorpickeralpha',
@@ -231,6 +255,11 @@ function fusion_element_highlight() {
 							[
 								'element'  => 'background',
 								'value'    => 'yes',
+								'operator' => '==',
+							],
+							[
+								'element'  => 'background_style',
+								'value'    => 'full',
 								'operator' => '==',
 							],
 						],

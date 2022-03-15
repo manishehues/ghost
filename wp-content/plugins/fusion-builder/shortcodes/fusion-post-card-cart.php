@@ -172,7 +172,10 @@ if ( fusion_is_element_enabled( 'fusion_post_card_cart' ) ) {
 
 					'button_size'                          => '',
 
-					'button_border_width'                  => '',
+					'button_border_top'                    => '',
+					'button_border_right'                  => '',
+					'button_border_bottom'                 => '',
+					'button_border_left'                   => '',
 					'button_icon'                          => '',
 					'icon_position'                        => 'left',
 					'button_color'                         => '',
@@ -191,7 +194,10 @@ if ( fusion_is_element_enabled( 'fusion_post_card_cart' ) ) {
 					'link_color'                           => '',
 					'link_hover_color'                     => '',
 					'button_details_size'                  => '',
-					'button_details_border_width'          => '',
+					'button_details_border_top'            => '',
+					'button_details_border_right'          => '',
+					'button_details_border_bottom'         => '',
+					'button_details_border_left'           => '',
 					'button_details_icon'                  => '',
 					'icon_details_position'                => 'left',
 					'button_details_color'                 => '',
@@ -267,6 +273,20 @@ if ( fusion_is_element_enabled( 'fusion_post_card_cart' ) ) {
 					$this->args['enable_quick_view'] = '1';
 				} elseif ( 'no' === $this->args['enable_quick_view'] ) {
 					$this->args['enable_quick_view'] = '0';
+				}
+
+				// Legacy single border width.
+				if ( isset( $args['button_border_width'] ) && ! isset( $args['button_border_top'] ) ) {
+					$this->args['button_border_top']    = $args['button_border_width'];
+					$this->args['button_border_right']  = $this->args['button_border_top'];
+					$this->args['button_border_bottom'] = $this->args['button_border_top'];
+					$this->args['button_border_left']   = $this->args['button_border_top'];
+				}
+				if ( isset( $args['button_details_border_width'] ) && ! isset( $args['button_details_border_top'] ) ) {
+					$this->args['button_details_border_top']    = $args['button_details_border_top'];
+					$this->args['button_details_border_right']  = $this->args['button_border_top'];
+					$this->args['button_details_border_bottom'] = $this->args['button_border_top'];
+					$this->args['button_details_border_left']   = $this->args['button_border_top'];
 				}
 			}
 
@@ -772,8 +792,17 @@ if ( fusion_is_element_enabled( 'fusion_post_card_cart' ) ) {
 					}
 
 					// Button border width.
-					if ( ! $this->is_default( 'button_border_width' ) ) {
-						$this->add_css_property( $button, 'border-width', fusion_library()->sanitize->get_value_with_unit( $this->args['button_border_width'] ) );
+					if ( ! $this->is_default( 'button_border_top' ) ) {
+						$this->add_css_property( $button, 'border-top-width', fusion_library()->sanitize->get_value_with_unit( $this->args['button_border_top'] ) );
+					}
+					if ( ! $this->is_default( 'button_border_right' ) ) {
+						$this->add_css_property( $button, 'border-right-width', fusion_library()->sanitize->get_value_with_unit( $this->args['button_border_right'] ) );
+					}
+					if ( ! $this->is_default( 'button_border_bottom' ) ) {
+						$this->add_css_property( $button, 'border-bottom-width', fusion_library()->sanitize->get_value_with_unit( $this->args['button_border_bottom'] ) );
+					}
+					if ( ! $this->is_default( 'button_border_left' ) ) {
+						$this->add_css_property( $button, 'border-left-width', fusion_library()->sanitize->get_value_with_unit( $this->args['button_border_left'] ) );
 					}
 
 					// Button text color.
@@ -877,8 +906,17 @@ if ( fusion_is_element_enabled( 'fusion_post_card_cart' ) ) {
 					}
 
 					// Button border width.
-					if ( ! $this->is_default( 'button_details_border_width' ) ) {
-						$this->add_css_property( $button, 'border-width', fusion_library()->sanitize->get_value_with_unit( $this->args['button_details_border_width'] ) );
+					if ( ! $this->is_default( 'button_details_border_top' ) ) {
+						$this->add_css_property( $button, 'border-top-width', fusion_library()->sanitize->get_value_with_unit( $this->args['button_details_border_top'] ) );
+					}
+					if ( ! $this->is_default( 'button_details_border_right' ) ) {
+						$this->add_css_property( $button, 'border-right-width', fusion_library()->sanitize->get_value_with_unit( $this->args['button_details_border_right'] ) );
+					}
+					if ( ! $this->is_default( 'button_details_border_bottom' ) ) {
+						$this->add_css_property( $button, 'border-bottom-width', fusion_library()->sanitize->get_value_with_unit( $this->args['button_details_border_bottom'] ) );
+					}
+					if ( ! $this->is_default( 'button_details_border_left' ) ) {
+						$this->add_css_property( $button, 'border-left-width', fusion_library()->sanitize->get_value_with_unit( $this->args['button_details_border_left'] ) );
 					}
 
 					// Button text color.
@@ -1818,14 +1856,14 @@ function fusion_element_post_card_cart() {
 							],
 						],
 					],
-
 					[
-						'type'        => 'range',
-						'heading'     => esc_attr__( 'Button Border Size', 'fusion-builder' ),
-						'param_name'  => 'button_border_width',
-						'description' => esc_attr__( 'Controls the border size. In pixels.', 'fusion-builder' ),
-						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
-						'dependency'  => [
+						'type'             => 'dimension',
+						'remove_from_atts' => true,
+						'heading'          => esc_attr__( 'Button Border Size', 'fusion-builder' ),
+						'param_name'       => 'button_border_width',
+						'description'      => esc_attr__( 'Controls the border size. In pixels.', 'fusion-builder' ),
+						'group'            => esc_attr__( 'Design', 'fusion-builder' ),
+						'dependency'       => [
 							[
 								'element'  => 'button_style',
 								'value'    => 'custom',
@@ -1837,12 +1875,13 @@ function fusion_element_post_card_cart() {
 								'operator' => '==',
 							],
 						],
-						'min'         => '0',
-						'max'         => '20',
-						'step'        => '1',
-						'value'       => '',
-						'default'     => $fusion_settings->get( 'button_border_width' ),
-						'callback'    => [
+						'value'            => [
+							'button_border_top'    => '',
+							'button_border_right'  => '',
+							'button_border_bottom' => '',
+							'button_border_left'   => '',
+						],
+						'callback'         => [
 							'function' => 'fusion_style_block',
 							'args'     => [
 
@@ -2442,12 +2481,13 @@ function fusion_element_post_card_cart() {
 						],
 					],
 					[
-						'type'        => 'range',
-						'heading'     => esc_attr__( 'Button Border Size', 'fusion-builder' ),
-						'param_name'  => 'button_details_border_width',
-						'description' => esc_attr__( 'Controls the border size. In pixels.', 'fusion-builder' ),
-						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
-						'dependency'  => [
+						'type'             => 'dimension',
+						'remove_from_atts' => true,
+						'heading'          => esc_attr__( 'Button Border Size', 'fusion-builder' ),
+						'param_name'       => 'button_details_border_width',
+						'description'      => esc_attr__( 'Controls the border size. In pixels.', 'fusion-builder' ),
+						'group'            => esc_attr__( 'Design', 'fusion-builder' ),
+						'dependency'       => [
 							[
 								'element'  => 'product_link_style',
 								'value'    => 'custom',
@@ -2459,12 +2499,13 @@ function fusion_element_post_card_cart() {
 								'operator' => '==',
 							],
 						],
-						'min'         => '0',
-						'max'         => '20',
-						'step'        => '1',
-						'value'       => '',
-						'default'     => $fusion_settings->get( 'button_border_width' ),
-						'callback'    => [
+						'value'            => [
+							'button_details_border_top'    => '',
+							'button_details_border_right'  => '',
+							'button_details_border_bottom' => '',
+							'button_details_border_left'   => '',
+						],
+						'callback'         => [
 							'function' => 'fusion_style_block',
 							'args'     => [
 

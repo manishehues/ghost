@@ -112,7 +112,10 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			this.SettingsHelpers     = new FusionPageBuilder.SettingsHelpers();
 			this.wireframe           = new FusionPageBuilder.Wireframe();
 			this.dynamicValues       = new FusionPageBuilder.DynamicValues();
+			this.studio              = new FusionPageBuilder.Studio();
+			this.website             = new FusionPageBuilder.Website();
 			this.formStyles          = false;
+			this.offCanvasStyles     = false;
 
 			// Post contents
 			this.postContent = false;
@@ -205,7 +208,16 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 			this.listenTo( FusionEvents, 'fusion-data-updated', this.resetRenderVariable );
 
-			this.listenTo( FusionEvents, 'fusion-card-preview-width', this.cardPreviewWidth );
+			this.mediaMap = {
+				images: {},
+				menus: {},
+				forms: {},
+				post_cards: {},
+				videos: {},
+				icons: {},
+				off_canvases: {}
+			};
+			this.listenTo( FusionEvents, 'fusion-content-preview-width', this.contentPreviewWidth );
 		},
 
 		resetRenderVariable: function() {
@@ -506,33 +518,37 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				newContent  = content,
 				fetchIds    = [];
 
-			_.each( matches, function( shortcode ) {
-				var shortcodeElement    = shortcode.match( innerRegExp ),
-					shortcodeAttributes = '' !== shortcodeElement[ 3 ] ? window.wp.shortcode.attrs( shortcodeElement[ 3 ] ) : '',
-					children     = '',
-					newShortcode = '',
-					ids;
+			if ( matches ) {
+				_.each( matches, function( shortcode ) {
+					var shortcodeElement    = shortcode.match( innerRegExp ),
+						shortcodeAttributes = '' !== shortcodeElement[ 3 ] ? window.wp.shortcode.attrs( shortcodeElement[ 3 ] ) : '',
+						children     = '',
+						newShortcode = '',
+						ids;
 
-				// Check for the old format shortcode
-				if ( 'undefined' !== typeof shortcodeAttributes.named.image_ids ) {
-					ids = shortcodeAttributes.named.image_ids.split( ',' );
+					// Check for the old format shortcode
+					if ( 'undefined' !== typeof shortcodeAttributes.named.image_ids ) {
+						ids = shortcodeAttributes.named.image_ids.split( ',' );
 
-					// Add new children shortcodes
-					_.each( ids, function( id ) {
-						children += '[fusion_gallery_image image="" image_id="' + id + '" /]';
-						fetchIds.push( id );
-					} );
+						// Add new children shortcodes
+						_.each( ids, function( id ) {
+							children += '[fusion_gallery_image image="" image_id="' + id + '" /]';
+							fetchIds.push( id );
+						} );
 
-					// Add children shortcodes, remove image_ids attribute.
-					newShortcode = shortcode.replace( '/]', ']' + children + '[/fusion_gallery]' ).replace( 'image_ids="' + shortcodeAttributes.named.image_ids + '" ', '' );
+						// Add children shortcodes, remove image_ids attribute.
+						newShortcode = shortcode.replace( '/]', ']' + children + '[/fusion_gallery]' ).replace( 'image_ids="' + shortcodeAttributes.named.image_ids + '" ', '' );
 
-					// Replace the old shortcode with the new one
-					newContent = newContent.replace( shortcode, newShortcode );
+						// Replace the old shortcode with the new one
+						newContent = newContent.replace( shortcode, newShortcode );
+					}
+				} );
+
+				// Fetch attachment data
+				if ( 0 < fetchIds.length ) {
+					wp.media.query( { post__in: fetchIds, posts_per_page: fetchIds.length } ).more();
 				}
-			} );
-
-			// Fetch attachment data
-			wp.media.query( { post__in: fetchIds, posts_per_page: fetchIds.length } ).more();
+			}
 
 			return newContent;
 		},
@@ -560,6 +576,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			setTimeout( function() {
 				self.scrollingContainers();
 				self.maybeFormStyles();
+				self.maybeOfCanvasStyles();
 			}, 100 );
 		},
 
@@ -710,6 +727,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						self.scrollingContainers();
 						self.reRenderElements = true;
 						self.maybeFormStyles();
+						self.maybeOfCanvasStyles();
 
 						if ( 0 < FusionPageBuilderViewManager.countElementsByType( 'fusion_builder_next_page' ) ) {
 							FusionEvents.trigger( 'fusion-next-page' );
@@ -1646,7 +1664,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						if ( 'overlay_color' === key && '' !== shortcodeAttributes.named[ key ] && 'fusion_builder_container' === shortcodeName ) {
 							delete prefixedAttributes.params[ prefixedKey ];
 							alpha = ( 'undefined' !== typeof shortcodeAttributes.named.overlay_opacity ) ? shortcodeAttributes.named.overlay_opacity : 1;
-							prefixedAttributes.params.background_color = jQuery.Color( shortcodeAttributes.named[ key ] ).alpha( alpha ).toRgbaString();
+							prefixedAttributes.params.background_color = jQuery.AWB_Color( shortcodeAttributes.named[ key ] ).alpha( alpha ).toRgbaString();
 						}
 						if ( 'overlay_opacity' === key ) {
 							delete prefixedAttributes.params[ prefixedKey ];
@@ -2251,7 +2269,21 @@ var FusionPageBuilder = FusionPageBuilder || {};
 		 */
 		builderToShortcodes: function() {
 			var shortcode = '',
-				thisEl    = this;
+				thisEl    = this,
+				plugins   = 'object' === typeof FusionApp.data.plugins_active ? FusionApp.data.plugins_active : false,
+				referencedOffCanvases = {},
+				offCanvases;
+
+			// Reset the media map.
+			this.mediaMap = {
+				images: {},
+				menus: {},
+				forms: {},
+				post_cards: {},
+				videos: {},
+				icons: {},
+				off_canvases: {}
+			};
 
 			if ( FusionApp.data.is_fusion_element ) {
 				this.libraryBuilderToShortcodes();
@@ -2295,6 +2327,25 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				FusionApp.setPost( 'post_content', shortcode );
 			}
+
+			// Add referenced Off Canvases.
+			if ( false !== plugins && true === plugins.awb_studio ) {
+				offCanvases = 'undefined' !== typeof FusionApp.data.postMeta._fusion.off_canvases ? FusionApp.data.postMeta._fusion.off_canvases : [];
+
+				if ( 'object' === typeof offCanvases && Object.keys( offCanvases ).length ) {
+					_.each( offCanvases, function( key, value ) {
+						referencedOffCanvases[ key ] = true;
+					} );
+				}
+
+				this.mediaMap.off_canvases = referencedOffCanvases;
+			}
+
+			// If media map exists, add to post meta for saving.
+			if ( ! _.isEmpty( this.mediaMap ) && 'undefined' !== typeof FusionApp.data.replaceAssets && FusionApp.data.replaceAssets ) {
+				FusionApp.data.postMeta.avada_media = this.mediaMap; // eslint-disable-line camelcase
+				FusionApp.contentChange( 'page', 'page-option' );
+			}
 		},
 
 		/**
@@ -2309,6 +2360,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 		generateElementShortcode: function( $element, openTagOnly, generator ) {
 			var attributes = '',
 				content    = '',
+				plugins    = 'object' === typeof FusionApp.data.plugins_active ? FusionApp.data.plugins_active : false,
+				metaValue  = 'undefined' !== typeof FusionApp.data.postMeta._fusion.studio_replace_params ? FusionApp.data.postMeta._fusion.studio_replace_params : '',
 				element,
 				$thisElement,
 				elementCID,
@@ -2375,6 +2428,11 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			elementSettings = '';
 			shortcode       = '';
 			elementSettings = element.attributes;
+
+			// If studio active.
+			if ( false !== plugins && true === plugins.awb_studio  && 'undefined' !== elementType && 'yes' === metaValue && 'params' in elementSettings ) {
+				element.set( 'params', jQuery.extend( true, {}, fusionAllElements[ elementType ].defaults, _.fusionCleanParameters( element.get( 'params' ) ) ) );
+			}
 
 			// Ignored shortcode attributes
 			ignoredAtts = 'undefined' !== typeof fusionAllElements[ elementType ].remove_from_atts ? fusionAllElements[ elementType ].remove_from_atts : [];
@@ -2461,7 +2519,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 								optionValue = elementView.sanitizeValue( param, optionValue );
 							}
 
-							attributes += ' ' + param + '="' + optionValue + '"';
+							attributes += ' ' + param + '="' + this.getParamValue( param, optionValue, element ) + '"';
 						}
 					}
 				}
@@ -2481,6 +2539,78 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			}
 
 			return shortcode;
+		},
+
+		/**
+		 * Gets param value.
+		 *
+		 * @since 3.6
+		 * @return {string}
+		 */
+		getParamValue: function( param, optionValue, element ) {
+			var plugins     = 'object' === typeof FusionApp.data.plugins_active ? FusionApp.data.plugins_active : false,
+				elementType = 'undefined' !== typeof element ? element.get( 'element_type' ) : 'undefined',
+				metaValue   = 'undefined' !== typeof FusionApp.data.postMeta._fusion.studio_replace_params ? FusionApp.data.postMeta._fusion.studio_replace_params : '',
+				params      = 'undefined' !== typeof fusionAllElements[ elementType ] ? fusionAllElements[ elementType ].params : 'undefined',
+				globalOptionName,
+				subset,
+				subsets;
+
+			// Early exit.
+			if ( false === plugins || true !== plugins.awb_studio || 'undefined' === elementType || 'yes' !== metaValue || 'undefined' === typeof fusionAllElements[ elementType ] || 'string' !== typeof param || 'string' !== typeof optionValue || '' !== optionValue || 'object' !== typeof FusionApp.settings || this.shouldExclude( param, elementType ) ) {
+				return optionValue;
+			}
+
+			// Check if params exist.
+			if ( 'undefined' !== params ) {
+
+				if ( 'undefined' === typeof params[ param ]  ) { // If param does not exist.
+					jQuery.each( params, function( index, name ) {
+						if ( 'undefined' !== typeof params[ index ].value && params[ index ].value.hasOwnProperty( param ) ) {
+							globalOptionName = 'undefined' !== typeof params[ index ].default_option ? params[ index ].default_option : '';
+							subsets          = 'undefined' !== typeof params[ index ].default_subset ? params[ index ].default_subset : [];
+
+							jQuery.each( subsets, function( i, v ) {
+								if ( param.includes( v ) ) {
+									subset = v;
+									return false;
+								}
+							} );
+
+							optionValue =  'undefined' !== typeof FusionApp.settings[ globalOptionName ] && 'undefined' !== typeof FusionApp.settings[ globalOptionName ][ subset ] ? FusionApp.settings[ globalOptionName ][ subset ] : optionValue;
+							return false;
+						}
+					} );
+				} else if ( 'undefined' !== typeof params[ param ].default_option && ( 'undefined' === typeof params[ param ].default_subset || '' === params[ param ].default_subset ) ) { // check if param has got global option.
+					optionValue = 'undefined' !== typeof FusionApp.settings[ params[ param ].default_option ] ? FusionApp.settings[ params[ param ].default_option ] : optionValue;
+				} else if ( 'undefined' !== typeof params[ param ].default_option && 'undefined' !== typeof params[ param ].default_subset && '' !== params[ param ].default_subset ) { //  handle fonts.
+					globalOptionName = params[ param ].default_option;
+					subset           = params[ param ].default_subset;
+
+					optionValue = 'undefined' !== typeof FusionApp.settings[ globalOptionName ] && 'undefined' !== typeof FusionApp.settings[ globalOptionName ][ subset ] ? FusionApp.settings[ globalOptionName ][ subset ] : optionValue;
+				}
+			}
+
+			return optionValue;
+		},
+
+		/**
+		 * Should exlude param replacement?
+		 *
+		 * @since 3.6
+		 * @return {Boolean}
+		 */
+		shouldExclude: function( param, elementType ) {
+			var excluded = {
+				'link_color': 'fusion_builder_container',
+				'link_hover_color': 'fusion_builder_container'
+			};
+
+			if ( 'undefined' !== typeof excluded[ param ] && elementType === excluded[ param ] ) {
+				return true;
+			}
+
+			return false;
 		},
 
 		/**
@@ -2931,6 +3061,11 @@ var FusionPageBuilder = FusionPageBuilder || {};
 		 */
 		toggleTooltips: function() {
 
+			// Do nothing for Off Canvas.
+			if ( 'awb_off_canvas' === FusionApp.data.postDetails.post_type ) {
+				return;
+			}
+
 			// Tooltips.
 			if ( 'undefined' !== typeof FusionApp && 'off' === FusionApp.preferencesData.tooltips ) {
 				jQuery( 'body' ).addClass( 'fusion-hide-all-tooltips' );
@@ -2971,7 +3106,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			// Transparent Header.
 			if ( 'undefined' !== typeof FusionApp && 'off' === FusionApp.preferencesData.transparent_header ) {
 				$html.removeClass( 'avada-header-color-not-opaque' );
-			} else if ( 1 > jQuery.Color( HeaderBGColor ).alpha() ) {
+			} else if ( 1 > jQuery.AWB_Color( HeaderBGColor ).alpha() ) {
 				$html.addClass( 'avada-header-color-not-opaque' );
 			}
 
@@ -3210,8 +3345,29 @@ var FusionPageBuilder = FusionPageBuilder || {};
 			this.formStyles.buildStyles();
 		},
 
-		cardPreviewWidth: function() {
-			if ( 'object' === typeof FusionApp && 'object' === typeof FusionApp.data && 'string' === typeof FusionApp.data.fusion_element_type && 'post_cards' === FusionApp.data.fusion_element_type && 'object' === typeof FusionApp.data.postMeta && 'object' === typeof FusionApp.data.postMeta._fusion && 'undefined' !== typeof FusionApp.data.postMeta._fusion.preview_width ) {
+		/**
+		 * If editing off canvas.
+		 *
+		 * @since 3.6
+		 * @return {void}
+		 */
+		maybeOfCanvasStyles: function() {
+
+			// Not editing a form then skip.
+			if ( 'awb_off_canvas' !== FusionApp.getPost( 'post_type' ) ) {
+				return;
+			}
+
+			if ( false === this.offCanvasStyles ) {
+				this.offCanvasStyles = new FusionPageBuilder.offCanvasStyles();
+				return;
+			}
+
+			this.offCanvasStyles.buildStyles();
+		},
+
+		contentPreviewWidth: function() {
+			if ( 'object' === typeof FusionApp && 'object' === typeof FusionApp.data && ( ( 'string' === typeof FusionApp.data.fusion_element_type && 'post_cards' === FusionApp.data.fusion_element_type ) || 'fusion_form' === FusionApp.data.postDetails.post_type ) && 'object' === typeof FusionApp.data.postMeta && 'object' === typeof FusionApp.data.postMeta._fusion && 'undefined' !== typeof FusionApp.data.postMeta._fusion.preview_width ) {
 				this.$el.find( '#fusion_builder_container' ).first().css( { width: parseInt( FusionApp.data.postMeta._fusion.preview_width ) + '%' } );
 			}
 		}

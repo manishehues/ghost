@@ -36,6 +36,9 @@
 .fusion-body .fusion-woo-price-tb.hide-sale .price del {
   display: none;
 }
+.fusion-body .fusion-woo-price-tb.has-badge.badge-position-left p.fusion-onsale {
+  margin: 0 0.625em 0 0;
+}
 .fusion-body .fusion-woo-price-tb .fusion-onsale {
   position: inherit;
   border: 1px solid var(--primary_color);
@@ -52,6 +55,9 @@
 }
 .fusion-body .fusion-woo-price-tb.badge-position-left .stock {
   order: 3;
+}
+.fusion-body .fusion-woo-price-tb.badge-position-left.has-border .fusion-onsale {
+  margin-right: 0.625em;
 }
 .fusion-body .fusion-woo-price-tb.badge-position-right .price {
   order: 1;

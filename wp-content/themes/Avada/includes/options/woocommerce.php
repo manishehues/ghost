@@ -728,6 +728,39 @@ function avada_options_section_woocommerce( $sections ) {
 							],
 						],
 					],
+					'qty_size'                    => [
+						'label'       => esc_html__( 'WooCommerce Quantity Input Size', 'Avada' ),
+						'description' => esc_html__( 'Controls the width and height of the quantity input field.', 'Avada' ),
+						'id'          => 'qty_size',
+						'units'       => false,
+						'default'     => [
+							'width'  => '38px',
+							'height' => '36px',
+						],
+						'type'        => 'dimensions',
+						'css_vars'    => [
+							[
+								'name'   => '--qty_size-width',
+								'choice' => 'width',
+							],
+							[
+								'name'   => '--qty_size-height',
+								'choice' => 'height',
+							],
+						],
+					],
+					'qty_font_size' => [
+						'label'           => esc_html__( 'WooCommerce Quantity Font Size', 'Avada' ),
+						'description'     => esc_html__( 'Controls the font size of the quantity input field.', 'Avada' ),
+						'id'              => 'qty_font_size',
+						'type'            => 'dimension',
+						'default'         => '14px',
+						'css_vars'        => [
+							[
+								'name' => '--qty_font_size',
+							],
+						],
+					],
 					'qty_bg_color' => [
 						'label'           => esc_html__( 'WooCommerce Quantity Box Background Color', 'Avada' ),
 						'description'     => esc_html__( 'Controls the background color of the WooCommerce quantity box.', 'Avada' ),

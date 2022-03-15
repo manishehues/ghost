@@ -1,5 +1,13 @@
 /* stylelint-disable length-zero-no-unit */
 /* stylelint-enable length-zero-no-unit */
+.ls-container .button,
+.ls-container .fusion-button {
+  transition: none !important;
+}
+.ls-container .button:hover,
+.ls-container .fusion-button:hover {
+  transition: none !important;
+}
 @media only screen and (max-width: 800px) {
   .ls-container .button,
   .ls-container .fusion-button,
@@ -11,12 +19,6 @@
     font-size: 10px !important;
     line-height: 30px !important;
     padding: 0 20px !important;
-  }
-  .ls-container .button.button-3d:active,
-  .ls-container .fusion-button.button-3d:active,
-  .rev_slider .button.button-3d:active,
-  .rev_slider .fusion-button.button-3d:active {
-    top: 2px;
   }
   .ls-container .button .fusion-button-text-left,
   .ls-container .fusion-button .fusion-button-text-left,
@@ -73,7 +75,7 @@
   .rev_slider .button .button-icon-divider-right img,
   .rev_slider .fusion-button .button-icon-divider-right img {
     top: 50%;
-    margin-top: -6px;
+    transform: translateY(-50%);
     display: block;
   }
   .ls-container .button.button-3d:active,
@@ -101,12 +103,6 @@
     line-height: 20px !important;
     padding: 0 10px !important;
   }
-  .ls-container .button.button-3d:active,
-  .ls-container .fusion-button.button-3d:active,
-  .rev_slider .button.button-3d:active,
-  .rev_slider .fusion-button.button-3d:active {
-    top: 2px;
-  }
   .ls-container .button .fusion-button-text-left,
   .ls-container .fusion-button .fusion-button-text-left,
   .rev_slider .button .fusion-button-text-left,
@@ -162,7 +158,7 @@
   .rev_slider .button .button-icon-divider-right img,
   .rev_slider .fusion-button .button-icon-divider-right img {
     top: 50%;
-    margin-top: -5px;
+    transform: translateY(-50%);
     display: block;
   }
   .ls-container .button.button-3d:active,

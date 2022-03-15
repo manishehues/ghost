@@ -23,10 +23,10 @@
   text-transform: var(--button_text_transform);
   background-color: var(--button_gradient_top_color);
   background-image: linear-gradient(to top, var(--button_gradient_bottom_color), var(--button_gradient_top_color));
-  border-width: var(--button_border_width);
+  border-width: var(--button_border_width-top) var(--button_border_width-right) var(--button_border_width-bottom) var(--button_border_width-left);
   border-style: solid;
   border-color: var(--button_border_color);
-  border-radius: var(--button_border_radius);
+  border-radius: var(--button-border-radius-top-left) var(--button-border-radius-top-right) var(--button-border-radius-bottom-right) var(--button-border-radius-bottom-left);
   font-family: var(--button_typography-font-family);
   font-weight: var(--button_typography-font-weight);
   font-style: var(--button_typography-font-style);

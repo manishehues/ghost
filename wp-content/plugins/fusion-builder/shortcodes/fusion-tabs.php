@@ -97,6 +97,7 @@ if ( fusion_is_element_enabled( 'fusion_tabs' ) ) {
 			public function __construct() {
 				parent::__construct();
 				add_filter( 'fusion_attr_tabs-shortcode', [ $this, 'attr' ] );
+				add_filter( 'fusion_attr_tabs-shortcode-navtabs', [ $this, 'navtabs_attr' ] );
 				add_filter( 'fusion_attr_tabs-shortcode-link', [ $this, 'link_attr' ] );
 				add_filter( 'fusion_attr_tabs-shortcode-icon', [ $this, 'icon_attr' ] );
 				add_filter( 'fusion_attr_tabs-shortcode-tab', [ $this, 'tab_attr' ] );
@@ -200,11 +201,6 @@ if ( fusion_is_element_enabled( 'fusion_tabs' ) ) {
 
 				$this->parent_args = $defaults;
 
-				$justified_class = '';
-				if ( 'yes' === $justified && 'vertical' !== $layout ) {
-					$justified_class = ' nav-justified';
-				}
-
 				$styles = '.fusion-tabs.fusion-tabs-' . $this->tabs_counter . ' .nav-tabs li a.tab-link{border-top-color:' . $this->parent_args['inactivecolor'] . ';background-color:' . $this->parent_args['inactivecolor'] . ';}';
 				if ( 'clean' !== $design ) {
 					$styles .= '.fusion-tabs.fusion-tabs-' . $this->tabs_counter . ' .nav-tabs{background-color:' . $this->parent_args['backgroundcolor'] . ';}';
@@ -218,7 +214,7 @@ if ( fusion_is_element_enabled( 'fusion_tabs' ) ) {
 				$styles .= '.fusion-tabs.fusion-tabs-' . $this->tabs_counter . ' .nav,.fusion-tabs.fusion-tabs-' . $this->tabs_counter . ' .nav-tabs,.fusion-tabs.fusion-tabs-' . $this->tabs_counter . ' .tab-content .tab-pane{border-color:' . $this->parent_args['bordercolor'] . ';}';
 				$styles  = '<style type="text/css">' . $styles . '</style>';
 
-				$html = '<div ' . FusionBuilder::attributes( 'tabs-shortcode' ) . '>' . $styles . '<div ' . FusionBuilder::attributes( 'nav' ) . '><ul ' . FusionBuilder::attributes( 'nav-tabs' . $justified_class ) . ' role="tablist">';
+				$html = '<div ' . FusionBuilder::attributes( 'tabs-shortcode' ) . '>' . $styles . '<div ' . FusionBuilder::attributes( 'nav' ) . '>';
 
 				$is_first_tab = true;
 
@@ -232,9 +228,8 @@ if ( fusion_is_element_enabled( 'fusion_tabs' ) ) {
 					preg_match_all( '/(\[fusion_old_tab (.*?)\](.*?)\[\/fusion_old_tab\])/s', $content, $matches );
 				}
 
-				$tab_content = '';
-
-				$tabs_count = ! empty( $this->tabs ) ? count( $this->tabs ) : 0;
+				$tab_content = $tab_nav = '';
+				$tabs_count  = ! empty( $this->tabs ) ? count( $this->tabs ) : 0;
 				for ( $i = 0; $i < $tabs_count; $i++ ) {
 					$icon = $tab_title = '';
 					if ( 'none' !== $this->tabs[ $i ]['icon'] ) {
@@ -247,34 +242,38 @@ if ( fusion_is_element_enabled( 'fusion_tabs' ) ) {
 						$tab_title = $icon . $this->tabs[ $i ]['title'];
 					}
 
+					$tab_id = 'fusion-tab-' . strtolower( preg_replace( '/\s+/', '', $this->tabs[ $i ]['title'] ) );
+
 					if ( $is_first_tab ) {
-						$tab_nav      = '<li ' . FusionBuilder::attributes( 'active' ) . '><a ' . FusionBuilder::attributes(
+						$tab_nav_item = '<li ' . FusionBuilder::attributes( 'active' ) . ' role="presentation"><a ' . FusionBuilder::attributes(
 							'tabs-shortcode-link',
 							[
-								'index' => $i,
-								'first' => 'true',
+								'index'  => $i,
+								'tab_id' => $tab_id,
+								'first'  => 'true',
 							]
 						) . '><h4 ' . FusionBuilder::attributes( 'fusion-tab-heading' ) . '>' . $tab_title . '</h4></a></li>';
 						$is_first_tab = false;
 					} else {
-						$tab_nav = '<li><a ' . FusionBuilder::attributes(
+						$tab_nav_item = '<li role="presentation"><a ' . FusionBuilder::attributes(
 							'tabs-shortcode-link',
 							[
-								'index' => $i,
-								'first' => 'false',
+								'index'  => $i,
+								'tab_id' => $tab_id,
+								'first'  => 'false',
 							]
 						) . '><h4 ' . FusionBuilder::attributes( 'fusion-tab-heading' ) . '>' . $tab_title . '</h4></a></li>';
 					}
 
-					$html .= $tab_nav;
+					$tab_nav .= $tab_nav_item;
 
 					// Change ID for mobile to ensure no duplicate ID.
-					$tab_nav      = str_replace( 'id="fusion-tab-', 'id="mobile-fusion-tab-', $tab_nav );
-					$tab_content .= '<div ' . FusionBuilder::attributes( 'nav fusion-mobile-tab-nav' ) . '><ul ' . FusionBuilder::attributes( 'nav-tabs' . $justified_class ) . '>' . $tab_nav . '</ul></div>';
+					$tab_nav_item = str_replace( 'id="fusion-tab-', 'id="mobile-fusion-tab-', $tab_nav_item );
+					$tab_content .= '<div ' . FusionBuilder::attributes( 'nav fusion-mobile-tab-nav' ) . '><ul ' . FusionBuilder::attributes( 'tabs-shortcode-navtabs' ) . '>' . $tab_nav_item . '</ul></div>';
 					$tab_content .= ( isset( $matches[1][ $i ] ) ) ? do_shortcode( $matches[1][ $i ] ) : '';
 				}
 
-				$html .= '</ul></div><div ' . FusionBuilder::attributes( 'tab-content' ) . '>' . $tab_content . '</div></div>';
+				$html .= '<ul ' . FusionBuilder::attributes( 'tabs-shortcode-navtabs' ) . '>' . $tab_nav . '</ul></div><div ' . FusionBuilder::attributes( 'tab-content' ) . '>' . $tab_content . '</div></div>';
 
 				$this->tabs_counter++;
 				$this->tab_counter = 1;
@@ -324,6 +323,27 @@ if ( fusion_is_element_enabled( 'fusion_tabs' ) ) {
 			}
 
 			/**
+			 * Builds the attributes array.
+			 *
+			 * @param array $atts The attributes array.
+			 * @access public
+			 * @since 1.0
+			 * @return array
+			 */
+			public function navtabs_attr( $atts ) {
+				$justified_class = '';
+				if ( 'yes' === $this->parent_args['justified'] && 'vertical' !== $this->parent_args['layout'] ) {
+					$justified_class = ' nav-justified';
+				}
+
+				$attr['class'] = 'nav-tabs' . $justified_class;
+
+				$attr['role'] = 'tablist';
+
+				return $attr;
+			}
+
+			/**
 			 * Builds the link attributes array.
 			 *
 			 * @access public
@@ -345,7 +365,7 @@ if ( fusion_is_element_enabled( 'fusion_tabs' ) ) {
 					$attr['tabindex'] = '-1';
 				}
 
-				$attr['id']   = 'fusion-tab-' . strtolower( preg_replace( '/\s+/', '', $this->tabs[ $index ]['title'] ) );
+				$attr['id']   = $atts['tab_id'];
 				$attr['href'] = '#' . $this->tabs[ $index ]['unique_id'];
 
 				return $attr;
@@ -563,10 +583,10 @@ if ( fusion_is_element_enabled( 'fusion_tabs' ) ) {
 								}
 							}
 						} else {
-							$preg_match_titles = preg_match_all( '/' . $shortcode . ' title="([^\"]+)"/i', $tab, $titles );
+							$preg_match_titles = preg_match_all( '/\[\[?' . $shortcode . ' .*?title="([^\"]+)"/i', $tab, $titles );
 							$title             = ( array_key_exists( '0', $titles[1] ) ) ? $titles[1][0] : 'default';
 						}
-						$preg_match_icons = preg_match_all( '/' . $shortcode . '( id=[0-9]+| title="[^\"]+")? icon="([^\"]+)"/i', $tab, $icons );
+						$preg_match_icons = preg_match_all( '/\[\[?' . $shortcode . '( id=[0-9]+| title="[^\"]+")? icon="([^\"]+)"/i', $tab, $icons );
 						$icon             = ( array_key_exists( '0', $icons[2] ) ) ? $icons[2][0] : 'none';
 
 						if ( 'none' === $icon && ! empty( $this->fusion_tabs_args['icon'] ) ) {
@@ -712,7 +732,7 @@ if ( fusion_is_element_enabled( 'fusion_tabs' ) ) {
 								'label'       => esc_html__( 'Tabs Background Color + Hover Color', 'fusion-builder' ),
 								'description' => esc_html__( 'Controls the color of the active tab, tab hover and content background.', 'fusion-builder' ),
 								'id'          => 'tabs_bg_color',
-								'default'     => '#ffffff',
+								'default'     => 'var(--awb-color1)',
 								'type'        => 'color-alpha',
 								'transport'   => 'postMessage',
 								'css_vars'    => [
@@ -726,7 +746,7 @@ if ( fusion_is_element_enabled( 'fusion_tabs' ) ) {
 								'label'       => esc_html__( 'Tabs Inactive Color', 'fusion-builder' ),
 								'description' => esc_html__( 'Controls the color of the inactive tabs as well as the post date box layout for the Avada Tab Widget.', 'fusion-builder' ),
 								'id'          => 'tabs_inactive_color',
-								'default'     => '#f9f9fb',
+								'default'     => 'var(--awb-color2)',
 								'type'        => 'color-alpha',
 								'transport'   => 'postMessage',
 								'css_vars'    => [
@@ -740,7 +760,7 @@ if ( fusion_is_element_enabled( 'fusion_tabs' ) ) {
 								'label'       => esc_html__( 'Tabs Border Color', 'fusion-builder' ),
 								'description' => esc_html__( 'Controls the color of the tab border.', 'fusion-builder' ),
 								'id'          => 'tabs_border_color',
-								'default'     => '#e2e2e2',
+								'default'     => 'var(--awb-color3)',
 								'type'        => 'color-alpha',
 								'transport'   => 'postMessage',
 								'css_vars'    => [
@@ -845,7 +865,7 @@ function fusion_element_tabs() {
 				'preview'       => FUSION_BUILDER_PLUGIN_DIR . 'inc/templates/previews/fusion-tabs-preview.php',
 				'preview_id'    => 'fusion-builder-block-module-tabs-preview-template',
 				'child_ui'      => true,
-				'help_url'      => 'https://theme-fusion.com/documentation/fusion-builder/elements/tabs-element/',
+				'help_url'      => 'https://theme-fusion.com/documentation/avada/elements/tabs-element/',
 				'sortable'      => false,
 				'params'        => [
 					[

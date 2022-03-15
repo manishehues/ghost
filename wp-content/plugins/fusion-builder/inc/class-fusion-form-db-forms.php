@@ -66,7 +66,7 @@ class Fusion_Form_DB_Forms extends Fusion_Form_DB_Items {
 		foreach ( $results as $form_object ) {
 
 			// Deleted form's data is not removed from form tables, so we filter out deleted form posts here.
-			if ( ! empty( $wpdb->get_results( "SELECT ID from $wpdb->posts WHERE ID = $form_object->form_id AND post_type = 'fusion_form'" ) ) ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			if ( ! empty( $wpdb->get_results( "SELECT ID from $wpdb->posts WHERE ID = $form_object->form_id AND post_type = 'fusion_form'" ) ) ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL
 				$forms[ $form_object->id ] = [
 					'form_id' => $form_object->form_id,
 					'views'   => $form_object->views,

@@ -95,7 +95,7 @@ class AWB_Performance_Wizard {
 			add_action( 'admin_enqueue_scripts', [ $this, 'add_scripts' ] );
 		}
 
-		if ( ( isset( $_GET['page'] ) && 'avada-performance' === sanitize_text_field( wp_unslash( $_GET['page'] ) ) ) ) {
+		if ( ( isset( $_GET['page'] ) && 'avada-performance' === sanitize_text_field( wp_unslash( $_GET['page'] ) ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			add_filter( 'awb_po_get_value', [ $this, 'global_value' ], 10, 2 );
 			add_filter( 'awb_po_get_option_name', [ $this, 'global_name' ], 10, 2 );
 		}
@@ -136,9 +136,9 @@ class AWB_Performance_Wizard {
 		$version = Avada::get_theme_version();
 		wp_enqueue_style( 'awb_performance_css', trailingslashit( Avada::$template_dir_url ) . 'assets/admin/css/awb-wizard.css', [], $version );
 
-		wp_enqueue_script( 'fusion_app_assets', FUSION_LIBRARY_URL . '/inc/fusion-app/model-assets.js', [ 'backbone' ], FUSION_BUILDER_VERSION, true );
+		AWB_Global_Typography()->enqueue();
 
-		wp_enqueue_script( 'awb_performance_js', trailingslashit( Avada::$template_dir_url ) . 'assets/admin/js/awb-wizard.js', [ 'fusion_app_assets', 'jquery' ], $version, true );
+		wp_enqueue_script( 'awb_performance_js', trailingslashit( Avada::$template_dir_url ) . 'assets/admin/js/awb-wizard.js', [ 'jquery' ], $version, true );
 
 		wp_localize_script( 'awb_performance_js', 'fusionBuilderText', fusion_app_textdomain_strings() );
 
@@ -149,7 +149,7 @@ class AWB_Performance_Wizard {
 			'awbPerformance',
 			[
 				'homeURL'            => get_home_url(),
-				'lighthouse'         => ! empty( $_GET['lighthouse'] ) || false !== $api_key,
+				'lighthouse'         => ! empty( $_GET['lighthouse'] ) || false !== $api_key, // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				'apiKey'             => $api_key,
 				'saveChange'         => __( 'Do you want to proceed without saving changes?', 'Avada' ),
 				'loadingHome'        => __( 'Loading the homepage to generate assets.', 'Avada' ),
@@ -204,16 +204,9 @@ class AWB_Performance_Wizard {
 		);
 
 		// Color fields.
-		wp_enqueue_script( 'wp-color-picker' );
-		wp_enqueue_style( 'wp-color-picker' );
-
-		wp_enqueue_script(
-			'wp-color-picker-alpha',
-			Avada::$template_dir_url . '/assets/admin/js/wp-color-picker-alpha.js',
-			[ 'wp-color-picker' ],
-			$version,
-			false
-		);
+		if ( function_exists( 'AWB_Global_Colors' ) ) {
+			AWB_Global_Colors()->enqueue();
+		}
 
 		// Option type JS.
 		wp_enqueue_script(
@@ -265,14 +258,14 @@ class AWB_Performance_Wizard {
 	public function ajax_save() {
 		$this->check_nonce();
 
-		$save_data = isset( $_POST['save_data'] ) ? wp_unslash( $_POST['save_data'] ) : false;
+		$save_data = isset( $_POST['save_data'] ) ? wp_unslash( $_POST['save_data'] ) : false; // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 		if ( ! $save_data || ! is_array( $save_data ) ) {
 			wp_send_json_error( __( 'No data to save.', 'Avada' ) );
 		}
 
 		// Handle element saving, separate location.
-		if ( isset( $_POST['step'] ) && 'elements' === $_POST['step'] ) {
+		if ( isset( $_POST['step'] ) && 'elements' === $_POST['step'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			$builder_options = get_option( 'fusion_builder_settings' );
 
 			if ( ! $builder_options ) {
@@ -327,7 +320,7 @@ class AWB_Performance_Wizard {
 
 		$this->check_nonce();
 
-		$scan_type = isset( $_GET['scan_type'] ) ? wp_unslash( $_GET['scan_type'] ) : false;
+		$scan_type = isset( $_GET['scan_type'] ) ? wp_unslash( $_GET['scan_type'] ) : false; // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 		if ( ! $scan_type ) {
 			wp_send_json_error( new WP_Error( 404, __( 'No valid action found.', 'Avada' ) ) );
@@ -358,10 +351,10 @@ class AWB_Performance_Wizard {
 
 		$this->check_nonce();
 
-		$icon_subset = isset( $_GET['icon_subset'] ) ? wp_unslash( $_GET['icon_subset'] ) : false;
-		$icon_name   = isset( $_GET['icon_name'] ) ? wp_unslash( $_GET['icon_name'] ) : false;
+		$icon_subset = isset( $_GET['icon_subset'] ) ? sanitize_text_field( wp_unslash( $_GET['icon_subset'] ) ) : false; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$icon_name   = isset( $_GET['icon_name'] ) ? sanitize_text_field( wp_unslash( $_GET['icon_name'] ) ) : false; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
-		$download_url = isset( $_GET['download_url'] ) ? strtok( wp_unslash( $_GET['download_url'] ), '?' ) : false;
+		$download_url = isset( $_GET['download_url'] ) ? strtok( sanitize_text_field( wp_unslash( $_GET['download_url'] ) ), '?' ) : false; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		$download_url = 'https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/svgs/' . $icon_subset . '/' . $icon_name . '.svg';
 
@@ -409,7 +402,6 @@ class AWB_Performance_Wizard {
 				'dynamic' => true,
 			];
 		}
-
 
 		if ( ! $youtube ) {
 			$recommendations['status_yt'] = [
@@ -533,6 +525,22 @@ class AWB_Performance_Wizard {
 			$recommendations['status_fusion_forms'] = [
 				'value'   => '1',
 				'message' => __( 'Avada forms found, only disable if you are not using them.', 'Avada' ),
+				'dynamic' => true,
+			];
+		}
+
+		// status_awb_Off_Canvas.
+		$avada_off_canvas = new WP_Query( [ 'post_type' => 'awb_off_canvas' ] );
+		if ( ! $avada_off_canvas->have_posts() ) {
+			$recommendations['status_awb_Off_Canvas'] = [
+				'value'   => '0',
+				'message' => __( 'No Avada off canvas found, can be disabled. Alternatively if you haven\'t tried them yet, give them a go.', 'Avada' ),
+				'dynamic' => true,
+			];
+		} else {
+			$recommendations['status_awb_Off_Canvas'] = [
+				'value'   => '1',
+				'message' => __( 'Avada off canvas found, only disable if you are not using them.', 'Avada' ),
 				'dynamic' => true,
 			];
 		}
@@ -1184,7 +1192,6 @@ class AWB_Performance_Wizard {
 				if ( '' === $icon_subset ) {
 					$icon_subset = 'fas';
 				}
-
 
 				// Finally update map array.
 				if ( true === $is_fa4_icon ) {

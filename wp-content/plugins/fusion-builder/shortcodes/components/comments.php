@@ -72,8 +72,13 @@ if ( fusion_is_element_enabled( 'fusion_tb_comments' ) ) {
 				return [
 					'headings'            => 'show',
 					'heading_size'        => '2',
+					'heading_color'       => '',
 					'border_size'         => $fusion_settings->get( 'separator_border_size' ),
 					'border_color'        => $fusion_settings->get( 'sep_color' ),
+					'link_color'          => $fusion_settings->get( 'link_color' ),
+					'link_hover_color'    => $fusion_settings->get( 'primary_color' ),
+					'text_color'          => $fusion_settings->get( 'body_typography', 'color' ),
+					'meta_color'          => $fusion_settings->get( 'body_typography', 'color' ),
 					'avatar'              => 'square',
 					'padding'             => '40',
 					'margin_bottom'       => '',
@@ -186,33 +191,7 @@ if ( fusion_is_element_enabled( 'fusion_tb_comments' ) ) {
 					$content = preg_replace( '/<script\b[^>]*>(.*?)<\/script>/is', '', $content );
 				}
 
-				$styles = '<style type="text/css">';
-
-				if ( $this->args['border_size'] ) {
-					$styles .= '.fusion-comments-tb-' . $this->counter . ' .commentlist .the-comment{border-bottom-width:' . $this->args['border_size'] . ';}';
-				}
-
-				if ( $this->args['border_color'] ) {
-					$styles .= '.fusion-comments-tb-' . $this->counter . ' .commentlist .the-comment{border-color:' . $this->args['border_color'] . ';}';
-				}
-
-				if ( 'circle' === $this->args['avatar'] ) {
-					$styles .= '.fusion-comments-tb-' . $this->counter . '.circle .the-comment .avatar{border-radius: 50%;}';
-				}
-
-				if ( 'square' === $this->args['avatar'] ) {
-					$styles .= '.fusion-comments-tb-' . $this->counter . '.square .the-comment .avatar{border-radius: 0;}';
-				}
-
-				if ( 'hide' === $this->args['avatar'] ) {
-					$styles .= '.fusion-comments-tb-' . $this->counter . ' .commentlist .the-comment .comment-text{margin-left:0px;}';
-				}
-
-				if ( $this->args['padding'] ) {
-					$styles .= '.fusion-comments-tb-' . $this->counter . ' .commentlist .children{padding-left:' . $this->args['padding'] . ';}';
-				}
-
-				$styles .= '</style>';
+				$styles = $this->get_styles();
 
 				$html = '<div ' . FusionBuilder::attributes( 'fusion_tb_comments-shortcode' ) . '>' . $content . '</div>';
 
@@ -328,6 +307,68 @@ if ( fusion_is_element_enabled( 'fusion_tb_comments' ) ) {
 			}
 
 			/**
+			 * Get the styles.
+			 *
+			 * @access protected
+			 * @since 3.5
+			 * @return string
+			 */
+			protected function get_styles() {
+				$this->base_selector = '.fusion-comments-tb.fusion-comments-tb-' . $this->counter;
+				$this->dynamic_css   = [];
+
+				if ( ! $this->is_default( 'border_size' ) ) {
+					$this->add_css_property( $this->base_selector . ' .commentlist .the-comment', 'border-bottom-width', $this->args['border_size'] );
+				}
+
+				if ( ! $this->is_default( 'border_color' ) ) {
+					$this->add_css_property( $this->base_selector . ' .commentlist .the-comment', 'border-color', $this->args['border_color'] );
+				}
+
+				if ( 'circle' === $this->args['avatar'] ) {
+					$this->add_css_property( $this->base_selector . '.circle .the-comment .avatar', 'border-radius', '50%' );
+				}
+
+				if ( 'square' === $this->args['avatar'] ) {
+					$this->add_css_property( $this->base_selector . '.square .the-comment .avatar', 'border-radius', '0' );
+				}
+
+				if ( 'hide' === $this->args['avatar'] ) {
+					$this->add_css_property( $this->base_selector . ' .commentlist .the-comment .comment-text', 'margin-left', '0' );
+				}
+
+				if ( ! $this->is_default( 'padding' ) ) {
+					$this->add_css_property( $this->base_selector . ' .commentlist .children', 'padding-left', $this->args['padding'] );
+				}
+
+				if ( ! $this->is_default( 'heading_color' ) ) {
+					$this->add_css_property( $this->base_selector . ' .fusion-title h' . $this->args['heading_size'], 'color', $this->args['heading_color'], true );
+				}
+
+				if ( ! $this->is_default( 'link_color' ) ) {
+					$this->add_css_property( $this->base_selector . ' a', 'color', $this->args['link_color'] );
+					$this->add_css_property( $this->base_selector . ' .comment-author.meta a', 'color', $this->args['link_color'], true );
+				}
+
+				if ( ! $this->is_default( 'link_hover_color' ) ) {
+					$this->add_css_property( $this->base_selector . ' a:hover', 'color', $this->args['link_hover_color'] );
+					$this->add_css_property( $this->base_selector . ' .comment-author.meta a:hover', 'color', $this->args['link_hover_color'], true );
+				}
+
+				if ( ! $this->is_default( 'text_color' ) ) {
+					$this->add_css_property( $this->base_selector, 'color', $this->args['text_color'] );
+				}
+
+				if ( ! $this->is_default( 'meta_color' ) ) {
+					$this->add_css_property( $this->base_selector . ' .comment-author.meta', 'color', $this->args['meta_color'], true );
+				}
+
+				$css = $this->parse_css();
+
+				return $css ? '<style>' . $css . '</style>' : '';
+			}
+
+			/**
 			 * Load comments template from Avada Builder.
 			 *
 			 * @since 2.2
@@ -387,6 +428,18 @@ function fusion_component_comments() {
 					],
 					[
 						'type'        => 'radio_button_set',
+						'heading'     => esc_attr__( 'Comment Avatar', 'fusion-builder' ),
+						'description' => esc_attr__( 'Make a section for user comment avatar.', 'fusion-builder' ),
+						'param_name'  => 'avatar',
+						'default'     => 'square',
+						'value'       => [
+							'square' => esc_html__( 'Square', 'fusion-builder' ),
+							'circle' => esc_html__( 'Circle', 'fusion-builder' ),
+							'hide'   => esc_html__( 'Hide', 'fusion-builder' ),
+						],
+					],
+					[
+						'type'        => 'radio_button_set',
 						'heading'     => esc_attr__( 'Show Headings', 'fusion-builder' ),
 						'description' => esc_attr__( 'Choose to show or hide headings.', 'fusion-builder' ),
 						'param_name'  => 'headings',
@@ -401,6 +454,7 @@ function fusion_component_comments() {
 						'heading'     => esc_attr__( 'HTML Heading Size', 'fusion-builder' ),
 						'description' => esc_attr__( 'Choose the size of the HTML heading that should be used, h1-h6.', 'fusion-builder' ),
 						'param_name'  => 'heading_size',
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
 						'value'       => [
 							'1' => 'H1',
 							'2' => 'H2',
@@ -419,10 +473,26 @@ function fusion_component_comments() {
 						],
 					],
 					[
+						'type'        => 'colorpickeralpha',
+						'heading'     => esc_attr__( 'Heading Color', 'fusion-builder' ),
+						'description' => esc_attr__( 'Controls the heading color.', 'fusion-builder' ),
+						'param_name'  => 'heading_color',
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+						'value'       => '',
+						'dependency'  => [
+							[
+								'element'  => 'headings',
+								'value'    => 'show',
+								'operator' => '==',
+							],
+						],
+					],
+					[
 						'type'        => 'range',
 						'heading'     => esc_attr__( 'Comment Separator Border Size', 'fusion-builder' ),
 						'description' => esc_attr__( 'Controls the border size of the separators. In pixels.', 'fusion-builder' ),
 						'param_name'  => 'border_size',
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
 						'value'       => '',
 						'min'         => '0',
 						'max'         => '50',
@@ -434,6 +504,7 @@ function fusion_component_comments() {
 						'heading'     => esc_attr__( 'Comment Separator Border Color', 'fusion-builder' ),
 						'description' => esc_attr__( 'Controls the border color of the separators.', 'fusion-builder' ),
 						'param_name'  => 'border_color',
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
 						'value'       => '',
 						'default'     => $fusion_settings->get( 'sep_color' ),
 						'dependency'  => [
@@ -449,22 +520,63 @@ function fusion_component_comments() {
 						'heading'     => esc_attr__( 'Comment Indent', 'fusion-builder' ),
 						'description' => esc_attr__( 'Set left padding for child comments. In pixels.', 'fusion-builder' ),
 						'param_name'  => 'padding',
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
 						'value'       => '40',
 						'min'         => '0',
 						'max'         => '100',
 						'step'        => '1',
 					],
 					[
-						'type'        => 'radio_button_set',
-						'heading'     => esc_attr__( 'Comment Avatar', 'fusion-builder' ),
-						'description' => esc_attr__( 'Make a section for user comment avatar.', 'fusion-builder' ),
-						'param_name'  => 'avatar',
-						'default'     => 'square',
-						'value'       => [
-							'square' => esc_html__( 'Square', 'fusion-builder' ),
-							'circle' => esc_html__( 'Circle', 'fusion-builder' ),
-							'hide'   => esc_html__( 'Hide', 'fusion-builder' ),
+						'type'        => 'colorpickeralpha',
+						'heading'     => esc_attr__( 'Comment Separator Border Color', 'fusion-builder' ),
+						'description' => esc_attr__( 'Controls the border color of the separators.', 'fusion-builder' ),
+						'param_name'  => 'border_color',
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+						'value'       => '',
+						'default'     => $fusion_settings->get( 'sep_color' ),
+						'dependency'  => [
+							[
+								'element'  => 'border_size',
+								'value'    => '0',
+								'operator' => '!=',
+							],
 						],
+					],
+					[
+						'type'        => 'colorpickeralpha',
+						'heading'     => esc_attr__( 'Link Color', 'fusion-builder' ),
+						'description' => esc_attr__( 'Controls the link color.', 'fusion-builder' ),
+						'param_name'  => 'link_color',
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+						'value'       => '',
+						'default'     => $fusion_settings->get( 'link_color' ),
+					],
+					[
+						'type'        => 'colorpickeralpha',
+						'heading'     => esc_attr__( 'Link Hover Color', 'fusion-builder' ),
+						'description' => esc_attr__( 'Controls the link hover color.', 'fusion-builder' ),
+						'param_name'  => 'link_hover_color',
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+						'value'       => '',
+						'default'     => $fusion_settings->get( 'primary_color' ),
+					],
+					[
+						'type'        => 'colorpickeralpha',
+						'heading'     => esc_attr__( 'Text Color', 'fusion-builder' ),
+						'description' => esc_attr__( 'Controls the text color.', 'fusion-builder' ),
+						'param_name'  => 'text_color',
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+						'value'       => '',
+						'default'     => $fusion_settings->get( 'body_typography', 'color' ),
+					],
+					[
+						'type'        => 'colorpickeralpha',
+						'heading'     => esc_attr__( 'Meta Color', 'fusion-builder' ),
+						'description' => esc_attr__( 'Controls the meta color.', 'fusion-builder' ),
+						'param_name'  => 'meta_color',
+						'group'       => esc_attr__( 'Design', 'fusion-builder' ),
+						'value'       => '',
+						'default'     => $fusion_settings->get( 'body_typography', 'color' ),
 					],
 					[
 						'type'             => 'dimension',
@@ -472,6 +584,7 @@ function fusion_component_comments() {
 						'heading'          => esc_attr__( 'Margin', 'fusion-builder' ),
 						'description'      => esc_attr__( 'In pixels or percentage, ex: 10px or 10%.', 'fusion-builder' ),
 						'param_name'       => 'margin',
+						'group'            => esc_attr__( 'Design', 'fusion-builder' ),
 						'value'            => [
 							'margin_top'    => '',
 							'margin_right'  => '',

@@ -7,6 +7,7 @@
 
 $fusion_settings     = awb_get_fusion_settings();
 $theme_options_style = strtolower( $fusion_settings->get( 'title_style_type' ) );
+$text_transform      = $fusion_settings->get( 'button_text_transform' );
 ?>
 <script type="text/template" id="fusion-builder-block-module-title-preview-template">
 
@@ -32,13 +33,17 @@ $theme_options_style = strtolower( $fusion_settings->get( 'title_style_type' ) )
 <# } else { #>
 	<div class="fusion-title-preview">
 		<#
-		var style_type = ( params.style_type ) ? params.style_type.replace( ' ', '_' ) : 'default';
-		var
-		content = params.element_content,
-		text_blocks       = jQuery.parseHTML( content ),
-		shortcode_content = '',
-		text_color        = params.text_color,
-		styleTag          = '';
+		var style_type = ( params.style_type ) ? params.style_type.replace( ' ', '_' ) : 'default',
+			content = params.element_content,
+			text_blocks       = jQuery.parseHTML( content ),
+			shortcode_content = '',
+			text_color        = params.text_color,
+			text_transform    = '' !== params.text_transform ? params.text_transform : '<?php echo esc_attr( $text_transform ); ?>',
+			styleTag          = '';
+
+		if ( 'none' !== text_transform ) {
+			styleTag += 'text-transform: ' + text_transform + ';';
+		}
 
 		if ( 'default' === params.style_type ) {
 			style_type = '<?php echo esc_attr( $theme_options_style ); ?>';

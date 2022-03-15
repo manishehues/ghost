@@ -236,7 +236,7 @@ final class Fusion_Helper {
 		}
 		return false;
 
-	}   
+	}
 
 	/**
 	 * Check if we're on an Event post.
@@ -342,7 +342,7 @@ final class Fusion_Helper {
 				$title = esc_html__( 'Error 404 Page', 'Avada' );
 			}
 
-			if ( class_exists( 'Tribe__Events__Main' ) && ( ( self::tribe_is_event( $post_id ) && ! is_single() && ! is_home() && ! is_tag() ) || self::is_events_archive( $post_id ) && ! is_tag() || ( self::is_events_archive( $post_id ) && is_404() ) ) ) {
+			if ( class_exists( 'Tribe__Events__Main' ) && ( tribe_is_events_front_page() || ( self::tribe_is_event( $post_id ) && ! is_single() && ! is_home() && ! is_tag() ) || self::is_events_archive( $post_id ) && ! is_tag() || ( self::is_events_archive( $post_id ) && is_404() ) ) ) {
 				$title = tribe_get_events_title();
 			} elseif ( is_archive() && ! self::is_bbpress() && ! is_search() ) {
 				if ( is_day() ) {

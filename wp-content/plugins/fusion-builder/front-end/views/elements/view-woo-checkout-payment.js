@@ -9,6 +9,24 @@ var FusionPageBuilder = FusionPageBuilder || {};
 		// Woo Checkout Payment Component View.
 		FusionPageBuilder.fusion_tb_woo_checkout_payment = FusionPageBuilder.ElementView.extend( {
 
+			onInit: function() {
+				var params = this.model.get( 'params' );
+
+				// Check for newer margin params.  If unset but regular is, copy from there.
+				if ( 'object' === typeof params ) {
+
+					// Split border width into 4.
+					if ( 'undefined' === typeof params.button_border_top && 'undefined' !== typeof params.button_border_width && '' !== params.button_border_width ) {
+						params.button_border_top    = parseInt( params.button_border_width ) + 'px';
+						params.button_border_right  = params.button_border_top;
+						params.button_border_bottom = params.button_border_top;
+						params.button_border_left   = params.button_border_top;
+						delete params.button_border_width;
+					}
+					this.model.set( 'params', params );
+				}
+			},
+
 			/**
 			 * Modify template attributes.
 			 *
@@ -133,7 +151,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				  this.addCssProperty( this.baseSelector + ' a:hover', 'color',  this.values.link_hover_color );
 				}
 
-				selector =  this.baseSelector + ' .woocommerce-checkout-payment ul.wc_payment_methods li label';
+				selector =  this.baseSelector + ' .woocommerce-checkout-payment ul.wc_payment_methods li > label';
 				if ( !this.isDefault( 'label_padding_top' ) ) {
 				  this.addCssProperty( selector, 'padding-top',  this.values.label_padding_top );
 				}
@@ -163,7 +181,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					this.addCssProperty( this.baseSelector + ' ul li input:checked+label', 'color',  this.values.label_hover_color );
 				}
 
-				selector =  this.baseSelector + ' .woocommerce-checkout-payment ul.wc_payment_methods li:hover label';
+				selector =  this.baseSelector + ' .woocommerce-checkout-payment ul.wc_payment_methods li:hover > label';
 				if ( !this.isDefault( 'label_bg_hover_color' ) ) {
 				  this.addCssProperty( selector, 'background',  this.values.label_bg_hover_color );
 				}
@@ -234,8 +252,17 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				    this.addCssProperty( button, 'width', '100%' );
 				  }
 
-				  if (  !  this.isDefault( 'button_border_width' ) ) {
-				    this.addCssProperty( button, 'border-width',  _.fusionGetValueWithUnit( this.values.button_border_width ) );
+ 				  if (  !  this.isDefault( 'button_border_top' ) ) {
+				    this.addCssProperty( button, 'border-top-width',  _.fusionGetValueWithUnit( this.values.button_border_top ) );
+				  }
+				  if (  !  this.isDefault( 'button_border_right' ) ) {
+				    this.addCssProperty( button, 'border-right-width',  _.fusionGetValueWithUnit( this.values.button_border_right ) );
+				  }
+				  if (  !  this.isDefault( 'button_border_bottom' ) ) {
+				    this.addCssProperty( button, 'border-bottom-width',  _.fusionGetValueWithUnit( this.values.button_border_bottom ) );
+				  }
+				  if (  !  this.isDefault( 'button_border_left' ) ) {
+				    this.addCssProperty( button, 'border-left-width',  _.fusionGetValueWithUnit( this.values.button_border_left ) );
 				  }
 
 				  if (  !  this.isDefault( 'button_color' ) ) {

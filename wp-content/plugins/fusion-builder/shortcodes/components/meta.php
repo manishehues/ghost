@@ -58,7 +58,8 @@ if ( fusion_is_element_enabled( 'fusion_tb_meta' ) ) {
 			 * @return boolean
 			 */
 			public function should_render() {
-				return is_singular();
+				return is_singular() || wp_is_json_request();
+
 			}
 
 			/**
@@ -99,6 +100,8 @@ if ( fusion_is_element_enabled( 'fusion_tb_meta' ) ) {
 					'border_size'              => null,
 					'border_color'             => $fusion_settings->get( 'sep_color' ),
 					'alignment'                => 'flex-start',
+					'alignment_medium'         => '',
+					'alignment_small'          => '',
 					'stacked_vertical_align'   => 'flex-start',
 					'stacked_horizontal_align' => 'flex-start',
 					'height'                   => '33',
@@ -225,6 +228,7 @@ if ( fusion_is_element_enabled( 'fusion_tb_meta' ) ) {
 			protected function get_styles() {
 				$this->base_selector = '.fusion-meta-tb.fusion-meta-tb-' . $this->counter;
 				$this->dynamic_css   = [];
+				$fusion_settings     = awb_get_fusion_settings();
 
 				$selectors = [
 					$this->base_selector,
@@ -237,6 +241,11 @@ if ( fusion_is_element_enabled( 'fusion_tb_meta' ) ) {
 
 				if ( ! $this->is_default( 'link_color' ) ) {
 					$this->add_css_property( $this->base_selector . ' span a', 'color', $this->args['link_color'] );
+				}
+
+				// Alignment.
+				if ( '' !== $this->args['alignment'] && 'stacked' !== $this->args['layout'] ) {
+					$this->add_css_property( $this->base_selector, 'justify-content', $this->args['alignment'] );
 				}
 
 				$selectors = [
@@ -329,6 +338,22 @@ if ( fusion_is_element_enabled( 'fusion_tb_meta' ) ) {
 				}
 
 				$css = $this->parse_css();
+
+				// Responsive Alignment.
+				if ( 'stacked' !== $this->args['layout'] ) {
+					foreach ( [ 'medium', 'small' ] as $size ) {
+						$key   = 'alignment_' . $size;
+						$media = sprintf( '@media only screen and (max-width:%spx)', $fusion_settings->get( 'visibility_' . $size ) );
+
+						if ( '' === $this->args[ $key ] ) {
+							continue;
+						}
+
+						$this->dynamic_css = [];
+						$this->add_css_property( $this->base_selector, 'justify-content', $this->args[ $key ] );
+						$css .= sprintf( '%s { %s }', $media, $this->parse_css() );
+					}
+				}
 				return $css ? '<style type="text/css">' . $css . '</style>' : '';
 			}
 
@@ -357,10 +382,6 @@ if ( fusion_is_element_enabled( 'fusion_tb_meta' ) ) {
 
 				if ( $this->args['height'] ) {
 					$attr['style'] .= 'min-height:' . $this->args['height'] . ';';
-				}
-
-				if ( '' !== $this->args['alignment'] && 'stacked' !== $this->args['layout'] ) {
-					$attr['style'] .= 'justify-content:' . $this->args['alignment'] . ';';
 				}
 
 				if ( '' !== $this->args['stacked_vertical_align'] && 'floated' !== $this->args['layout'] ) {
@@ -413,6 +434,22 @@ if ( fusion_is_element_enabled( 'fusion_tb_meta' ) ) {
 			}
 
 			/**
+			 * Used to set any other variables for use on front-end editor template.
+			 *
+			 * @static
+			 * @access public
+			 * @since 3.6
+			 * @return array
+			 */
+			public static function get_element_extras() {
+				$fusion_settings = awb_get_fusion_settings();
+				return [
+					'visibility_medium' => $fusion_settings->get( 'visibility_medium' ),
+					'visibility_small'  => $fusion_settings->get( 'visibility_small' ),
+				];
+			}
+
+			/**
 			 * Builds HTML for meta elements.
 			 *
 			 * @static
@@ -426,12 +463,13 @@ if ( fusion_is_element_enabled( 'fusion_tb_meta' ) ) {
 				global $product;
 
 				$options     = explode( ',', $args['meta'] );
+				$post_id     = $this->get_post_id();
 				$content     = '';
 				$date_format = fusion_library()->get_option( 'date_format' );
 				$date_format = $date_format ? $date_format : get_option( 'date_format' );
 				$separator   = '<span class="fusion-meta-tb-sep">' . $args['separator'] . '</span>';
-				$post_type   = get_post_type();
-				$author_id   = -99 === $this->get_post_id() ? get_post_field( 'post_author' ) : get_post_field( 'post_author', $this->get_post_id() );
+				$post_type   = get_post_type( $post_id );
+				$author_id   = -99 === $post_id ? get_post_field( 'post_author' ) : get_post_field( 'post_author', $post_id );
 				$is_builder  = ( function_exists( 'fusion_is_preview_frame' ) && fusion_is_preview_frame() ) || ( function_exists( 'fusion_is_builder_frame' ) && fusion_is_builder_frame() );
 
 				foreach ( $options as $index => $option ) {
@@ -465,7 +503,7 @@ if ( fusion_is_element_enabled( 'fusion_tb_meta' ) ) {
 							];
 
 							if ( 'post' === $post_type || isset( $taxonomies[ $post_type ] ) ) {
-								$categories = 'post' === $post_type ? get_the_category_list( ', ', '', false ) : get_the_term_list( $this->get_post_id(), $taxonomies[ $post_type ], '', ', ' );
+								$categories = 'post' === $post_type ? get_the_category_list( ', ', '', $post_id ) : get_the_term_list( $post_id, $taxonomies[ $post_type ], '', ', ' );
 							}
 							/* Translators: %s: List of categories. */
 							$content .= $categories && ! is_wp_error( $categories ) ? '<span class="fusion-tb-categories">' . sprintf( esc_html__( 'Categories: %s', 'fusion-builder' ), $categories ) . '</span>' . $separator : '';
@@ -484,7 +522,7 @@ if ( fusion_is_element_enabled( 'fusion_tb_meta' ) ) {
 							];
 
 							if ( 'post' === $post_type || isset( $taxonomies[ $post_type ] ) ) {
-								$tags = isset( $taxonomies[ $post_type ] ) ? get_the_term_list( $this->get_post_id(), $taxonomies[ $post_type ], '', ', ', '' ) : get_the_tag_list( '', ', ', '' );
+								$tags = isset( $taxonomies[ $post_type ] ) ? get_the_term_list( $post_id, $taxonomies[ $post_type ], '', ', ', '' ) : get_the_tag_list( '', ', ', '' );
 							}
 
 							/* Translators: %s: List of tags. */
@@ -493,26 +531,73 @@ if ( fusion_is_element_enabled( 'fusion_tb_meta' ) ) {
 						case 'skills':
 							$skills = '';
 							if ( 'avada_portfolio' === $post_type ) {
-								$skills = get_the_term_list( $this->get_post_id(), 'portfolio_skills', '', ', ', '' );
+								$skills = get_the_term_list( $post_id, 'portfolio_skills', '', ', ', '' );
 							}
 
 							/* Translators: %s: List of skills. */
 							$content .= $skills ? apply_filters( 'fusion_portfolio_post_skills_label', '<span class="fusion-tb-skills">' . sprintf( esc_html__( 'Skills Needed: %s', 'fusion-builder' ), $skills ) . '</span>' ) . $separator : '';
 							break;
 						case 'sku':
-							if ( ( is_object( $product ) && '' !== $product->get_sku() ) || ( $is_live || $is_builder ) ) {
-								$sku = ( ( $is_live || $is_builder ) && ( ! is_object( $product ) || '' === $product->get_sku() ) ) ? wp_rand( 10000, 99999 ) : $product->get_sku();
-								/* Translators: %s: SKU. */
-								$content .= '<span class="fusion-tb-sku product_meta">' . esc_html__( 'SKU:', 'fusion-builder' ) . ' <span class="sku">' . esc_html__( $sku ) . '</span></span>' . $separator;
+							$sku_can_be_displayed = ( function_exists( 'wc_product_sku_enabled' ) && wc_product_sku_enabled() && is_object( $product ) && ( '' !== $product->get_sku() || $product->is_type( 'variable' ) ) );
+
+							if ( $sku_can_be_displayed || $is_live || $is_builder ) {
+								$sku_is_not_empty            = ( is_object( $product ) && $product->get_sku() );
+								$need_random_sku_for_builder = ( ( $is_live || $is_builder ) && ! $sku_is_not_empty );
+
+								$sku      = ( $sku_is_not_empty ? $product->get_sku() : esc_html__( 'N/A', 'fusion-builder' ) );
+								$sku      = $need_random_sku_for_builder ? wp_rand( 10000, 99999 ) : $sku;
+								$content .= '<span class="fusion-tb-sku product_meta">' . esc_html__( 'SKU:', 'fusion-builder' ) . ' <span class="sku">' . $sku . '</span></span>' . $separator;
+							}
+							break;
+						case 'event_date':
+							$event_date = $this->get_event_date();
+							if ( $event_date ) {
+								$content .= '<span class="fusion-tb-event-date">' . $event_date . '</span>' . $separator;
+							}
+							break;
+						case 'event_start_date':
+							$event_start_date = $this->get_event_start_date();
+							if ( $event_start_date ) {
+								$content .= '<span class="fusion-tb-event-start-date">' . $event_start_date . '</span>' . $separator;
+							}
+							break;
+						case 'event_end_date':
+							$event_end_date = $this->get_event_end_date();
+							if ( $event_end_date ) {
+								$content .= '<span class="fusion-tb-event-end-date">' . $event_end_date . '</span>' . $separator;
 							}
 							break;
 						case 'word_count':
-								/* Translators: %s words */
-								$content .= '<span class="fusion-tb-published-word-count">' . sprintf( esc_html__( '%s words', 'fusion-builder' ), $this->count_post_words() ) . '</span>' . $separator;
+							/* Translators: %s: number of words. */
+							$content .= '<span class="fusion-tb-published-word-count">' . sprintf( esc_html__( '%s words', 'fusion-builder' ), $this->count_post_words() ) . '</span>' . $separator;
 							break;
 						case 'read_time':
-								/* Translators: %s min read */
-								$content .= '<span class="fusion-tb-published-read-time">' . sprintf( esc_html__( '%s min read', 'fusion-builder' ), $this->count_reading_time() ) . '</span>' . $separator;
+							$reading_time_args = [
+								'reading_speed' => $this->args['read_time'],
+							];
+							$reading_time      = awb_get_reading_time( $this->get_post_id(), $reading_time_args );
+							/* Translators: %s: minutes of read. */
+							$content .= '<span class="fusion-tb-published-read-time">' . sprintf( esc_html__( '%s min read', 'fusion-builder' ), $reading_time ) . '</span>' . $separator;
+							break;
+						case 'total_views':
+							$total_views_num = avada_get_post_views( $post_id );
+
+							$both_views_are_displayed = in_array( 'today_views', $options, true );
+							if ( $both_views_are_displayed ) {
+								/* Translators: %s: number of total views of a post. */
+								$total_views = sprintf( esc_html__( 'Total Views: %s', 'fusion-builder' ), $total_views_num );
+							} else {
+								/* Translators: %s: number of total views of a post. */
+								$total_views = sprintf( esc_html__( 'Views: %s', 'fusion-builder' ), $total_views_num );
+							}
+
+							$content .= '<span class="fusion-tb-total-views">' . $total_views . '</span>' . $separator;
+							break;
+						case 'today_views':
+							$today_views_num = avada_get_today_post_views( $post_id );
+							/* Translators: %s: number of daily views. */
+							$today_views = sprintf( esc_html__( 'Daily Views: %s', 'fusion-builder' ), $today_views_num );
+							$content    .= '<span class="fusion-tb-today-views">' . $today_views . '</span>' . $separator;
 							break;
 					}
 				}
@@ -521,38 +606,86 @@ if ( fusion_is_element_enabled( 'fusion_tb_meta' ) ) {
 			}
 
 			/**
-			 * Count time needed to read a post
+			 * Get the event date.
 			 *
-			 * @since 3.1.1
-			 * @return float
+			 * @since 3.5
+			 * @return string Empty string if the post is not an event.
 			 */
-			public function count_reading_time() {
-				$word_count              = $this->count_post_words();
-				$this->args['read_time'] = intval( $this->args['read_time'] );
-				if ( 0 === $word_count || 0 === $this->args['read_time'] ) {
-					return 0;
+			public function get_event_date() {
+				$event_id = $this->get_post_id();
+				$event    = get_post( $event_id );
+
+				if ( ! $event instanceof WP_Post ) {
+					return '';
 				}
-				$additional_time = $this->get_image_read_time();
-				return round( $word_count / $this->args['read_time'] + $additional_time, 1 );
+
+				$post_is_event_type = ( 'tribe_events' === $event->post_type ? true : false );
+				if ( ! $post_is_event_type ) {
+					return '';
+				}
+
+				add_filter( 'tribe_events_recurrence_tooltip', [ $this, 'remove_event_recurring_info' ], 999 );
+				$date = tribe_events_event_schedule_details( $event_id );
+				remove_filter( 'tribe_events_recurrence_tooltip', [ $this, 'remove_event_recurring_info' ], 999 );
+
+				return $date;
 			}
 
+			/**
+			 * Remove the recurring event after the meta, since it will take a
+			 * lot of space.
+			 *
+			 * @param string $tooltip The recurring tooltip.
+			 * @return string Empty string, containing no tooltip.
+			 */
+			public static function remove_event_recurring_info( $tooltip ) {
+				return '';
+			}
 
 			/**
-			 * Count post images and count reading time
+			 * Get the event start date.
 			 *
-			 * @since 3.1.1
-			 * @return float|int
+			 * @since 3.5
+			 * @return string Empty string if the post is not an event.
 			 */
-			public function get_image_read_time() {
-				$time            = 0;
-				$image_read_time = 0.05;
-				$post_content    = $this->get_post_content( false );
-				preg_match_all( '~<img~i', $post_content, $result );
-				if ( count( $result[0] ) > 0 ) {
-					$time = count( $result[0] ) * $image_read_time;
+			public function get_event_start_date() {
+				$event_id = $this->get_post_id();
+				$event    = get_post( $event_id );
+
+				if ( ! $event instanceof WP_Post ) {
+					return '';
 				}
 
-				return $time;
+				$post_is_event_type = ( 'tribe_events' === $event->post_type ? true : false );
+				if ( ! $post_is_event_type ) {
+					return '';
+				}
+
+				/* translators: %s: a date, representing the start date of an event. */
+				return sprintf( __( 'Start Date: %s', 'fusion-builder' ), tribe_get_start_date( $event_id ) );
+			}
+
+			/**
+			 * Get the event end date.
+			 *
+			 * @since 3.5
+			 * @return string Empty string if the post is not an event.
+			 */
+			public function get_event_end_date() {
+				$event_id = $this->get_post_id();
+				$event    = get_post( $event_id );
+
+				if ( ! $event instanceof WP_Post ) {
+					return '';
+				}
+
+				$post_is_event_type = ( 'tribe_events' === $event->post_type ? true : false );
+				if ( ! $post_is_event_type ) {
+					return '';
+				}
+
+				/* translators: %s: a date, representing the end date of an event. */
+				return sprintf( __( 'End Date: %s', 'fusion-builder' ), tribe_get_end_date( $event_id ) );
 			}
 
 			/**
@@ -626,16 +759,21 @@ function fusion_component_meta() {
 						'param_name'  => 'meta',
 						'default'     => 'author,published_date,categories,comments,tags',
 						'choices'     => [
-							'author'         => esc_attr__( 'Author', 'fusion-builder' ),
-							'published_date' => esc_attr__( 'Published Date', 'fusion-builder' ),
-							'modified_date'  => esc_attr__( 'Modified Date', 'fusion-builder' ),
-							'categories'     => esc_attr__( 'Categories', 'fusion-builder' ),
-							'comments'       => esc_attr__( 'Comments', 'fusion-builder' ),
-							'tags'           => esc_attr__( 'Tags', 'fusion-builder' ),
-							'skills'         => esc_attr__( 'Portfolio Skills', 'fusion-builder' ),
-							'sku'            => esc_attr__( 'Product SKU', 'fusion-builder' ),
-							'word_count'     => esc_attr__( 'Word Count', 'fusion-builder' ),
-							'read_time'      => esc_attr__( 'Reading Time', 'fusion-builder' ),
+							'author'           => esc_attr__( 'Author', 'fusion-builder' ),
+							'published_date'   => esc_attr__( 'Published Date', 'fusion-builder' ),
+							'modified_date'    => esc_attr__( 'Modified Date', 'fusion-builder' ),
+							'categories'       => esc_attr__( 'Categories', 'fusion-builder' ),
+							'comments'         => esc_attr__( 'Comments', 'fusion-builder' ),
+							'tags'             => esc_attr__( 'Tags', 'fusion-builder' ),
+							'skills'           => esc_attr__( 'Portfolio Skills', 'fusion-builder' ),
+							'sku'              => esc_attr__( 'Product SKU', 'fusion-builder' ),
+							'event_date'       => esc_attr__( 'Event Full Date', 'fusion-builder' ),
+							'event_start_date' => esc_attr__( 'Event Start Date', 'fusion-builder' ),
+							'event_end_date'   => esc_attr__( 'Event End Date', 'fusion-builder' ),
+							'word_count'       => esc_attr__( 'Word Count', 'fusion-builder' ),
+							'read_time'        => esc_attr__( 'Reading Time', 'fusion-builder' ),
+							'total_views'      => esc_attr__( 'Total Views', 'fusion-builder' ),
+							'today_views'      => esc_attr__( 'Daily Views', 'fusion-builder' ),
 						],
 						'callback'    => [
 							'function' => 'fusion_ajax',
@@ -718,6 +856,9 @@ function fusion_component_meta() {
 								'value'    => 'stacked',
 								'operator' => '!=',
 							],
+						],
+						'responsive'  => [
+							'state' => 'large',
 						],
 					],
 					[

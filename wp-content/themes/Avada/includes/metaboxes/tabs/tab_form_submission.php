@@ -52,7 +52,7 @@ function avada_page_options_tab_form_submission( $sections ) {
 				'type'        => 'custom',
 				'label'       => '',
 				/* translators: Form entries link. */
-				'description' => '<div class="fusion-redux-important-notice">' . sprintf( __( '<strong>IMPORTANT NOTE:</strong>You can view and manage form submissions by going to <a href="%s" target="_blank">form entries</a> section and selecting this form from the dropdown list.', 'Avada' ), admin_url( 'admin.php?page=avada-form-entries' ) ) . '</div>',
+				'description' => '<div class="fusion-redux-important-notice">' . sprintf( __( '<strong>IMPORTANT NOTE:</strong> You can view and manage form submissions by going to <a href="%s" target="_blank">form entries</a> section and selecting this form from the dropdown list.', 'Avada' ), admin_url( 'admin.php?page=avada-form-entries' ) ) . '</div>',
 				'id'          => 'entries_notice',
 				'dependency'  => [
 					[
@@ -292,16 +292,45 @@ function avada_page_options_tab_form_submission( $sections ) {
 					],
 				],
 			],
+			'email_attachments'    => [
+				'type'        => 'radio-buttonset',
+				'default'     => 'no',
+				'label'       => esc_html__( 'Attach Uploaded Files', 'Avada' ),
+				'id'          => 'email_attachments',
+				'description' => esc_html__( 'Add uploaded files as email attachments.', 'Avada' ),
+				'transport'   => 'postMessage',
+				'choices'     => [
+					'yes' => esc_html__( 'Yes', 'Avada' ),
+					'no'  => esc_html__( 'No', 'Avada' ),
+				],
+				'dependency'  => [
+					[
+						'field'      => 'form_type',
+						'value'      => 'database',
+						'comparison' => '!=',
+					],
+					[
+						'field'      => 'form_type',
+						'value'      => 'url',
+						'comparison' => '!=',
+					],
+					[
+						'field'      => 'form_type',
+						'value'      => 'default',
+						'comparison' => '!=',
+					],
+				],
+			],
 			'member_only_form'     => [
 				'type'        => 'radio-buttonset',
 				'label'       => esc_html__( 'Enable Member Only Form', 'Avada' ),
 				'description' => esc_html__( 'Select if you want to display this form to only logged in users with specific user roles.', 'Avada' ),
 				'id'          => 'member_only_form',
-				'default'     => 'no',
+				'default'     => '0',
 				'transport'   => 'postMessage',
 				'choices'     => [
-					'yes' => esc_html__( 'Yes', 'Avada' ),
-					'no'  => esc_html__( 'No', 'Avada' ),
+					'1' => esc_html__( 'Yes', 'Avada' ),
+					'0' => esc_html__( 'No', 'Avada' ),
 				],
 				'dependency'  => [],
 			],

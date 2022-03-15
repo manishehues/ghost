@@ -14,7 +14,6 @@
 .container,
 .container-fluid,
 .row {
-  zoom: 1;
   clear: both;
 }
 .fusion-clearfix:after,
@@ -64,7 +63,6 @@
 }
 .create-block-format-context {
   display: inline-block;
-  zoom: 1;
   clear: both;
   margin-bottom: 40px;
   width: 100%;
@@ -366,6 +364,9 @@
   font-family: "awb-icons";
   position: absolute;
   transform: translateY(-50%);
+}
+.fusion-text-no-margin > p {
+  margin-top: 0;
 }
 .fusion-text-no-margin > p:last-child {
   margin-bottom: 0;

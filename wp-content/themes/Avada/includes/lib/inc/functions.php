@@ -38,6 +38,11 @@ function awb_get_fusion_settings() {
  * Keep Backwards-compatibility.
  */
 if ( ! function_exists( 'fusion_get_fusion_settings' ) && ( ! defined( 'FUSION_BUILDER_VERSION' ) || version_compare( FUSION_BUILDER_VERSION, '3.4', '>=' ) ) ) {
+	/**
+	 * Get global $fusion_settings object.
+	 *
+	 * @return object
+	 */
 	function fusion_get_fusion_settings() {
 		return awb_get_fusion_settings();
 	}
@@ -447,75 +452,6 @@ if ( ! function_exists( 'fusion_render_post_metadata' ) ) {
 		return apply_filters( 'fusion_post_metadata_markup', $html );
 	}
 }
-
-if ( ! function_exists( 'fusion_calc_color_brightness' ) ) {
-	/**
-	 * Convert Calculate the brightness of a color.
-	 *
-	 * @param  string $color Color (Hex) Code.
-	 * @return integer brightness level.
-	 */
-	function fusion_calc_color_brightness( $color ) {
-
-		$brightness_level = 150;
-		if ( ! is_string( $color ) ) {
-			return $brightness_level;
-		}
-
-		if ( in_array( strtolower( $color ), [ 'black', 'navy', 'purple', 'maroon', 'indigo', 'darkslategray', 'darkslateblue', 'darkolivegreen', 'darkgreen', 'darkblue' ], true ) ) {
-
-			$brightness_level = 0;
-
-		} elseif ( 0 === strpos( $color, '#' ) || 0 === strpos( $color, 'rgb' ) || ctype_xdigit( $color ) ) {
-
-			$color            = fusion_hex2rgb( $color );
-			$brightness_level = sqrt( pow( $color[0], 2 ) * 0.299 + pow( $color[1], 2 ) * 0.587 + pow( $color[2], 2 ) * 0.114 );
-
-		}
-
-		return (int) round( $brightness_level );
-	}
-}
-
-if ( ! function_exists( 'fusion_hex2rgb' ) ) {
-	/**
-	 * Convert Hex Code to RGB.
-	 *
-	 * @param  string $hex Color Hex Code.
-	 * @return array       RGB values.
-	 */
-	function fusion_hex2rgb( $hex ) {
-		if ( false !== strpos( $hex, 'rgb' ) ) {
-
-			$rgb_part = strstr( $hex, '(' );
-			$rgb_part = trim( $rgb_part, '(' );
-			$rgb_part = rtrim( $rgb_part, ')' );
-			$rgb_part = explode( ',', $rgb_part );
-
-			$rgb = [ $rgb_part[0], $rgb_part[1], $rgb_part[2], $rgb_part[3] ];
-
-		} elseif ( 'transparent' === $hex ) {
-			$rgb = [ '255', '255', '255', '0' ];
-		} else {
-
-			$hex = str_replace( '#', '', $hex );
-
-			if ( 3 === strlen( $hex ) ) {
-				$r = hexdec( substr( $hex, 0, 1 ) . substr( $hex, 0, 1 ) );
-				$g = hexdec( substr( $hex, 1, 1 ) . substr( $hex, 1, 1 ) );
-				$b = hexdec( substr( $hex, 2, 1 ) . substr( $hex, 2, 1 ) );
-			} else {
-				$r = hexdec( substr( $hex, 0, 2 ) );
-				$g = hexdec( substr( $hex, 2, 2 ) );
-				$b = hexdec( substr( $hex, 4, 2 ) );
-			}
-			$rgb = [ $r, $g, $b ];
-		}
-
-		return $rgb; // Returns an array with the rgb values.
-	}
-}
-
 
 if ( ! function_exists( 'avada_first_featured_image_markup' ) ) {
 	/**
@@ -1224,23 +1160,6 @@ if ( ! function_exists( 'fusion_get_referer' ) ) {
 	}
 }
 
-if ( ! function_exists( 'fusion_is_color_transparent' ) ) {
-	/**
-	 * Figure out if a color is transparent or not.
-	 *
-	 * @since 2.0
-	 * @param string $color The color we want to check.
-	 * @return bool
-	 */
-	function fusion_is_color_transparent( $color ) {
-		$color = trim( $color );
-		if ( 'transparent' === $color ) {
-			return true;
-		}
-		return ( 0 === Fusion_Color::new_color( $color )->alpha );
-	}
-}
-
 if ( ! function_exists( 'fusion_the_admin_font_async' ) ) {
 	/**
 	 * Adds the font used for the admin UI asyncronously.
@@ -1590,7 +1509,7 @@ if ( ! function_exists( 'avada_menu_element_woo_cart' ) ) {
 				$product_link = apply_filters( 'woocommerce_cart_item_permalink', $_product->is_visible() ? $_product->get_permalink( $cart_item ) : '', $cart_item, $cart_item_key );
 				$thumbnail_id = ( $cart_item['variation_id'] && has_post_thumbnail( $cart_item['variation_id'] ) ) ? $cart_item['variation_id'] : $cart_item['product_id'];
 
-				if ( $_product && $_product->exists() && $cart_item['quantity'] > 0 && apply_filters( 'woocommerce_cart_item_visible', true, $cart_item, $cart_item_key ) ) {
+				if ( $_product && $_product->exists() && $cart_item['quantity'] > 0 && apply_filters( 'woocommerce_widget_cart_item_visible', true, $cart_item, $cart_item_key ) ) {
 					$output .= '<li class="menu-item fusion-menu-cart-item">';
 					$output .= '<a href="' . $product_link . '">';
 					$output .= get_the_post_thumbnail( $thumbnail_id, 'recent-works-thumbnail' );
@@ -1641,6 +1560,10 @@ if ( ! function_exists( 'fusion_menu_element_add_woo_cart_to_widget_html' ) ) {
 		);
 
 		if ( class_exists( 'WooCommerce' ) && ( ! is_admin() || fusion_doing_ajax() ) ) {
+			if ( is_null( WC()->cart ) || ! WC()->cart instanceof WC_Cart ) {
+				wc_load_cart();
+			}
+
 			$cart_contents_count = WC()->cart->get_cart_contents_count();
 
 			$output .= '<a href="' . get_permalink( get_option( 'woocommerce_cart_page_id' ) ) . '" class="' . esc_attr( $args['link_classes'] ) . '">';
@@ -1732,7 +1655,7 @@ if ( ! function_exists( 'fusion_get_term_image' ) ) {
 	 * @return mixed
 	 */
 	function fusion_get_term_image( $type = 'url' ) {
-		if ( is_tax() ) {
+		if ( is_tax() || is_category() || is_tag() ) {
 			$featured_image = fusion_data()->term_meta( get_queried_object()->term_id )->get( 'featured_image' );
 			if ( ! empty( $featured_image ) ) {
 				if ( 'url' === $type && isset( $featured_image['url'] ) ) {
@@ -1857,7 +1780,6 @@ if ( ! function_exists( 'awb_get_responsive_type_data' ) ) {
 		$body_font_size_px = Fusion_Sanitize::convert_font_size_to_px( $body_font_size, $body_font_size );
 		$typography_factor = fusion_library()->get_option( 'typography_factor' );
 
-
 		if ( $font_size ) {
 			$font_size = fusion_library()->sanitize->get_value_with_unit( $font_size );
 		} else {
@@ -1876,7 +1798,7 @@ if ( ! function_exists( 'awb_get_responsive_type_data' ) ) {
 
 		if ( '' !== $line_height_unit ) {
 			$base_font = $body_font_size;
-			if ( in_array( $line_height_unit, [ 'em', '%' ] ) ) {
+			if ( in_array( $line_height_unit, [ 'em', '%' ] ) ) { // phpcs:ignore WordPress.PHP.StrictInArray.MissingTrueStrict
 				$base_font = $font_size;
 			}
 			$line_height = Fusion_Sanitize::convert_font_size_to_px( $line_height, $base_font );
@@ -1893,10 +1815,11 @@ if ( ! function_exists( 'fusion_get_vimeo_id' ) ) {
 	 * Extracts video id from embed code.
 	 *
 	 * @since 3.4
-	 * @param $url string Video embed code.
+	 * @param string $url Video embed code.
 	 * @return string
 	 */
 	function fusion_get_vimeo_id( $url ) {
+		// phpcs:disable WPThemeReview.ThouShallNotUse.ForbiddenIframe.Found
 		$regex = '~
 			# Match Vimeo link and embed code
 			(?:<iframe [^>]*src=")?              # If iframe match up to first quote of src
@@ -1914,6 +1837,8 @@ if ( ! function_exists( 'fusion_get_vimeo_id' ) ) {
 			(?:<p>.*</p>)?                       # Match any title information stuff
 			~ix';
 
+		// phpcs:enable WPThemeReview.ThouShallNotUse.ForbiddenIframe.Found
+
 		preg_match( $regex, $url, $matches );
 
 		return isset( $matches[1] ) ? $matches[1] : false;
@@ -1925,7 +1850,7 @@ if ( ! function_exists( 'fusion_get_youtube_id' ) ) {
 	 * Extracts video id from embed code.
 	 *
 	 * @since 3.4
-	 * @param $url string Video embed code.
+	 * @param string $url Video embed code.
 	 * @return string
 	 */
 	function fusion_get_youtube_id( $url ) {

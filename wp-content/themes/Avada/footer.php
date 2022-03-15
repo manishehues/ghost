@@ -31,12 +31,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 				?>
 				<?php if ( ! is_page_template( 'blank.php' ) ) : ?>
 
-					<?php 
+					<?php
 					if ( has_action( 'avada_render_footer' ) ) {
 						do_action( 'avada_render_footer' );
 					} else {
 						Avada()->template->render_footer();
-					} 
+					}
 					?>
 
 					<div class="fusion-sliding-bar-wrapper">
@@ -57,7 +57,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<div class="fusion-top-frame"></div>
 		<div class="fusion-bottom-frame"></div>
 		<div class="fusion-boxed-shadow"></div>
-		<a class="fusion-one-page-text-link fusion-page-load-link" tabindex="-1" href="#" aria-hidden="true"></a>
+		<a class="fusion-one-page-text-link fusion-page-load-link" tabindex="-1" href="#" aria-hidden="true"><?php esc_html_e( 'Page load link', 'Avada' ); ?></a>
 
 		<div class="avada-footer-scripts">
 			<?php wp_footer(); ?>

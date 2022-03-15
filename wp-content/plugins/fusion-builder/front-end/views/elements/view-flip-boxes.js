@@ -71,6 +71,20 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					flipBoxesShortcode.id += ' ' + values.id;
 				}
 
+				flipBoxesShortcode.style = '';
+				if ( '' !== values.margin_top ) {
+					flipBoxesShortcode.style += 'margin-top:' + values.margin_top + ';';
+				}
+				if ( '' !== values.margin_right ) {
+					flipBoxesShortcode.style += 'margin-right:' + values.margin_right + ';';
+				}
+				if ( '' !== values.margin_bottom ) {
+					flipBoxesShortcode.style += 'margin-bottom:' + values.margin_bottom + ';';
+				}
+				if ( '' !== values.margin_left ) {
+					flipBoxesShortcode.style += 'margin-left:' + values.margin_left + ';';
+				}
+
 				flipBoxesShortcode[ 'class' ] += ' fusion-child-element';
 				flipBoxesShortcode[ 'data-empty' ] = this.emptyPlaceholderText;
 

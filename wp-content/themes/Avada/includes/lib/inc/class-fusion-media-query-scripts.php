@@ -27,7 +27,7 @@ class Fusion_Media_Query_Scripts {
 	 * @access public
 	 */
 	public function __construct() {
-		add_action( 'wp_enqueue_scripts', [ $this, 'maybe_defer_enqueue_media_query_styles' ], 900 );
+		add_action( 'wp_enqueue_scripts', [ $this, 'maybe_defer_enqueue_media_query_styles' ], PHP_INT_MAX );
 		add_filter( 'fusion_dynamic_css_final', [ $this, 'compile_media_query_styles' ], 999 );
 	}
 

@@ -130,6 +130,9 @@ class Fusion_Hubspot {
 		// Render notices if we have any.
 		add_action( 'avada_dashboard_notices', [ $this, 'render_notices' ] );
 
+		// Reset Caches.
+		add_action( 'wp_ajax_fusion_reset_hubspot_caches', [ $this, 'reset_caches_handler' ] );
+
 		// If not enabled, no need to load anything.
 		if ( ! apply_filters( 'fusion_load_hubspot', ( 'off' !== $this->type ) ) ) {
 			return;
@@ -169,6 +172,11 @@ class Fusion_Hubspot {
 	 * @return void
 	 */
 	public function add_form( $post_id, $post, $update ) {
+
+		if ( 'fusion_form' !== $post->post_type || ! strlen( $post->post_content ) || 'contact' !== fusion_data()->post_meta( $post_id )->get( 'hubspot_action' ) ) {
+			return;
+		}
+
 		$elements   = [
 			'fusion_form_checkbox'     => [ 'text', 'string' ],
 			'fusion_form_date'         => [ 'date', 'date' ],
@@ -177,7 +185,7 @@ class Fusion_Hubspot {
 			'fusion_form_image_select' => [ 'text', 'string' ],
 			'fusion_form_number'       => [ 'number', 'number' ],
 			'fusion_form_password'     => [ 'text', 'string' ],
-			'fusion_form_phone_number' => [ 'number', 'number' ],
+			'fusion_form_phone_number' => [ 'text', 'string' ],
 			'fusion_form_radio'        => [ 'text', 'string' ],
 			'fusion_form_range'        => [ 'text', 'string' ],
 			'fusion_form_rating'       => [ 'text', 'string' ],
@@ -188,21 +196,36 @@ class Fusion_Hubspot {
 			'fusion_form_upload'       => [ 'file', 'string' ],
 		];
 		$properties = [];
-
-		if ( 'fusion_form' !== $post->post_type ) {
-			return;
-		}
+		$mapping    = fusion_data()->post_meta( $post_id )->get( 'hubspot_map' );
+		$response   = '';
 
 		$pattern = get_shortcode_regex( array_keys( $elements ) );
+
+		if ( is_string( $mapping ) ) {
+			$mapping = json_decode( $mapping, true );
+		}
 
 		preg_match_all( "/$pattern/s", $post->post_content, $fields );
 
 		foreach ( $fields[0] as $key => $field ) {
-			preg_match_all( '/label=\"([^\"]*)\"\sname=\"([^\"]*)\"/', $field, $matches );
+
+			// Get field name.
+			preg_match_all( '/\[fusion_form_[^\]]*\sname=\"([^\"]*)\"/', $field, $matches );
+			$field_name = isset( $matches[1][0] ) ? $matches[1][0] : false;
+
+			// Get field label.
+			preg_match_all( '/\[fusion_form_[^\]]*\slabel=\"([^\"]*)\"/', $field, $matches );
+			$field_label = isset( $matches[1][0] ) ? $matches[1][0] : false;
+
+			// Use mapping name if exists.
+			if ( isset( $mapping[ $field_name ] ) && '' !== $mapping[ $field_name ] && 'fusion-none' !== $mapping[ $field_name ] ) {
+				$field_name = $mapping[ $field_name ];
+			}
+
 			$item = [
 				'fields' => [
-					'label'     => $matches[1][0],
-					'name'      => $matches[2][0],
+					'label'     => $field_label ? $field_label : $field_name,
+					'name'      => $field_name,
 					'fieldType' => $elements[ $fields[2][ $key ] ][0],
 					'type'      => $elements[ $fields[2][ $key ] ][1],
 					'hidden'    => 'fusion_form_hidden' === $fields[2][ $key ] ? true : false,
@@ -217,7 +240,9 @@ class Fusion_Hubspot {
 			'formFieldGroups' => $properties,
 		];
 
-		if ( $update && '' !== get_post_meta( $post_id, 'form_hubspot_map', true ) ) {
+		$action = $update && '' !== get_post_meta( $post_id, 'form_hubspot_map', true ) ? 'update_form' : 'create_form';
+
+		if ( 'update_form' === $action ) {
 			$meta = get_post_meta( $post_id, 'form_hubspot_map', true );
 
 			$data['guid']     = $meta['guid'];
@@ -227,14 +252,15 @@ class Fusion_Hubspot {
 
 		} else {
 			$response = $this->api_request( 'create_form', $data );
-			if ( is_array( $response ) ) {
-				$meta = [
-					'guid'     => $response['guid'],
-					'portalId' => $response['portalId'],
-				];
+		}
 
-				update_post_meta( $post_id, 'form_hubspot_map', $meta );
-			}
+		if ( is_array( $response ) && isset( $response['portalId'] ) && isset( $response['guid'] ) ) {
+			$meta = [
+				'guid'     => $response['guid'],
+				'portalId' => $response['portalId'],
+			];
+
+			update_post_meta( $post_id, 'form_hubspot_map', $meta );
 		}
 	}
 
@@ -386,7 +412,7 @@ class Fusion_Hubspot {
 	 * @return string
 	 */
 	public function maybe_render_button() {
-		$auth_url = 'https://app.hubspot.com/oauth/authorize?client_id=999cc7c3-e358-4a3b-9984-a37dfbd319fa&redirect_uri=' . FUSION_UPDATES_URL . '/hubspot-api&scope=contacts%20actions%20timeline%20forms&state=' . rawurlencode( admin_url( 'admin.php?page=avada' ) );
+		$auth_url = 'https://app.hubspot.com/oauth/authorize?client_id=999cc7c3-e358-4a3b-9984-a37dfbd319fa&redirect_uri=' . FUSION_UPDATES_URL . '/hubspot-api&scope=actions%20timeline%20oauth%20forms%20crm.objects.contacts.write%20crm.schemas.contacts.read%20crm.schemas.companies.read%20crm.schemas.deals.read&state=' . rawurlencode( admin_url( 'admin.php?page=avada' ) );
 
 		$type = 'connected';
 		if ( isset( $_GET['error'] ) && ! empty( $_GET['error'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput
@@ -397,12 +423,12 @@ class Fusion_Hubspot {
 
 		$output  = '<div id="fusion-hubspot-content">';
 		$output .= '<div data-id="error" style="display:' . ( 'error' === $type ? 'flex' : 'none' ) . '">';
-		$output .= '<span><strong>' . esc_html__( 'There was a problem when trying to connect. ', 'fusion-builder' ) . '</strong><br />';
+		$output .= '<span><strong>' . esc_html__( 'There was a problem when trying to connect. ', 'fusion-builder' ) . '</strong>';
 		$output .= '<a target="_blank" href="https://theme-fusion.com/documentation/avada/forms/how-to-integrate-hubspot-with-avada-forms/">' . esc_html__( 'HubSpot integration with Avada Forms documentation.', 'fusion-builder' ) . '</a></span>';
 		$output .= '<a class="button-primary" target="_blank" href="' . $auth_url . '">' . esc_html__( 'Try again.', 'fusion-builder' ) . '</a>';
 		$output .= '</div>';
 		$output .= '<div data-id="no_token"  style="display:' . ( 'no_token' === $type ? 'flex' : 'none' ) . '">';
-		$output .= '<span><strong>' . esc_html__( 'Currently not connected. ', 'fusion-builder' ) . '</strong><br />';
+		$output .= '<span><strong>' . esc_html__( 'Currently not connected. ', 'fusion-builder' ) . '</strong>';
 		$output .= '<a target="_blank" href="https://theme-fusion.com/documentation/avada/forms/how-to-integrate-hubspot-with-avada-forms/">' . esc_html__( 'HubSpot integration with Avada Forms documentation.', 'fusion-builder' ) . '</a></span>';
 		$output .= '<a class="button-primary" target="_blank" href="' . $auth_url . '">' . esc_html__( 'Connect with HubSpot', 'fusion-builder' ) . '</a>';
 		$output .= '</div>';
@@ -496,9 +522,10 @@ class Fusion_Hubspot {
 			return false;
 		}
 
-		$method = 'GET';
-		$url    = false;
-		$args   = [
+		$method              = 'GET';
+		$url                 = false;
+		$submission_response = [];
+		$args                = [
 			'headers'      => [
 				'User-Agent' => 'Fusion Hubspot',
 			],
@@ -556,26 +583,38 @@ class Fusion_Hubspot {
 		if ( 'GET' === $method ) {
 			$response = wp_remote_get( $url, $args );
 		} else {
-
 			$response = wp_remote_post( $url, $args );
 		}
 
 		// Token invalid, reset token.  Next request will then trigger refresh if possible.
 		if ( 401 === (int) wp_remote_retrieve_response_code( $response ) ) {
 			$this->reset_token();
+			$this->api_request( $action, $options );
 		}
 
 		// Check for error.
 		if ( ! is_wp_error( $response ) && isset( $response['body'] ) ) {
 
+			$submission_response = [
+				'status'  => isset( $response['response']['code'] ) ? $response['response']['code'] : '',
+				'message' => isset( $response['response']['message'] ) ? $response['response']['message'] : '',
+			];
+
 			$response = json_decode( $response['body'], true );
 
 			// Do more error checking here.
 			if ( is_array( $response ) && isset( $response['status'] ) && 'error' === $response['status'] ) {
-				return false;
+
+				$submission_response = [
+					'status'  => $response['status'],
+					'message' => isset( $response['message'] ) ? $response['message'] : '',
+					'errors'  => isset( $response['errors'] ) ? $response['errors'] : [],
+				];
+
+				return 'update_contact' === $action || 'submit_form' === $action ? wp_json_encode( $submission_response ) : false;
 			}
 
-			return $response;
+			return 'update_contact' === $action || 'submit_form' === $action ? wp_json_encode( $submission_response ) : $response;
 		}
 
 		return false;
@@ -822,8 +861,7 @@ class Fusion_Hubspot {
 					];
 
 					// Property label matches input label.
-				} elseif ( in_array( $property['label'], $labels, true ) ) {
-					$field_id                    = array_search( $property['label'], $labels, true );
+				} elseif ( false !== $field_id = array_search( $property['label'], $labels, true ) ) { // phpcs:ignore Squiz.PHP.DisallowMultipleAssignments, WordPress.CodeAnalysis.AssignmentInCondition
 					$value                       = $form_data['data'][ $field_id ];
 					$mapped_data['properties'][] = [
 						'property' => $property['name'],
@@ -831,8 +869,7 @@ class Fusion_Hubspot {
 					];
 
 					// Property name matches input label.
-				} elseif ( in_array( $property['name'], $labels, true ) ) {
-					$field_id                    = array_search( $property['name'], $labels, true );
+				} elseif ( false !== $field_id = array_search( $property['name'], $labels, true ) ) { // phpcs:ignore Squiz.PHP.DisallowMultipleAssignments, WordPress.CodeAnalysis.AssignmentInCondition
 					$value                       = $form_data['data'][ $field_id ];
 					$mapped_data['properties'][] = [
 						'property' => $property['name'],
@@ -865,7 +902,7 @@ class Fusion_Hubspot {
 		$options['body'] = $mapped_data;
 
 		// Do some error logging here.
-		$this->api_request( 'update_contact', $options );
+		return $this->api_request( 'update_contact', $options );
 	}
 
 	/**
@@ -874,21 +911,20 @@ class Fusion_Hubspot {
 	 * @since 3.1
 	 * @access public
 	 * @param array $form_data Data from form which needs to be stored.
-	 * @param array $mapping   Information to map from the form to HubSpot properties.
 	 * @param array $labels    Array of label and field names.
 	 * @param int   $form_id   The form ID.
-	 * @return void
+	 * @return mixed
 	 */
-	public function submit_form( $form_data, $mapping = [], $labels = [], $form_id = '' ) {
-		if ( is_string( $mapping ) ) {
+	public function submit_form( $form_data, $labels = [], $form_id = '' ) {
+		$mapping = fusion_data()->post_meta( $form_id )->get( 'hubspot_map' );
+		$meta    = get_post_meta( $form_id, 'form_hubspot_map', true );
+
+		if ( ! empty( $mapping ) && is_string( $mapping ) ) {
 			$mapping = json_decode( $mapping, true );
 		}
 
 		// Property list, try to auto match.
 		$properties = (array) $this->get_properties();
-
-		// Get Form mapping meta.
-		$meta = get_post_meta( $form_id, 'form_hubspot_map', true );
 
 		// Empty starting data.
 		$mapped_data = [
@@ -954,9 +990,8 @@ class Fusion_Hubspot {
 					];
 
 					// Property label matches input label.
-				} elseif ( in_array( $property['label'], $labels, true ) ) {
-					$field_id = array_search( $property['label'], $labels, true );
-					$value    = $form_data['data'][ $field_id ];
+				} elseif ( false !== $field_id = array_search( $property['label'], $labels, true ) ) { // phpcs:ignore Squiz.PHP.DisallowMultipleAssignments, WordPress.CodeAnalysis.AssignmentInCondition
+					$value = $form_data['data'][ $field_id ];
 
 					$mapped_data['fields'][] = [
 						'name'  => $property['name'],
@@ -964,9 +999,8 @@ class Fusion_Hubspot {
 					];
 
 					// Property name matches input label.
-				} elseif ( in_array( $property['name'], $labels, true ) ) {
-					$field_id = array_search( $property['name'], $labels, true );
-					$value    = $form_data['data'][ $field_id ];
+				} elseif ( false !== $field_id = array_search( $property['name'], $labels, true ) ) { // phpcs:ignore Squiz.PHP.DisallowMultipleAssignments, WordPress.CodeAnalysis.AssignmentInCondition
+					$value = $form_data['data'][ $field_id ];
 
 					$mapped_data['fields'][] = [
 						'name'  => $property['name'],
@@ -1001,7 +1035,7 @@ class Fusion_Hubspot {
 		$options['guid']     = $meta['guid'];
 		$options['portalId'] = $meta['portalId'];
 
-		$this->api_request( 'submit_form', $options );
+		return $this->api_request( 'submit_form', $options );
 
 	}
 
@@ -1052,7 +1086,7 @@ class Fusion_Hubspot {
 			$sections['form_submission']['fields']['hubspot_map']    = [
 				'type'        => 'hubspot_map',
 				'label'       => esc_html__( 'HubSpot Mapping', 'fusion-builder' ),
-				'description' => __( 'Map fields from the form to HubSpot contact properties.  <strong>Note</strong>, the email property is required for creating or updating a contact. Also Avada form field and HubSpot contact property name need to be the same.', 'fusion-builder' ),
+				'description' => __( 'Map fields from the form to HubSpot contact properties.  <strong>Note</strong>, the email property is required for creating or updating a contact. When mapping is set to "Automatic", Avada will try to map based on field label, name and tags.', 'fusion-builder' ),
 				'id'          => 'hubspot_map',
 				'transport'   => 'postMessage',
 				'dependency'  => [
@@ -1092,6 +1126,26 @@ class Fusion_Hubspot {
 			self::$instance = new Fusion_Hubspot();
 		}
 		return self::$instance;
+	}
+
+	/**
+	 * Handles resetting caches.
+	 *
+	 * @access public
+	 * @since 3.5
+	 * @return void
+	 */
+	public function reset_caches_handler() {
+		if ( is_multisite() && is_main_site() ) {
+			$sites = get_sites();
+			foreach ( $sites as $site ) {
+				switch_to_blog( $site->blog_id );
+				delete_transient( 'fusion_hubspot_properties' );
+				restore_current_blog();
+			}
+			return;
+		}
+		delete_transient( 'fusion_hubspot_properties' );
 	}
 }
 

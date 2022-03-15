@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 2.2
  */
-class Fusion_Template_Builder {
+class Fusion_Template_Builder extends AWB_Layout_Conditions {
 
 	/**
 	 * The one, true instance of this object.
@@ -292,12 +292,13 @@ class Fusion_Template_Builder {
 			'fusion_tb_category',
 			[ 'fusion_tb_section' ],
 			[
-				'hierarchical'      => true,
-				'labels'            => $labels,
-				'show_ui'           => false,
-				'show_admin_column' => true,
-				'query_var'         => true,
-				'show_in_nav_menus' => false,
+				'hierarchical'       => true,
+				'labels'             => $labels,
+				'publicly_queryable' => $is_builder,
+				'show_ui'            => false,
+				'show_admin_column'  => true,
+				'query_var'          => true,
+				'show_in_nav_menus'  => false,
 			]
 		);
 
@@ -325,6 +326,7 @@ class Fusion_Template_Builder {
 				],
 				'content'        => [
 					'label' => esc_html__( 'Content', 'fusion-builder' ),
+					'alias' => esc_html__( 'Live Builder', 'fusion-builder' ),
 					'icon'  => 'fusiona-content',
 				],
 				'footer'         => [
@@ -677,6 +679,9 @@ class Fusion_Template_Builder {
 					add_filter( 'fusion_app_preview_data', [ $this, 'add_post_data' ], 10, 3 );
 				} elseif ( class_exists( 'WooCommerce' ) && is_object( $post ) && fusion_is_shop( $post->ID ) ) {
 					$target_post = get_post( $c_page_id );
+				} elseif ( 'awb_off_canvas' === get_post_type() ) {
+					add_filter( 'fusion_app_preview_data', [ $this, 'add_post_data' ], 10, 3 );
+					$option = fusion_get_page_option( 'dynamic_content_preview_type', $post->ID );
 				}
 
 				// Check if front page.
@@ -1004,13 +1009,13 @@ class Fusion_Template_Builder {
 					$side_header_markup = ! fusion_is_preview_frame() && ( 'left' === $position || 'right' === $position );
 					$header_id          = 'left' === $position || 'right' === $position ? ' id="side-header"' : '';
 
-					echo '<' . sanitize_key( $tag ) . ' class="fusion-tb-header"' . $header_id . '>';
+					echo '<' . sanitize_key( $tag ) . ' class="fusion-tb-header"' . $header_id . '>'; // phpcs:ignore WordPress.Security.EscapeOutput
 
 					if ( $side_header_markup ) {
 						$header_breakpoint = fusion_data()->post_meta( $header_override->ID )->get( 'header_breakpoint' );
 						$data_attr         = 'never' === $header_breakpoint ? 'data-sticky-small-visibility="1"' : '';
 						$data_attr        .= 'medium' !== $header_breakpoint ? 'data-sticky-medium-visibility="1"' : '';
-						echo '<div class="fusion-sticky-container awb-sticky-content side-header-wrapper" data-sticky-large-visibility="1" ' . $data_attr . '>';
+						echo '<div class="fusion-sticky-container awb-sticky-content side-header-wrapper" data-sticky-large-visibility="1" ' . $data_attr . '>'; // phpcs:ignore WordPress.Security.EscapeOutput
 					}
 
 					$this->render_content( $header_override );
@@ -1099,34 +1104,7 @@ class Fusion_Template_Builder {
 		if ( $template ) {
 			$data = json_decode( wp_unslash( $template->post_content ), true );
 			if ( isset( $data['conditions'] ) ) {
-				$conditions = [];
-
-				// Group child conditions into same id.
-				foreach ( $data['conditions'] as $id => $condition ) {
-					if ( ! isset( $condition['parent'] ) ) {
-						$conditions[ $id ] = $condition;
-						continue;
-					}
-					// Create unique id for the parent condition to avoid collitions between same conditions with different modes.
-					$parent_id = $condition['parent'] . '-' . $condition['mode'] . '-' . $condition['type'];
-					if ( ! isset( $conditions[ $parent_id ] ) ) {
-						$conditions[ $parent_id ] = [
-							'mode'             => $condition['mode'],
-							'type'             => $condition['type'],
-							$condition['type'] => $condition['parent'],
-						];
-					}
-					$conditions[ $parent_id ][ $condition['parent'] ][ $id ] = $condition;
-				}
-				// Sort exclude conditions first and remove unique id.
-				usort(
-					$conditions,
-					function( $a, $b ) {
-						return strcmp( $a['mode'], $b['mode'] );
-					}
-				);
-
-				return $conditions;
+				return self::group_conditions( $data['conditions'] );
 			}
 		}
 		return false;
@@ -1303,164 +1281,6 @@ class Fusion_Template_Builder {
 	}
 
 	/**
-	 * Check if archive condition is true.
-	 *
-	 * @since 2.2
-	 * @param array $condition Condition array to check.
-	 * @return bool  $return Whether it passed or not.
-	 * @access public
-	 */
-	public function check_archive_condition( $condition ) {
-		$archive_type   = isset( $condition['archives'] ) ? $condition['archives'] : '';
-		$exclude        = isset( $condition['mode'] ) && 'exclude' === $condition['mode'];
-		$condition_type = isset( $condition['type'] ) ? $condition['type'] : '';
-		$sub_condition  = isset( $condition[ $archive_type ] ) ? $condition[ $archive_type ] : '';
-
-		if ( '' === $sub_condition ) {
-			if ( 'all_archives' === $archive_type ) {
-				return $exclude ? ! is_archive() : is_archive();
-			}
-
-			if ( 'author_archive' === $archive_type ) {
-				return $exclude ? ! is_author() : is_author();
-			}
-
-			if ( 'date_archive' === $archive_type ) {
-				return $exclude ? ! is_date() : is_date();
-			}
-
-			if ( 'search_results' === $archive_type ) {
-				return $exclude ? ! is_search() : is_search();
-			}
-
-			if ( 'archives' === $condition_type && taxonomy_exists( $archive_type ) ) {
-				if ( 'category' === $archive_type ) {
-					return $exclude ? ! is_category() : is_category();
-				}
-				if ( 'post_tag' === $archive_type ) {
-					return $exclude ? ! is_tag() : is_tag();
-				}
-
-				return $exclude ? ! is_tax( $archive_type ) : is_tax( $archive_type );
-			}
-
-			// Blog archive, treat separately.
-			if ( 'archive_of_post' === $archive_type ) {
-				$blog_conditional = ( is_home() && get_option( 'page_for_posts' ) === fusion_library()->get_page_id() ) || is_post_type_archive( 'post' );
-				return $exclude ? ! $blog_conditional : $blog_conditional;
-			}
-
-			// Check for general archive pages.
-			if ( false !== strpos( $archive_type, 'archive_of_' ) && is_archive() && null !== get_queried_object() ) {
-				$taxonomy = str_replace( 'archive_of_', '', $archive_type );
-				return $exclude ? ! is_post_type_archive( $taxonomy ) : is_post_type_archive( $taxonomy );
-			}
-
-			return $exclude;
-		}
-
-		// Check for specific author pages.
-		if ( false !== strpos( $archive_type, 'author_archive_' ) ) {
-			$author_ids = [];
-			foreach ( array_keys( $sub_condition ) as $id ) {
-				$author_ids[] = explode( '|', $id )[1];
-			}
-			$curauth = ( get_query_var( 'author_name' ) ) ? get_user_by( 'slug', get_query_var( 'author_name' ) ) : get_userdata( get_query_var( 'author' ) );
-
-			if ( ! $curauth ) {
-				return $exclude;
-			}
-			// Intentionally not strict comparison.
-			return $exclude ? ! in_array( $curauth->ID, $author_ids ) : in_array( $curauth->ID, $author_ids ); // phpcs:ignore WordPress.PHP.StrictInArray
-		}
-
-		// Check for general archive pages.
-		if ( false === strpos( $archive_type, 'taxonomy_of_' ) && is_archive() && null !== get_queried_object() ) {
-			$terms = [];
-			foreach ( array_keys( $sub_condition ) as $id ) {
-				$terms[] = explode( '|', $id )[1];
-			}
-
-			if ( ! isset( get_queried_object()->term_id ) ) {
-				return $exclude;
-			}
-
-			// Intentionally not strict comparison.
-			return $exclude ? ! in_array( get_queried_object()->term_id, $terms ) : in_array( get_queried_object()->term_id, $terms ); // phpcs:ignore WordPress.PHP.StrictInArray
-		}
-
-		// Check if we're checking for specific terms.
-		if ( false !== strpos( $archive_type, 'taxonomy_of_' ) && ! is_archive() ) {
-			$taxonomy = str_replace( 'taxonomy_of_', '', $archive_type );
-			$terms    = [];
-			foreach ( array_keys( $sub_condition ) as $id ) {
-				$terms[] = explode( '|', $id )[1];
-			}
-			switch ( $taxonomy ) {
-				case 'category':
-					return $exclude ? ! in_category( $terms ) : in_category( $terms );
-				case 'post_tag':
-					return $exclude ? ! has_tag( $terms ) : has_tag( $terms );
-				default:
-					return $exclude ? ! has_term( $terms, $taxonomy ) : has_term( $terms, $taxonomy );
-			}
-		}
-
-		return $exclude;
-	}
-
-	/**
-	 * Check if singular condition is true.
-	 *
-	 * @since 2.2
-	 * @param array $condition Condition array to check.
-	 * @return bool  $return Whether it passed or not.
-	 * @access public
-	 */
-	public function check_singular_condition( $condition ) {
-		global $post;
-
-		$singular_type = isset( $condition['singular'] ) ? $condition['singular'] : '';
-		$exclude       = isset( $condition['mode'] ) && 'exclude' === $condition['mode'];
-		$sub_condition = isset( $condition[ $singular_type ] ) ? $condition[ $singular_type ] : '';
-		$post_type     = str_replace( 'singular_', '', $singular_type );
-
-		if ( '' === $sub_condition ) {
-			if ( 'front_page' === $singular_type ) {
-				return $exclude ? ! is_front_page() : is_front_page();
-			}
-			if ( 'not_found' === $singular_type ) {
-				return $exclude ? ! is_404() : is_404();
-			}
-			$is_single = is_singular( $post_type ) || ( get_post_type() === $post_type && is_admin() && isset( $_GET['action'] ) && 'edit' === sanitize_text_field( wp_unslash( $_GET['action'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification
-			return $exclude ? ! $is_single : $is_single;
-		}
-		// Specific post check.
-		if ( false !== strpos( $singular_type, 'specific_' ) ) {
-			$specific_posts = [];
-			foreach ( array_keys( $sub_condition ) as $id ) {
-				$specific_posts[] = explode( '|', $id )[1];
-			}
-			// Intentionally not strict comparison.
-			return $exclude ? ! in_array( get_the_id(), $specific_posts, false ) : in_array( get_the_id(), $specific_posts, false ); // phpcs:ignore WordPress.PHP.StrictInArray
-		}
-		// Hierarchy check.
-		if ( false !== strpos( $singular_type, 'children_of' ) ) {
-			$ancestors   = get_post_ancestors( $post );
-			$is_children = false;
-			foreach ( array_keys( $sub_condition ) as $id ) {
-				$parent = explode( '|', $id )[1];
-				if ( in_array( $parent, $ancestors ) ) { // phpcs:ignore WordPress.PHP.StrictInArray
-					$is_children = true;
-					break;
-				}
-			}
-			return $exclude ? ! $is_children : $is_children;
-		}
-		return $exclude;
-	}
-
-	/**
 	 * Check if singular condition is true.
 	 *
 	 * @since 2.2
@@ -1616,6 +1436,11 @@ class Fusion_Template_Builder {
 	 * @return void
 	 */
 	public function remove_third_party_the_content_changes( $override = false ) {
+		global $avada_events_calender;
+
+		if ( class_exists( 'Tribe__Events__Main' ) ) {
+			remove_filter( 'the_content', [ $avada_events_calender, 'single_events_blocks_sharing_box' ], 10 );
+		}
 
 		// Make sure the_content filters run on bbPress pages, to get elements rendered.
 		if ( class_exists( 'bbPress' ) && Fusion_Helper::is_bbpress() && ! Fusion_Helper::is_buddypress() && ! bbp_is_template_included() && bbp_is_theme_compat_active() ) {
@@ -1647,6 +1472,14 @@ class Fusion_Template_Builder {
 				remove_filter( 'the_content', 'members_content_permissions_protect', 95 );
 			}
 
+			// WooCommerce Membership.
+			if ( function_exists( 'wc_memberships' ) ) {
+				remove_filter( 'the_content', [ wc_memberships()->get_restrictions_instance()->get_posts_restrictions_instance(), 'handle_restricted_post_content_filtering' ], 999 );
+			}
+
+			// Ultimate Member.
+			add_filter( 'um_ignore_restricted_content', '__return_true' );
+
 			// Remove LearnDash the_content filters.
 			if ( class_exists( 'SFWD_LMS' ) ) {
 				SFWD_LMS::content_filter_control( false );
@@ -1667,10 +1500,43 @@ class Fusion_Template_Builder {
 		// Remove PrivateContent the_content filters.
 		if ( isset( $GLOBALS['is_pc_bundle'] ) && $GLOBALS['is_pc_bundle'] ) {
 			remove_filter( 'the_content', 'pc_perform_contents_restriction', 999 );
-			remove_filter( 'the_content', 'pc_pvt_page_management', 500 );
+		}
+
+		// Cooked plugin.
+		if ( class_exists( 'Cooked_Plugin' ) ) {
+			global $_cooked_content_unfiltered;
+			$_cooked_content_unfiltered = true;
+		}
+
+		// Tutor LMS plugin.
+		if ( defined( 'TUTOR_VERSION' ) ) {
+			add_filter( 'tutor_dashboard_page_id', '__return_false' );
+			add_filter( 'instructor_register_page', '__return_false' );
+			add_filter( 'student_register_page', '__return_false' );
 		}
 
 		add_filter( 'dpsp_is_location_displayable', '__return_false' );
+
+		// Remove Thrive Leads.
+		if ( function_exists( 'tve_leads_get_default_form_types' ) ) {
+			foreach ( tve_leads_get_default_form_types() as $_type => $config ) {
+				if ( ! isset( $GLOBALS['tve_lead_forms'][ $_type ] ) || ( 'widget' !== $_type && 'php_insert' !== $_type && empty( $config['wp_hook'] ) ) ) {
+					continue;
+				}
+
+				if ( isset( $config['wp_hook'] ) ) {
+					remove_action( $config['wp_hook'], 'tve_leads_display_form_' . $_type, isset( $config['priority'] ) ? $config['priority'] : 10 );
+				}
+			}
+		}
+
+		// WP Customer Area plugin.
+		if ( class_exists( 'CUAR_CustomerPagesAddOn' ) && function_exists( 'cuar_addon' ) ) {
+			$cp_addon = cuar_addon( 'customer-pages' );
+			remove_filter( 'the_content', [ $cp_addon, 'define_main_content_filter' ], 9998 );
+		}
+
+		do_action( 'awb_remove_third_party_the_content_changes' );
 	}
 
 	/**
@@ -1682,12 +1548,29 @@ class Fusion_Template_Builder {
 	 * @return void
 	 */
 	public function readd_third_party_the_content_changes( $override = false ) {
+		global $avada_events_calender;
+
+		if ( class_exists( 'Tribe__Events__Main' ) ) {
+			add_filter( 'the_content', [ $avada_events_calender, 'single_events_blocks_sharing_box' ], 10 );
+		}
+
+		do_action( 'awb_readd_third_party_the_content_changes' );
 
 		remove_filter( 'dpsp_is_location_displayable', '__return_false' );
 
+		if ( defined( 'TUTOR_VERSION' ) ) {
+			remove_filter( 'tutor_dashboard_page_id', '__return_false' );
+			remove_filter( 'instructor_register_page', '__return_false' );
+			remove_filter( 'student_register_page', '__return_false' );
+		}
+
+		if ( class_exists( 'Cooked_Plugin' ) ) {
+			global $_cooked_content_unfiltered;
+			$_cooked_content_unfiltered = false;
+		}
+
 		if ( isset( $GLOBALS['is_pc_bundle'] ) && $GLOBALS['is_pc_bundle'] ) {
 			add_filter( 'the_content', 'pc_perform_contents_restriction', 999 );
-			add_filter( 'the_content', 'pc_pvt_page_management', 500 );
 		}
 
 		if ( is_singular( 'dwqa-question' ) ) {
@@ -1702,6 +1585,14 @@ class Fusion_Template_Builder {
 
 			if ( class_exists( 'SFWD_LMS' ) ) {
 				SFWD_LMS::content_filter_control( true );
+			}
+
+			// Ultimate Member.
+			remove_filter( 'um_ignore_restricted_content', '__return_true' );
+
+			// WooCommerce Membership.
+			if ( function_exists( 'wc_memberships' ) ) {
+				add_filter( 'the_content', [ wc_memberships()->get_restrictions_instance()->get_posts_restrictions_instance(), 'handle_restricted_post_content_filtering' ], 999 );
 			}
 
 			if ( function_exists( 'members_content_permissions_protect' ) ) {
@@ -1726,6 +1617,24 @@ class Fusion_Template_Builder {
 
 		if ( class_exists( 'bbPress' ) && Fusion_Helper::is_bbpress() && ! Fusion_Helper::is_buddypress() && ! bbp_is_template_included() && bbp_is_theme_compat_active() ) {
 			bbp_remove_all_filters( 'the_content' );
+		}
+
+		if ( function_exists( 'tve_leads_get_default_form_types' ) ) {
+			foreach ( tve_leads_get_default_form_types() as $_type => $config ) {
+				if ( ! isset( $GLOBALS['tve_lead_forms'][ $_type ] ) || ( 'widget' !== $_type && 'php_insert' !== $_type && empty( $config['wp_hook'] ) ) ) {
+					continue;
+				}
+
+				if ( isset( $config['wp_hook'] ) ) {
+					add_action( $config['wp_hook'], 'tve_leads_display_form_' . $_type, isset( $config['priority'] ) ? $config['priority'] : 10 );
+				}
+			}
+		}
+
+		// WP Customer Area plugin.
+		if ( class_exists( 'CUAR_CustomerPagesAddOn' ) && function_exists( 'cuar_addon' ) ) {
+			$cp_addon = cuar_addon( 'customer-pages' );
+			add_filter( 'the_content', [ $cp_addon, 'define_main_content_filter' ], 9998 );
 		}
 	}
 
@@ -2088,7 +1997,7 @@ class Fusion_Template_Builder {
 	 * @return array
 	 */
 	public function dynamic_data( $post_data ) {
-		if ( 'fusion_tb_section' === $post_data['post_type'] || fusion_is_post_card() ) {
+		if ( 'fusion_tb_section' === $post_data['post_type'] || fusion_is_post_card() || 'awb_off_canvas' === $post_data['post_type'] ) {
 			$post = $this->get_target_example();
 			if ( $post ) {
 				$post_data['id']        = $post->ID;
@@ -2109,7 +2018,7 @@ class Fusion_Template_Builder {
 	 * @return int
 	 */
 	public function dynamic_id( $id ) {
-		if ( 'fusion_tb_section' === get_post_type( $id ) || fusion_is_post_card() ) {
+		if ( 'fusion_tb_section' === get_post_type( $id ) || fusion_is_post_card() || 'awb_off_canvas' === get_post_type( $id ) ) {
 			$post = $this->get_target_example( $id );
 
 			if ( $post ) {
@@ -2186,7 +2095,7 @@ class Fusion_Template_Builder {
 
 		$type = $post_id = $option = false;
 
-		if ( fusion_is_preview_frame() ) {
+		if ( fusion_is_preview_frame() || isset( $_GET['awb-studio-content'] ) ) {
 			$type    = fusion_get_page_option( 'dynamic_content_preview_type', $post->ID );
 			$option  = fusion_get_page_option( 'preview_archives', $post->ID );
 			$post_id = $post->ID;
@@ -2200,6 +2109,58 @@ class Fusion_Template_Builder {
 		}
 
 		$defaults['post_type'] = 'search' !== $type && false !== $option ? $option : 'any';
+
+		// Emulate search for studio.
+		if ( isset( $_GET['awb-studio-content'] ) && isset( $_GET['search'] ) && 'search' === $type ) {
+			$defaults['s']         = trim( strip_tags( $_GET['search'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput, WordPress.Security.NonceVerification, WordPress.WP.AlternativeFunctions
+			$defaults['post_type'] = 'post';
+		}
+
+		// phpcs:enable WordPress.Security.NonceVerification
+		return $defaults;
+	}
+
+	/**
+	 * Checks and returns taxonomy for archives component.
+	 *
+	 * @since 3.6
+	 * @access public
+	 * @param  array $defaults current params array.
+	 * @return array $defaults Updated params array.
+	 */
+	public function taxonomy_type( $defaults ) {
+
+		// No DB changes, we can skip the nonce checks in this function.
+		// phpcs:disable WordPress.Security.NonceVerification
+		global $post;
+
+		$type = $option = false;
+
+		if ( fusion_is_preview_frame() || isset( $_GET['awb-studio-content'] ) ) {
+			$type   = fusion_get_page_option( 'dynamic_content_preview_type', $post->ID );
+			$option = fusion_get_page_option( 'preview_term', $post->ID );
+		}
+
+		if ( isset( $_POST['fusion_meta'] ) && isset( $_POST['post_id'] ) && false === $option ) {
+			$meta   = fusion_string_to_array( wp_unslash( $_POST['fusion_meta'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+			$option = isset( $meta['_fusion']['preview_term'] ) ? $meta['_fusion']['preview_term'] : 'category';
+			$type   = isset( $meta['_fusion']['dynamic_content_preview_type'] ) ? $meta['_fusion']['dynamic_content_preview_type'] : false;
+		}
+
+		if ( 'term' === $type && false !== $option ) {
+			$defaults['taxonomy'] = $option;
+			$terms                = get_terms(
+				[
+					'taxonomy' => $option,
+					'fields'   => 'ids',
+					'orderby'  => 'id',
+					'order'    => 'DESC',
+				]
+			);
+			if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
+				$defaults['include'] = implode( ',', $terms );
+			}
+		}
 
 		// phpcs:enable WordPress.Security.NonceVerification
 		return $defaults;
@@ -2923,7 +2884,7 @@ class Fusion_Template_Builder {
 		if ( $header ) {
 			$position     = fusion_data()->post_meta( $header->ID )->get( 'position' );
 			$header_color = fusion_data()->post_meta( $header->ID )->get( 'awb_header_bg_color' );
-			if ( 'left' == $position || 'right' === $position || fusion_is_preview_frame() ) {
+			if ( 'left' === $position || 'right' === $position || fusion_is_preview_frame() ) {
 
 				$header_breakpoint = fusion_data()->post_meta( $header->ID )->get( 'header_breakpoint' );
 

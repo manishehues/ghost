@@ -19,6 +19,8 @@ var FusionPageBuilder = FusionPageBuilder || {};
 
 				this.validateValues( atts.values );
 
+				this.values = atts.values;
+
 				// Create attribute objects.
 				attributes.checklistShortcode = this.buildChecklistAttr( atts.values );
 
@@ -28,6 +30,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				// Any extras that need passed on.
 				attributes.values = atts.values;
 				attributes.cid    = this.model.get( 'cid' );
+				attributes.styles = this.buildStyleBlock( atts.values );
 
 				return attributes;
 			},
@@ -112,6 +115,58 @@ var FusionPageBuilder = FusionPageBuilder || {};
 				extras.content_margin_position =  ( jQuery( 'body' ).hasClass( 'rtl' ) ) ? 'right' : 'left';
 
 				this.model.set( 'extras', extras );
+			},
+
+			/**
+			 * Builds styles.
+			 *
+			 * @since  3.5
+			 * @param  {Object} values - The values object.
+			 * @return {String}
+			 */
+			buildStyleBlock: function( values ) {
+				var css, selectors;
+
+				this.baseSelector = '.fusion-checklist-' +  this.model.get( 'cid' );
+				this.dynamic_css  = {};
+
+				// Divider.
+				selectors = [ this.baseSelector + '.fusion-checklist-divider .fusion-li-item' ];
+				if ( 'yes' === values.divider ) {
+					this.addCssProperty( selectors, 'border-bottom-color', values.divider_color, true );
+				}
+
+				// Row Odd & Even BG Color.
+				selectors = [ this.baseSelector + ' .fusion-li-item:nth-child(odd)' ];
+				if ( '' !== values.odd_row_bgcolor ) {
+					this.addCssProperty( selectors, 'background-color', values.odd_row_bgcolor );
+				}
+				selectors = [ this.baseSelector + ' .fusion-li-item:nth-child(even)' ];
+				if ( '' !== values.even_row_bgcolor ) {
+					this.addCssProperty( selectors, 'background-color', values.even_row_bgcolor );
+				}
+
+				// Padding.
+				selectors = [
+					this.baseSelector + '.fusion-checklist-divider .fusion-li-item',
+					this.baseSelector + ' .fusion-li-item'
+				];
+				_.each( [ 'top', 'right', 'bottom', 'left' ], function( direction ) {
+					var key = 'item_padding_' + direction;
+					if ( ! this.isDefault( key ) ) {
+						this.addCssProperty( selectors, 'padding-' + direction, values[ key ], true );
+					}
+				}, this );
+
+				// Text color.
+				selectors = [ this.baseSelector + ' .fusion-li-item .fusion-li-item-content' ];
+				if ( '' !== values.textcolor ) {
+					this.addCssProperty( selectors, 'color', values.textcolor );
+				}
+
+				css = this.parseCSS();
+				return ( css ) ? '<style>' + css + '</style>' : '';
+
 			}
 
 		} );

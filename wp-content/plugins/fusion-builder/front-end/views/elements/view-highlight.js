@@ -38,7 +38,7 @@ var FusionPageBuilder = FusionPageBuilder || {};
 						class: 'fusion-highlight',
 						style: ''
 					},
-					brightnessLevel = jQuery.Color( values.color ).lightness() * 100;
+					brightnessLevel = jQuery.AWB_Color( values.color ).lightness() * 100;
 
 				if ( values.text_color ) {
 					highlightShortcode[ 'class' ] += ' custom-textcolor';
@@ -60,14 +60,16 @@ var FusionPageBuilder = FusionPageBuilder || {};
 					highlightShortcode[ 'class' ] += ' highlight1';
 				}
 
-				highlightShortcode.style = 'background-color:' + values.color + ';';
-
 				if ( 'no' !== values.background ) {
-					if ( 'yes' === values.rounded ) {
-						highlightShortcode[ 'class' ] += ' rounded';
+					if ( 'full' === values.background_style ) {
+						highlightShortcode[ 'class' ] += ' awb-highlight-background';
+						highlightShortcode.style += 'background-color:' + values.color + ';';
+						if ( 'yes' === values.rounded ) {
+							highlightShortcode[ 'class' ] += ' rounded';
+						}
+					} else {
+						highlightShortcode.style += 'background:linear-gradient(to top, ' + values.color + ' 40%, transparent 40%);';
 					}
-					highlightShortcode[ 'class' ] += ' awb-highlight-background';
-					highlightShortcode.style += 'background-color:' + values.color + ';';
 				} else if ( 'yes' === values.gradient_font ) {
 					highlightShortcode.style      += _.getGradientFontString( values );
 					highlightShortcode[ 'class' ] += ' awb-gradient-text';

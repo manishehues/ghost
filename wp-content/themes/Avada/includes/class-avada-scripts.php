@@ -72,7 +72,10 @@ class Avada_Scripts {
 			add_action( 'wp_enqueue_scripts', [ $this, 'wp_enqueue_styles' ] );
 			add_action( 'script_loader_tag', [ $this, 'add_async' ], 10, 2 );
 
-			// This is added with a priority of 999 because it has to run after all other scripts have been added.
+			// Remove Events Calendar styles that get directly printed using wp_print_styles().
+			add_filter( 'style_loader_tag', [ $this, 'remove_directly_printed_ec_styles' ], 10, 4 );
+
+			// This is added with a priority of PHP_INT_MAX because it has to run after all other scripts have been added.
 			add_action( 'wp_enqueue_scripts', [ $this, 'dequeue_scripts' ], PHP_INT_MAX );
 		}
 
@@ -88,9 +91,6 @@ class Avada_Scripts {
 
 		// Disable jQuery Migrate script.
 		add_action( 'wp_default_scripts', [ $this, 'disable_jquery_migrate' ] );
-
-		// Delay fusion_get_options in order for default value to be available.
-		add_action( 'init', [ $this, 'add_filter_replace_css_vars' ], 11 );
 	}
 
 	/**
@@ -107,16 +107,6 @@ class Avada_Scripts {
 		$dynamic_css_obj     = Fusion_Dynamic_CSS::get_instance();
 		$this->compiler_mode = ( method_exists( $dynamic_css_obj, 'get_mode' ) ) ? $dynamic_css_obj->get_mode() : $dynamic_css_obj->mode;
 		return $this->compiler_mode;
-	}
-
-	/**
-	 * Add filter for replacing CSS vars.
-	 */
-	public function add_filter_replace_css_vars() {
-
-		// Replace CSS-Variables in compiled CSS.
-		$callback = fusion_get_option( 'css_vars' ) ? '__return_false' : '__return_true';
-		add_filter( 'fusion_replace_css_var_values', $callback );
 	}
 
 	/**
@@ -315,7 +305,7 @@ class Avada_Scripts {
 				'avada-side-header-scroll',
 				$js_folder_url . '/general/avada-side-header-scroll.js',
 				$js_folder_path . '/general/avada-side-header-scroll.js',
-				[ 'modernizr', 'jquery' ],
+				[ 'jquery', 'modernizr', 'jquery-sticky-kit' ],
 				self::$version,
 				true,
 			];
@@ -618,6 +608,7 @@ class Avada_Scripts {
 			$post_type        = get_post_type();
 			$content_override = class_exists( 'Fusion_Template_Builder' ) ? Fusion_Template_Builder::get_instance()->get_override( 'content' ) : false;
 			if ( $post_type && ! $content_override ) {
+				$post_type    = ( 'tribe_events' === $post_type ) ? 'events' : $post_type;
 				$setting_name = ( 'post' === $post_type ) ? 'social_sharing_box' : $post_type . '_social_sharing_box';
 
 				if ( fusion_get_option( $setting_name ) || '' === fusion_get_option( $setting_name ) ) {
@@ -906,8 +897,6 @@ class Avada_Scripts {
 		if ( is_rtl() && 'file' !== $this->get_compiler_mode() && ! $header_override ) {
 			wp_enqueue_style( 'avada-rtl-header-legacy', Avada::$template_dir_url . '/assets/css/rtl-header-legacy.min.css', [], self::$version );
 		}
-
-
 	}
 
 	/**
@@ -919,9 +908,10 @@ class Avada_Scripts {
 	 * @return string The compiled styles with any additional CSS appended.
 	 */
 	public function combine_stylesheets( $original_styles ) {
-		$wp_styles = wp_styles();
-		$styles    = '';
-		$contents  = '';
+		$wp_styles        = wp_styles();
+		$styles           = '';
+		$contents         = '';
+		$dependent_styles = [];
 
 		$header_override = false;
 		if ( class_exists( 'Fusion_Template_Builder' ) ) {
@@ -937,38 +927,146 @@ class Avada_Scripts {
 			}
 		}
 
-		if ( 'file' === $this->get_compiler_mode() ) {
-			foreach ( $wp_styles->queue as $item ) {
-				$src = $wp_styles->registered[ $item ]->src;
-				if ( isset( $wp_styles->registered[ $item ] ) && ! empty( $src ) && true === $this->is_bundled_plugin_style( $src ) ) {
-					$contents = fusion_file_get_contents( $src );
+		if ( 'file' === $this->get_compiler_mode() && Avada()->settings->get( 'css_combine_third_party_assets' ) ) {
+			$stylesheets = $this->get_third_party_stylesheets();
 
-					if ( false !== strpos( $src, 'contact-form-7' ) ) {
-						$contents = str_replace( '../../assets/ajax-loader.gif', wpcf7_plugin_url( 'assets/ajax-loader.gif' ), $contents );
-					}
+			foreach ( $stylesheets as $src ) {
+				$contents = fusion_file_get_contents( $src );
 
-					if ( false !== strpos( $src, 'revslider' ) && function_exists( 'get_rs_plugin_url' ) ) {
-						$contents = str_replace( "url('..", "url('" . get_rs_plugin_url() . 'public/assets', $contents );
-						$contents = str_replace( 'url(..', 'url(' . get_rs_plugin_url() . 'public/assets', $contents );
-						$contents = str_replace( [ 'url(openhand.cur)' ], 'url(' . get_rs_plugin_url() . 'public/assets/css/openhand.cur)', $contents );
-						$contents = str_replace( [ 'url(closedhand.cur)' ], 'url(' . get_rs_plugin_url() . 'public/assets/css/closedhand.cur)', $contents );
-					}
-
-					if ( false !== strpos( $src, 'convertplug' ) && defined( 'CP_PLUGIN_URL' ) ) {
-						$contents = str_replace( 'url(../../../', 'url(' . CP_PLUGIN_URL . 'modules/', $contents );
-					}
-
-					if ( false !== strpos( $src, 'woocommerce' ) && false !== strpos( $src, 'default-skin' ) && defined( 'WC_PLUGIN_FILE' ) ) {
-						$contents = str_replace( 'url(', 'url(' . plugins_url( '/', WC_PLUGIN_FILE ) . 'assets/css/photoswipe/default-skin/', $contents );
-					}
-
-					$styles                 .= $contents;
-					$this->combined_assets[] = $src;
+				if ( false !== strpos( $src, 'events-calendar' ) ) {
+					$contents = str_replace( 'url(../images/', 'url(' . Tribe__Events__Main::instance()->plugin_url . 'src/resources/images/', $contents );
 				}
+
+				if ( false !== strpos( $src, 'contact-form-7' ) ) {
+					$contents = str_replace( '../../assets/ajax-loader.gif', wpcf7_plugin_url( 'assets/ajax-loader.gif' ), $contents );
+				}
+
+				if ( false !== strpos( $src, 'revslider' ) && function_exists( 'get_rs_plugin_url' ) ) {
+					$contents = str_replace( "url('..", "url('" . get_rs_plugin_url() . 'public/assets', $contents );
+					$contents = str_replace( 'url(..', 'url(' . get_rs_plugin_url() . 'public/assets', $contents );
+					$contents = str_replace( [ 'url(openhand.cur)' ], 'url(' . get_rs_plugin_url() . 'public/assets/css/openhand.cur)', $contents );
+					$contents = str_replace( [ 'url(closedhand.cur)' ], 'url(' . get_rs_plugin_url() . 'public/assets/css/closedhand.cur)', $contents );
+				}
+
+				if ( false !== strpos( $src, 'convertplug' ) && defined( 'CP_PLUGIN_URL' ) ) {
+					$contents = str_replace( 'url(../../../', 'url(' . CP_PLUGIN_URL . 'modules/', $contents );
+				}
+
+				if ( false !== strpos( $src, 'woocommerce' ) && false !== strpos( $src, 'default-skin' ) && defined( 'WC_PLUGIN_FILE' ) ) {
+					$contents = str_replace( 'url(', 'url(' . plugins_url( '/', WC_PLUGIN_FILE ) . 'assets/css/photoswipe/default-skin/', $contents );
+				}
+
+				$styles .= $contents;
 			}
 		}
 
 		return $styles . $original_styles;
+	}
+
+	/**
+	 * Remove Events Calendar styles that get directly printed using wp_print_styles().
+	 *
+	 * @access public
+	 * @since 7.5
+	 * @param string $tag   The link tag for the enqueued style.
+	 * @param string $handle The style's registered handle.
+	 * @param string $href   The stylesheet's source URL.
+	 * @param string $media  The stylesheet's media attribute.
+	 * @return string The style HTML tag.
+	 */
+	public function remove_directly_printed_ec_styles( $tag, $handle, $href, $media ) {
+		if ( 'file' === $this->get_compiler_mode() && Avada()->settings->get( 'css_combine_third_party_assets' ) && false !== strpos( $handle, 'tribe-' ) && function_exists( 'tribe_is_event_query' ) && tribe_is_event_query() ) {
+			return '';
+		}
+
+		return $tag;
+	}
+
+	/**
+	 * Remove styles.
+	 *
+	 * @access public
+	 * @since 7.4
+	 * @return void
+	 */
+	public function dequeue_scripts() {
+		if ( 'file' === $this->get_compiler_mode() && Avada()->settings->get( 'css_combine_third_party_assets' ) ) {
+			$wp_styles            = wp_styles();
+			$combined_stylesheets = $this->get_third_party_stylesheets();
+
+			foreach ( $combined_stylesheets as $combined_handle => $src ) {
+				if ( isset( $wp_styles->registered[ $combined_handle ] ) ) {
+					wp_dequeue_style( $combined_handle );
+					wp_deregister_style( $combined_handle );
+				}
+			}
+		}
+
+		if ( apply_filters( 'awb_defer_jquery', fusion_get_option( 'defer_jquery' ) ) ) {
+			$wp_scripts = wp_scripts();
+			wp_scripts()->add_data( 'jquery', 'group', 1 );
+			wp_scripts()->add_data( 'jquery-core', 'group', 1 );
+			wp_scripts()->add_data( 'jquery-migrate', 'group', 1 );
+		}
+	}
+
+	/**
+	 * Get an array of stylesheet sources to combine.
+	 *
+	 * @access public
+	 * @since 7.4
+	 * @return array Array of stylesheet sources to combine.
+	 */
+	public function get_third_party_stylesheets() {
+		$wp_styles = wp_styles();
+		$handles   = array_merge( $wp_styles->done, $wp_styles->queue );
+
+		if ( empty( $this->combined_assets ) ) {
+			foreach ( $handles as $handle ) {
+				$src = $wp_styles->registered[ $handle ]->src;
+
+				if ( ! isset( $wp_styles->done[ $handle ] ) && isset( $wp_styles->registered[ $handle ]->args ) && 'all' === $wp_styles->registered[ $handle ]->args && ! empty( $src ) && true === $this->is_bundled_plugin_style( $src ) ) {
+					$this->combined_assets[ $handle ] = $src;
+
+					if ( isset( $wp_styles->registered[ $handle ]->deps ) ) {
+						foreach ( $wp_styles->registered[ $handle ]->deps as $index => $dep ) {
+							if ( ! isset( $wp_styles->done[ $dep ] ) && ! in_array( $dep, $this->combined_assets, true ) && true === $this->is_bundled_plugin_style( $wp_styles->registered[ $dep ]->src ) && isset( $wp_styles->registered[ $dep ]->args ) && 'all' === $wp_styles->registered[ $dep ]->args ) {
+								$this->combined_assets[ $dep ] = $wp_styles->registered[ $dep ]->src;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return $this->combined_assets;
+	}
+
+	/**
+	 * Check if enqueued style belongs to plugin we bundle.
+	 *
+	 * @access protected
+	 * @since 7.4.1
+	 * @param string $src Style URL (should work with path as well).
+	 * @return bool
+	 */
+	protected function is_bundled_plugin_style( $src ) {
+		$bundled_plugins = [ '/the-events-calendar/', '/events-calendar-pro/', '/the-events-calendar-filterbar/', '/event-tickets/', '/event-tickets-plus/', '/woocommerce/', '/bbpress/', '/revslider/', '/contact-form-7/', '/convertplug/' ];
+
+		// Check if src containes bundled plugin dir name.
+		if ( str_replace( $bundled_plugins, '', $src ) === $src ) {
+			return false;
+		}
+
+		// It works with URLs as well.
+		$path_parts = pathinfo( $src );
+
+		// We don't want to deuqueu / add to compiled file if it's not CSS file.
+		if ( ! isset( $path_parts['extension'] ) || 'css' !== $path_parts['extension'] ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -1379,7 +1477,6 @@ class Avada_Scripts {
 						Fusion_Media_Query_Scripts::get_media_query_from_key( 'fusion-max-sh-cbp' ),
 					];
 
-
 				}
 			}
 		}
@@ -1422,72 +1519,6 @@ class Avada_Scripts {
 		</style>
 		<?php
 
-	}
-
-	/**
-	 * Remove styles.
-	 *
-	 * @access public
-	 * @since 5.8
-	 */
-	public function dequeue_scripts() {
-		$wp_styles = wp_styles();
-
-		if ( 'file' === $this->get_compiler_mode() ) {
-			foreach ( $wp_styles->queue as $item ) {
-				$src = $wp_styles->registered[ $item ]->src;
-				if ( isset( $wp_styles->registered[ $item ] ) && ! empty( $src ) && true === $this->is_combined( $src ) ) {
-					wp_deregister_style( $item );
-					wp_dequeue_style( $item );
-				}
-			}
-		}
-
-		if ( apply_filters( 'awb_defer_jquery', fusion_get_option( 'defer_jquery' ) ) ) {
-			$wp_scripts = wp_scripts();
-			wp_scripts()->add_data( 'jquery', 'group', 1 );
-			wp_scripts()->add_data( 'jquery-core', 'group', 1 );
-			wp_scripts()->add_data( 'jquery-migrate', 'group', 1 );
-		}
-	}
-
-	/**
-	 * Checks if asset is combined.
-	 *
-	 * @access public
-	 * @since 7.4.1
-	 * @param string $src Style URL (should work with path as well).
-	 * @return bool
-	 */
-	public function is_combined( $src ) {
-		return in_array( $src, $this->combined_assets ) ? true : false;
-	}
-
-	/**
-	 * Check if enqueued style belongs to plugin we bundle.
-	 *
-	 * @access protected
-	 * @since 7.4.1
-	 * @param string $src Style URL (should work with path as well).
-	 * @return bool
-	 */
-	protected function is_bundled_plugin_style( $src ) {
-		$bundled_plugins = [ '/the-events-calendar/', '/woocommerce/', '/bbpress/', '/revslider/', '/contact-form-7/', '/convertplug/' ];
-
-		// Check if src containes bundled plugin dir name.
-		if ( str_replace( $bundled_plugins, '', $src ) === $src ) {
-			return false;
-		}
-
-		// It works with URLs as well.
-		$path_parts = pathinfo( $src );
-
-		// We don't want to deuqueu / add to compiled file if it's not CSS file.
-		if ( ! isset( $path_parts['extension'] ) || 'css' !== $path_parts['extension'] ) {
-			return false;
-		}
-
-		return true;
 	}
 
 	/**
@@ -1565,8 +1596,14 @@ class Avada_Scripts {
 	public function disable_emojis_remove_dns_prefetch( $urls, $relation_type ) {
 
 		if ( 'dns-prefetch' === $relation_type ) {
-			$emoji_svg_url = apply_filters( 'emoji_svg_url', 'https://s.w.org/images/core/emoji/11/svg/' );
-			$urls          = array_diff( $urls, [ $emoji_svg_url ] );
+
+			// Strip out any URLs referencing the WordPress.org emoji location.
+			$emoji_svg_url_bit = 'https://s.w.org/images/core/emoji/';
+			foreach ( $urls as $key => $url ) {
+				if ( false !== strpos( $url, $emoji_svg_url_bit ) ) {
+					unset( $urls[ $key ] );
+				}
+			}
 		}
 
 		return $urls;

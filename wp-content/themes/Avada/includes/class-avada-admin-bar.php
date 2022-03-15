@@ -60,7 +60,15 @@ class Avada_Admin_Bar {
 
 			$this->add_wp_toolbar_menu_item( esc_html__( 'Global Options', 'Avada' ), 'avada', admin_url( 'themes.php?page=avada_options' ) );
 			$this->add_wp_toolbar_menu_item( esc_html__( 'Websites', 'Avada' ), 'avada', admin_url( 'admin.php?page=avada-prebuilt-websites' ) );
+			if ( class_exists( 'AWB_Studio' ) && AWB_Studio::is_studio_enabled() ) {
+				$this->add_wp_toolbar_menu_item( esc_html__( 'Studio', 'Avada' ), 'avada', admin_url( 'admin.php?page=avada-studio' ) );
+			}
 			$this->add_wp_toolbar_menu_item( esc_html__( 'Layouts', 'Avada' ), 'avada', admin_url( 'admin.php?page=avada-layouts' ) );
+
+			if ( class_exists( 'AWB_Off_Canvas' ) && AWB_Off_Canvas::is_enabled() ) {
+				$this->add_wp_toolbar_menu_item( esc_html__( 'Off Canvas', 'Avada' ), 'avada', admin_url( 'admin.php?page=avada-off-canvas' ) );
+			}
+
 			$this->add_wp_toolbar_menu_item( esc_html__( 'Icons', 'Avada' ), 'avada', admin_url( 'admin.php?page=avada-icons' ) );
 
 			if ( class_exists( 'Fusion_Form_Builder' ) && Fusion_Form_Builder::is_enabled() ) {

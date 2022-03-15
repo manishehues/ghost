@@ -113,6 +113,7 @@ class Fusion_Social_Sharing extends Fusion_Social_Icon {
 			'linkedin'  => 'https://www.linkedin.com/shareArticle?mini=true&url=',
 			'reddit'    => 'https://reddit.com/submit?url=',
 			'whatsapp'  => 'https://api.whatsapp.com/send?text=',
+			'telegram'  => 'https://t.me/share/url?url=',
 			'tumblr'    => 'https://www.tumblr.com/share/link?url=',
 			'pinterest' => 'https://pinterest.com/pin/create/button/?url=',
 			'vk'        => 'https://vk.com/share.php?url=',
@@ -142,12 +143,13 @@ class Fusion_Social_Sharing extends Fusion_Social_Icon {
 			'linkedin'  => rawurlencode( $args['link'] ) . '&title=' . rawurlencode( $args['title'] ) . '&summary=' . rawurlencode( mb_substr( html_entity_decode( $args['description'], ENT_QUOTES, 'UTF-8' ), 0, 256 ) ),
 			'reddit'    => $args['link'] . '&amp;title=' . rawurlencode( $args['title'] ),
 			'whatsapp'  => rawurlencode( $args['link'] ),
+			'telegram'  => rawurlencode( $args['link'] ),
 			'tumblr'    => rawurlencode( $args['link'] ) . '&amp;name=' . rawurlencode( $args['title'] ) . '&amp;description=' . rawurlencode( $args['description'] ),
 			'pinterest' => rawurlencode( $args['link'] ) . '&amp;description=' . rawurlencode( $args['description'] ) . '&amp;media=' . rawurlencode( $args['pinterest_image'] ),
 			'vk'        => rawurlencode( $args['link'] ) . '&amp;title=' . rawurlencode( $args['title'] ) . '&amp;description=' . rawurlencode( $args['description'] ),
 			'xing'      => rawurlencode( $args['link'] ),
 			'email'     => $args['link'] . '&subject=' . rawurlencode( $args['title'] ),
-		];      
+		];
 
 		if ( is_array( $enabled_social_networks ) ) {
 			foreach ( $enabled_social_networks as $index => $network ) {
@@ -174,14 +176,20 @@ class Fusion_Social_Sharing extends Fusion_Social_Icon {
 		if ( is_array( $enabled_social_networks ) ) {
 			foreach ( $enabled_social_networks as $index => $network ) {
 				$output_network = $network;
-				$share_text     = esc_attr__( 'Share on %s', 'Avada' );
+				/* translators: Social network name */
+				$share_text = esc_attr__( 'Share on %s', 'Avada' );
 
 				if ( 'email' === $network ) {
 					$output_network = 'mail';
-					$share_text     = esc_attr__( 'Share by %s', 'Avada' );
+					/* translators: Share by email */
+					$share_text = esc_attr__( 'Share by %s', 'Avada' );
 				}
 
-				$social_sharing_links_output[ $output_network ] = [ 
+				if ( ! isset( $social_sharing_links_base[ $network ] ) ) {
+					continue;
+				}
+
+				$social_sharing_links_output[ $output_network ] = [
 					'source' => $social_sharing_links_base[ $network ] . '{URL}',
 					'text'   => sprintf( $share_text, self::get_social_network_name( $network ) ),
 				];

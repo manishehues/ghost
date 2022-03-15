@@ -79,7 +79,7 @@ if ( fusion_is_element_enabled( 'fusion_tb_related' ) ) {
 			 * @return boolean
 			 */
 			public function should_render() {
-				return is_singular();
+				return is_singular() || wp_is_json_request();
 			}
 
 			/**

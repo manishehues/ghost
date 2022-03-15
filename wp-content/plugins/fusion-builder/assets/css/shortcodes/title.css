@@ -5,6 +5,7 @@
   flex-wrap: nowrap;
   align-items: center;
   margin: 0 0 31px;
+  text-transform: var(--title_text_transform);
 }
 .fusion-title h1 > p:last-of-type,
 .fusion-title h2 > p:last-of-type,

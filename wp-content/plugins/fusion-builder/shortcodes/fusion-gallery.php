@@ -104,6 +104,7 @@ if ( fusion_is_element_enabled( 'fusion_gallery' ) ) {
 				add_filter( 'fusion_attr_gallery-shortcode-masonry-wrapper', [ $this, 'masonry_wrapper_attr' ] );
 				add_filter( 'fusion_attr_gallery-shortcode-images', [ $this, 'image_attr' ] );
 				add_filter( 'fusion_attr_gallery-shortcode-link', [ $this, 'link_attr' ] );
+				add_filter( 'fusion_attr_gallery-shortcode-caption', [ $this, 'caption_attr' ] );
 
 				// Ajax mechanism for query related part.
 				add_action( 'wp_ajax_get_fusion_gallery', [ $this, 'query' ] );
@@ -121,9 +122,10 @@ if ( fusion_is_element_enabled( 'fusion_gallery' ) ) {
 			public function render( $args, $content = '' ) {
 				global $fusion_library, $fusion_settings;
 
-				$defaults = FusionBuilder::set_shortcode_defaults( self::get_element_defaults( 'parent' ), $args, 'fusion_gallery' );
-				$defaults = apply_filters( 'fusion_builder_default_args', $defaults, 'fusion_gallery', $args );
-				$content  = apply_filters( 'fusion_shortcode_content', $content, 'fusion_gallery', $args );
+				$this->defaults = self::get_element_defaults( 'parent' );
+				$defaults       = FusionBuilder::set_shortcode_defaults( $this->defaults, $args, 'fusion_gallery' );
+				$defaults       = apply_filters( 'fusion_builder_default_args', $defaults, 'fusion_gallery', $args );
+				$content        = apply_filters( 'fusion_shortcode_content', $content, 'fusion_gallery', $args );
 
 				$defaults['bordersize']    = FusionBuilder::validate_shortcode_attr_value( $defaults['bordersize'], 'px' );
 				$defaults['border_radius'] = FusionBuilder::validate_shortcode_attr_value( $defaults['border_radius'], 'px' );
@@ -134,7 +136,7 @@ if ( fusion_is_element_enabled( 'fusion_gallery' ) ) {
 
 				extract( $defaults );
 
-				$this->parent_args = $defaults;
+				$this->parent_args = $this->args = $defaults;
 
 				$this->num_of_columns = $this->parent_args['columns'];
 				$image_ids            = '';
@@ -193,6 +195,9 @@ if ( fusion_is_element_enabled( 'fusion_gallery' ) ) {
 					}
 					$styles .= '}';
 				}
+
+				// caption style.
+				$styles .= $this->generate_caption_styles();
 
 				if ( '' !== $styles ) {
 					$style_tag = '<style type="text/css">' . $styles . '</style>';
@@ -301,7 +306,7 @@ if ( fusion_is_element_enabled( 'fusion_gallery' ) ) {
 
 				$image = fusion_add_responsive_image_markup( $image );
 
-				$image = $fusion_library->get_images_obj()->apply_lazy_loading( $image, null, $image_id, $this->parent_args['picture_size'] );
+				$image = $fusion_library->get_images_obj()->apply_lazy_loading( $image, null, $image_id, $parent_args['picture_size'] );
 
 				$fusion_library->get_images_obj()->set_grid_image_meta( [] );
 
@@ -312,10 +317,23 @@ if ( fusion_is_element_enabled( 'fusion_gallery' ) ) {
 
 					$image_html .= '<div ' . FusionBuilder::attributes( 'gallery-shortcode-images' ) . '>';
 
-					if ( 'liftup' === $parent_args['hover_type'] ) {
+					if ( 'above' === $parent_args['caption_style'] ) {
+						$image_html .= $this->render_caption();
+					}
+
+					if ( 'liftup' === $parent_args['hover_type'] && in_array( $parent_args['caption_style'], [ 'off', 'above', 'below' ], true ) ) {
 						$image_class = ' fusion-gallery-image-liftup';
 					}
+
+					// Caption style.
+					if ( ! in_array( $parent_args['caption_style'], [ 'off', 'above', 'below' ], true ) ) {
+						$image_class .= ' awb-imageframe-style awb-imageframe-style-' . $parent_args['caption_style'];
+					}
 					$image_html .= '<div class="fusion-gallery-image' . $image_class . '">';
+
+					if ( ! in_array( $parent_args['caption_style'], [ 'off', 'above', 'below' ], true ) ) {
+						$image .= $this->render_caption();
+					}
 
 					if ( ! empty( $this->child_args['link'] ) || ( 'no' !== $parent_args['lightbox'] && $parent_args['lightbox'] ) ) {
 						$image_html .= '<a ' . FusionBuilder::attributes( 'gallery-shortcode-link' ) . '>' . $image . '</a>';
@@ -324,6 +342,11 @@ if ( fusion_is_element_enabled( 'fusion_gallery' ) ) {
 					}
 
 					$image_html .= '</div>';
+
+					if ( 'below' === $parent_args['caption_style'] ) {
+						$image_html .= $this->render_caption();
+					}
+
 					$image_html .= '</div>';
 
 					if ( 0 === $this->image_counter % $this->num_of_columns && 'grid' === $parent_args['layout'] ) {
@@ -434,7 +457,7 @@ if ( fusion_is_element_enabled( 'fusion_gallery' ) ) {
 				];
 				$attr['class'] .= ' fusion-gallery-column fusion-gallery-column-' . $this->num_of_columns;
 
-				if ( 'liftup' !== $this->parent_args['hover_type'] ) {
+				if ( 'liftup' !== $this->parent_args['hover_type'] && in_array( $this->parent_args['caption_style'], [ 'off', 'above', 'below' ], true ) ) {
 					$attr['class'] .= ' hover-type-' . $this->parent_args['hover_type'];
 				}
 
@@ -449,6 +472,11 @@ if ( fusion_is_element_enabled( 'fusion_gallery' ) ) {
 				if ( isset( $this->parent_args['grid_sizer'] ) && $this->parent_args['grid_sizer'] ) {
 					$this->parent_args['grid_sizer'] = false;
 					$attr['class']                  .= ' fusion-grid-sizer';
+				}
+
+				// Caption style.
+				if ( in_array( $this->parent_args['caption_style'], [ 'above', 'below' ], true ) ) {
+					$attr['class'] .= ' awb-imageframe-style awb-imageframe-style-' . $this->parent_args['caption_style'] . ' awb-imageframe-style-' . $this->gallery_counter;
 				}
 
 				return $attr;
@@ -502,6 +530,43 @@ if ( fusion_is_element_enabled( 'fusion_gallery' ) ) {
 
 				return $attr;
 
+			}
+
+			/**
+			 * Builds the caption attributes array.
+			 *
+			 * @access public
+			 * @since 3.5
+			 * @return array
+			 */
+			public function caption_attr() {
+
+				$attr = [
+					'class' => 'awb-imageframe-caption-container',
+					'style' => '',
+				];
+
+				if ( ! fusion_element_rendering_is_flex() ) {
+					return $attr;
+				}
+
+				if ( in_array( $this->args['caption_style'], [ 'above', 'below' ], true ) ) {
+					// Responsive alignment.
+					foreach ( [ 'large', 'medium', 'small' ] as $size ) {
+						$key = 'caption_align' . ( 'large' === $size ? '' : '_' . $size );
+
+						$align = ! empty( $this->args[ $key ] ) && 'none' !== $this->args[ $key ] ? $this->args[ $key ] : false;
+						if ( $align ) {
+							if ( 'large' === $size ) {
+								$attr['style'] .= 'text-align:' . $this->args[ $key ] . ';';
+							} else {
+								$attr['class'] .= ( 'medium' === $size ? ' md-text-align-' : ' sm-text-align-' ) . $this->args[ $key ];
+							}
+						}
+					}
+				}
+
+				return $attr;
 			}
 
 			/**
@@ -639,29 +704,55 @@ if ( fusion_is_element_enabled( 'fusion_gallery' ) ) {
 				$fusion_settings = awb_get_fusion_settings();
 
 				$parent = [
-					'hide_on_mobile'               => fusion_builder_default_visibility( 'string' ),
-					'class'                        => '',
-					'id'                           => '',
-					'image_ids'                    => '',
-					'columns'                      => ( '' !== $fusion_settings->get( 'gallery_columns' ) ) ? (int) $fusion_settings->get( 'gallery_columns' ) : 3,
-					'hover_type'                   => ( '' !== $fusion_settings->get( 'gallery_hover_type' ) ) ? strtolower( $fusion_settings->get( 'gallery_hover_type' ) ) : 'none',
-					'lightbox_content'             => ( '' !== $fusion_settings->get( 'gallery_lightbox_content' ) ) ? strtolower( $fusion_settings->get( 'gallery_lightbox_content' ) ) : '',
-					'lightbox'                     => $fusion_settings->get( 'status_lightbox' ),
-					'column_spacing'               => ( '' !== $fusion_settings->get( 'gallery_column_spacing' ) ) ? strtolower( $fusion_settings->get( 'gallery_column_spacing' ) ) : '',
-					'picture_size'                 => ( '' !== $fusion_settings->get( 'gallery_picture_size' ) ) ? strtolower( $fusion_settings->get( 'gallery_picture_size' ) ) : '',
-					'layout'                       => ( '' !== $fusion_settings->get( 'gallery_layout' ) ) ? strtolower( $fusion_settings->get( 'gallery_layout' ) ) : 'grid',
-					'gallery_masonry_grid_ratio'   => $fusion_settings->get( 'masonry_grid_ratio' ),
-					'gallery_masonry_width_double' => $fusion_settings->get( 'masonry_width_double' ),
-					'bordersize'                   => $fusion_settings->get( 'gallery_border_size' ),
-					'bordercolor'                  => $fusion_settings->get( 'gallery_border_color' ),
-					'border_radius'                => (int) $fusion_settings->get( 'gallery_border_radius' ) . 'px',
+					'hide_on_mobile'                       => fusion_builder_default_visibility( 'string' ),
+					'class'                                => '',
+					'id'                                   => '',
+					'image_ids'                            => '',
+					'columns'                              => ( '' !== $fusion_settings->get( 'gallery_columns' ) ) ? (int) $fusion_settings->get( 'gallery_columns' ) : 3,
+					'hover_type'                           => ( '' !== $fusion_settings->get( 'gallery_hover_type' ) ) ? strtolower( $fusion_settings->get( 'gallery_hover_type' ) ) : 'none',
+					'lightbox_content'                     => ( '' !== $fusion_settings->get( 'gallery_lightbox_content' ) ) ? strtolower( $fusion_settings->get( 'gallery_lightbox_content' ) ) : '',
+					'lightbox'                             => $fusion_settings->get( 'status_lightbox' ),
+					'column_spacing'                       => ( '' !== $fusion_settings->get( 'gallery_column_spacing' ) ) ? strtolower( $fusion_settings->get( 'gallery_column_spacing' ) ) : '',
+					'picture_size'                         => ( '' !== $fusion_settings->get( 'gallery_picture_size' ) ) ? strtolower( $fusion_settings->get( 'gallery_picture_size' ) ) : '',
+					'layout'                               => ( '' !== $fusion_settings->get( 'gallery_layout' ) ) ? strtolower( $fusion_settings->get( 'gallery_layout' ) ) : 'grid',
+					'gallery_masonry_grid_ratio'           => $fusion_settings->get( 'masonry_grid_ratio' ),
+					'gallery_masonry_width_double'         => $fusion_settings->get( 'masonry_width_double' ),
+					'bordersize'                           => $fusion_settings->get( 'gallery_border_size' ),
+					'bordercolor'                          => $fusion_settings->get( 'gallery_border_color' ),
+					'border_radius'                        => (int) $fusion_settings->get( 'gallery_border_radius' ) . 'px',
+
+					// Caption params.
+					'caption_style'                        => 'off',
+					'caption_title_color'                  => '',
+					'caption_title_size'                   => '',
+					'caption_title_tag'                    => '2',
+					'fusion_font_family_caption_title_font' => '',
+					'fusion_font_variant_caption_title_font' => '',
+					'caption_text_color'                   => '',
+					'caption_text_size'                    => '',
+					'fusion_font_family_caption_text_font' => '',
+					'fusion_font_variant_caption_text_font' => '',
+					'caption_border_color'                 => '',
+					'caption_overlay_color'                => $fusion_settings->get( 'primary_color' ),
+					'caption_background_color'             => '',
+					'caption_margin_top'                   => '',
+					'caption_margin_right'                 => '',
+					'caption_margin_bottom'                => '',
+					'caption_margin_left'                  => '',
+					'caption_title_transform'              => '',
+					'caption_text_transform'               => '',
+					'caption_align'                        => 'none',
+					'caption_align_medium'                 => 'none',
+					'caption_align_small'                  => 'none',
 				];
 
 				$child = [
-					'image'      => '',
-					'image_id'   => '',
-					'link'       => '',
-					'linktarget' => '_self',
+					'image'         => '',
+					'image_id'      => '',
+					'image_title'   => '',
+					'image_caption' => '',
+					'link'          => '',
+					'linktarget'    => '_self',
 				];
 
 				if ( 'parent' === $context ) {
@@ -706,6 +797,173 @@ if ( fusion_is_element_enabled( 'fusion_gallery' ) ) {
 			}
 
 			/**
+			 * Render the caption.
+			 *
+			 * @access public
+			 * @since 3.5
+			 * @return string HTML output.
+			 */
+			public function render_caption() {
+				if ( 'off' === $this->parent_args['caption_style'] ) {
+					return '';
+				}
+				$output  = '<div ' . FusionBuilder::attributes( 'gallery-shortcode-caption' ) . '><div class="awb-imageframe-caption">';
+				$title   = '';
+				$caption = '';
+
+				if ( $this->image_data ) {
+					if ( '' !== $this->image_data['title'] ) {
+						$title = $this->image_data['title'];
+					}
+					if ( '' !== $this->image_data['caption'] ) {
+						$caption = $this->image_data['caption'];
+					}
+				}
+
+				if ( '' !== $this->child_args['image_title'] ) {
+					$title = $this->child_args['image_title'];
+				}
+				if ( '' !== $this->child_args['image_caption'] ) {
+					$caption = $this->child_args['image_caption'];
+				}
+
+				if ( '' !== $title ) {
+					$title_tag = 'div' === $this->parent_args['caption_title_tag'] ? 'div' : 'h' . $this->parent_args['caption_title_tag'];
+					$output   .= sprintf( '<%1$s class="awb-imageframe-caption-title">%2$s</%1$s>', $title_tag, $title );
+				}
+				if ( '' !== $caption ) {
+					$output .= sprintf( '<p class="awb-imageframe-caption-text">%1$s</p>', $caption );
+				}
+				$output .= '</div></div>';
+				return $output;
+			}
+
+			/**
+			 * Generate caption styles.
+			 *
+			 * @access public
+			 * @since 3.5
+			 * @return string CSS output.
+			 */
+			public function generate_caption_styles() {
+				if ( 'off' === $this->parent_args['caption_style'] ) {
+					return '';
+				}
+				$this->dynamic_css   = [];
+				$this->base_selector = '.fusion-gallery.fusion-gallery-' . $this->gallery_counter;
+				if ( in_array( $this->parent_args['caption_style'], [ 'above', 'below' ], true ) ) {
+					$this->base_selector = '.awb-imageframe-style.awb-imageframe-style-' . $this->gallery_counter;
+				}
+
+				$selectors = [
+					$this->base_selector . ' .awb-imageframe-caption-container .awb-imageframe-caption-title',
+				];
+				// title color.
+				if ( ! $this->is_default( 'caption_title_color' ) ) {
+					$this->add_css_property( $selectors, 'color', $this->parent_args['caption_title_color'], true );
+				}
+				// title size.
+				if ( ! $this->is_default( 'caption_title_size' ) ) {
+					$this->add_css_property( $selectors, 'font-size', fusion_library()->sanitize->get_value_with_unit( $this->parent_args['caption_title_size'] ), true );
+				}
+				// title font.
+				$font_styles = Fusion_Builder_Element_Helper::get_font_styling( $this->parent_args, 'caption_title_font', 'array' );
+
+				foreach ( $font_styles as $rule => $value ) {
+					$this->add_css_property( $selectors, $rule, $value, true );
+				}
+				// title transform.
+				if ( ! $this->is_default( 'caption_title_transform' ) ) {
+					$this->add_css_property( $selectors, 'text-transform', $this->parent_args['caption_title_transform'] );
+				}
+
+				$selectors = [
+					$this->base_selector . ' .awb-imageframe-caption-container .awb-imageframe-caption-text',
+				];
+				// text color.
+				if ( ! $this->is_default( 'caption_text_color' ) ) {
+					$this->add_css_property( $selectors, 'color', $this->parent_args['caption_text_color'] );
+				}
+				// text size.
+				if ( ! $this->is_default( 'caption_text_size' ) ) {
+					$this->add_css_property( $selectors, 'font-size', fusion_library()->sanitize->get_value_with_unit( $this->parent_args['caption_text_size'] ) );
+				}
+				// text font.
+				$font_styles = Fusion_Builder_Element_Helper::get_font_styling( $this->parent_args, 'caption_text_font', 'array' );
+
+				foreach ( $font_styles as $rule => $value ) {
+					$this->add_css_property( $selectors, $rule, $value );
+				}
+				// text transform.
+				if ( ! $this->is_default( 'caption_text_transform' ) ) {
+					$this->add_css_property( $selectors, 'text-transform', $this->parent_args['caption_text_transform'] );
+				}
+
+				// Border color.
+				if ( 'resa' === $this->parent_args['caption_style'] && ! $this->is_default( 'caption_border_color' ) ) {
+					$selectors = [
+						$this->base_selector . ' .awb-imageframe-caption-container:before',
+					];
+					$this->add_css_property( $selectors, 'border-top-color', $this->parent_args['caption_border_color'] );
+					$this->add_css_property( $selectors, 'border-bottom-color', $this->parent_args['caption_border_color'] );
+					$selectors = [
+						$this->base_selector . ' .awb-imageframe-caption-container:after',
+					];
+					$this->add_css_property( $selectors, 'border-right-color', $this->parent_args['caption_border_color'] );
+					$this->add_css_property( $selectors, 'border-left-color', $this->parent_args['caption_border_color'] );
+				}
+
+				if ( 'dario' === $this->parent_args['caption_style'] && ! $this->is_default( 'caption_border_color' ) ) {
+					$selectors = [
+						$this->base_selector . ' .awb-imageframe-caption .awb-imageframe-caption-title:after',
+					];
+					$this->add_css_property( $selectors, 'background', $this->parent_args['caption_border_color'] );
+				}
+
+				// Overlay color.
+				if ( in_array( $this->parent_args['caption_style'], [ 'dario', 'resa', 'schantel', 'dany', 'navin' ], true ) ) {
+					$selectors = [
+						$this->base_selector . ' .awb-imageframe-style',
+					];
+					$this->add_css_property( $selectors, 'background', $this->parent_args['caption_overlay_color'] );
+				}
+
+				// Background color.
+				if ( in_array( $this->parent_args['caption_style'], [ 'schantel', 'dany' ], true ) && ! $this->is_default( 'caption_background_color' ) ) {
+					$selectors = [
+						$this->base_selector . ' .awb-imageframe-caption-container .awb-imageframe-caption-text',
+					];
+					$this->add_css_property( $selectors, 'background', $this->parent_args['caption_background_color'] );
+				}
+
+				// Caption area margin.
+				if ( in_array( $this->parent_args['caption_style'], [ 'above', 'below' ], true ) ) {
+					$sides     = [ 'top', 'right', 'bottom', 'left' ];
+					$selectors = [
+						$this->base_selector . ' .awb-imageframe-caption-container',
+					];
+
+					foreach ( $sides as $side ) {
+						// Element margin.
+						$margin_name = 'caption_margin_' . $side;
+
+						if ( ! $this->is_default( $margin_name ) ) {
+							$this->add_css_property( $selectors, 'margin-' . $side, fusion_library()->sanitize->get_value_with_unit( $this->parent_args[ $margin_name ] ) );
+						}
+					}
+
+					if ( ! $this->is_default( 'caption_title' ) ) {
+						$selectors = [
+							$this->base_selector . ' .awb-imageframe-caption-container .awb-imageframe-caption-text',
+						];
+						$this->add_css_property( $selectors, 'margin-top', '0.5em' );
+					}
+				}
+
+				return $this->parse_css();
+			}
+
+			/**
 			 * Sets the necessary scripts.
 			 *
 			 * @access public
@@ -721,6 +979,23 @@ if ( fusion_is_element_enabled( 'fusion_gallery' ) ) {
 					'1',
 					true
 				);
+			}
+
+			/**
+			 * Used to set any other variables for use on front-end editor template.
+			 *
+			 * @static
+			 * @access public
+			 * @since 3.5
+			 * @return array
+			 */
+			public static function get_element_extras() {
+				$fusion_settings = awb_get_fusion_settings();
+				return [
+					'visibility_large'  => $fusion_settings->get( 'visibility_large' ),
+					'visibility_medium' => $fusion_settings->get( 'visibility_medium' ),
+					'visibility_small'  => $fusion_settings->get( 'visibility_small' ),
+				];
 			}
 
 			/**
@@ -847,7 +1122,7 @@ if ( fusion_is_element_enabled( 'fusion_gallery' ) ) {
 								'label'       => esc_html__( 'Gallery Image Border Color', 'fusion-builder' ),
 								'description' => esc_html__( 'Controls the border color of the image.', 'fusion-builder' ),
 								'id'          => 'gallery_border_color',
-								'default'     => '#e2e2e2',
+								'default'     => 'var(--awb-color3)',
 								'type'        => 'color-alpha',
 								'transport'   => 'postMessage',
 							],
@@ -901,7 +1176,20 @@ function fusion_element_gallery() {
 				'multi'           => 'multi_element_parent',
 				'element_child'   => 'fusion_gallery_image',
 				'sortable'        => false,
-				'help_url'        => 'https://theme-fusion.com/documentation/fusion-builder/elements/gallery-element/',
+				'help_url'        => 'https://theme-fusion.com/documentation/avada/elements/gallery-element/',
+				'subparam_map'    => [
+					/* Caption title */
+					'fusion_font_family_caption_title_font' => 'caption_title_fonts',
+					'fusion_font_variant_caption_title_font' => 'caption_title_fonts',
+					'caption_title_size'                   => 'caption_title_fonts',
+					'caption_title_transform'              => 'caption_title_fonts',
+
+					/* Caption text */
+					'fusion_font_family_caption_text_font' => 'caption_text_fonts',
+					'fusion_font_variant_caption_text_font' => 'caption_text_fonts',
+					'caption_text_size'                    => 'caption_text_fonts',
+					'caption_text_transform'               => 'caption_text_fonts',
+				],
 				'params'          => [
 					[
 						'type'        => 'tinymce',
@@ -1031,7 +1319,7 @@ function fusion_element_gallery() {
 					[
 						'type'        => 'select',
 						'heading'     => esc_attr__( 'Hover Type', 'fusion-builder' ),
-						'description' => esc_attr__( 'Select the hover effect type.', 'fusion-builder' ),
+						'description' => esc_attr__( 'Select the hover effect type. Hover Type will be disabled when caption styles other than Above or Below are chosen.', 'fusion-builder' ),
 						'param_name'  => 'hover_type',
 						'value'       => [
 							''        => esc_attr__( 'Default', 'fusion-builder' ),
@@ -1045,6 +1333,33 @@ function fusion_element_gallery() {
 							'selector' => '.fusion-grid-column,.fusion-gallery-image-liftup',
 							'type'     => 'class',
 							'toggle'   => 'hover',
+						],
+						'dependency'  => [
+							[
+								'element'  => 'caption_style',
+								'value'    => 'navin',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'dario',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'resa',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'schantel',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'dany',
+								'operator' => '!=',
+							],
 						],
 					],
 					[
@@ -1115,6 +1430,341 @@ function fusion_element_gallery() {
 						'value'       => '',
 					],
 					[
+						'type'             => 'select',
+						'heading'          => esc_attr__( 'Caption', 'fusion-builder' ),
+						'description'      => esc_attr__( 'Choose the caption style.', 'fusion-builder' ),
+						'param_name'       => 'caption_style',
+						'value'            => [
+							'off'      => esc_attr__( 'Off', 'fusion-builder' ),
+							'above'    => esc_attr__( 'Above', 'fusion-builder' ),
+							'below'    => esc_attr__( 'Below', 'fusion-builder' ),
+							'navin'    => esc_attr__( 'Navin', 'fusion-builder' ),
+							'dario'    => esc_attr__( 'Dario', 'fusion-builder' ),
+							'resa'     => esc_attr__( 'Resa', 'fusion-builder' ),
+							'schantel' => esc_attr__( 'Schantel', 'fusion-builder' ),
+							'dany'     => esc_attr__( 'Dany', 'fusion-builder' ),
+						],
+						'default'          => 'off',
+						'group'            => esc_attr__( 'Caption', 'fusion-builder' ),
+						'child_dependency' => true,
+					],
+					[
+						'type'        => 'colorpickeralpha',
+						'heading'     => esc_attr__( 'Image Title Color', 'fusion-builder' ),
+						'description' => esc_attr__( 'Controls the color of the image title.', 'fusion-builder' ),
+						'param_name'  => 'caption_title_color',
+						'value'       => '',
+						'group'       => esc_attr__( 'Caption', 'fusion-builder' ),
+						'default'     => '',
+						'dependency'  => [
+							[
+								'element'  => 'caption_style',
+								'value'    => 'off',
+								'operator' => '!=',
+							],
+						],
+					],
+					[
+						'type'        => 'radio_button_set',
+						'heading'     => esc_attr__( 'Image Title Heading Tag', 'fusion-builder' ),
+						'description' => esc_attr__( 'Choose HTML tag of the image title, either div or the heading tag, h1-h6.', 'fusion-builder' ),
+						'param_name'  => 'caption_title_tag',
+						'value'       => [
+							'1'   => 'H1',
+							'2'   => 'H2',
+							'3'   => 'H3',
+							'4'   => 'H4',
+							'5'   => 'H5',
+							'6'   => 'H6',
+							'div' => 'DIV',
+						],
+						'default'     => '2',
+						'group'       => esc_attr__( 'Caption', 'fusion-builder' ),
+						'dependency'  => [
+							[
+								'element'  => 'caption_style',
+								'value'    => 'off',
+								'operator' => '!=',
+							],
+						],
+					],
+					[
+						'type'             => 'typography',
+						'heading'          => esc_attr__( 'Image Title Typography', 'fusion-builder' ),
+						'description'      => esc_html__( 'Controls the typography of the image title. Leave empty for the global font family.', 'fusion-builder' ),
+						'param_name'       => 'caption_title_fonts',
+						'choices'          => [
+							'font-family'    => 'caption_title_font',
+							'font-size'      => 'caption_title_size',
+							'text-transform' => 'caption_title_transform',
+							'line-height'    => false,
+							'letter-spacing' => false,
+						],
+						'default'          => [
+							'font-family' => '',
+							'variant'     => '400',
+						],
+						'remove_from_atts' => true,
+						'global'           => true,
+						'group'            => esc_attr__( 'Caption', 'fusion-builder' ),
+						'dependency'       => [
+							[
+								'element'  => 'caption_style',
+								'value'    => 'off',
+								'operator' => '!=',
+							],
+						],
+					],
+					[
+						'type'        => 'colorpickeralpha',
+						'heading'     => esc_attr__( 'Image Caption Color', 'fusion-builder' ),
+						'description' => esc_attr__( 'Controls the color of the image caption.', 'fusion-builder' ),
+						'param_name'  => 'caption_text_color',
+						'value'       => '',
+						'group'       => esc_attr__( 'Caption', 'fusion-builder' ),
+						'default'     => '',
+						'dependency'  => [
+							[
+								'element'  => 'caption_style',
+								'value'    => 'off',
+								'operator' => '!=',
+							],
+						],
+					],
+					[
+						'type'        => 'colorpickeralpha',
+						'heading'     => esc_attr__( 'Image Caption Background Color', 'fusion-builder' ),
+						'description' => esc_attr__( 'Controls the background color of the caption.', 'fusion-builder' ),
+						'param_name'  => 'caption_background_color',
+						'value'       => '',
+						'group'       => esc_attr__( 'Caption', 'fusion-builder' ),
+						'default'     => '',
+						'dependency'  => [
+							[
+								'element'  => 'caption_style',
+								'value'    => 'off',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'above',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'below',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'navin',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'dario',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'resa',
+								'operator' => '!=',
+							],
+						],
+					],
+					[
+						'type'             => 'typography',
+						'heading'          => esc_attr__( 'Image Caption Typography', 'fusion-builder' ),
+						'description'      => esc_html__( 'Controls the typography of the image caption. Leave empty for the global font family.', 'fusion-builder' ),
+						'param_name'       => 'caption_text_fonts',
+						'choices'          => [
+							'font-family'    => 'caption_text_font',
+							'font-size'      => 'caption_text_size',
+							'text-transform' => 'caption_text_transform',
+							'line-height'    => false,
+							'letter-spacing' => false,
+						],
+						'default'          => [
+							'font-family' => '',
+							'variant'     => '400',
+						],
+						'remove_from_atts' => true,
+						'global'           => true,
+						'group'            => esc_attr__( 'Caption', 'fusion-builder' ),
+						'dependency'       => [
+							[
+								'element'  => 'caption_style',
+								'value'    => 'off',
+								'operator' => '!=',
+							],
+						],
+					],
+					[
+						'type'        => 'colorpickeralpha',
+						'heading'     => esc_attr__( 'Caption Border Color', 'fusion-builder' ),
+						'description' => esc_attr__( 'Controls the color of the caption border.', 'fusion-builder' ),
+						'param_name'  => 'caption_border_color',
+						'value'       => '',
+						'group'       => esc_attr__( 'Caption', 'fusion-builder' ),
+						'default'     => '',
+						'dependency'  => [
+							[
+								'element'  => 'caption_style',
+								'value'    => 'off',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'above',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'below',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'navin',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'schantel',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'dany',
+								'operator' => '!=',
+							],
+						],
+					],
+					[
+						'type'        => 'colorpickeralpha',
+						'heading'     => esc_attr__( 'Image Overlay Color', 'fusion-builder' ),
+						'description' => esc_attr__( 'Controls the color of the image overlay.', 'fusion-builder' ),
+						'param_name'  => 'caption_overlay_color',
+						'value'       => '',
+						'group'       => esc_attr__( 'Caption', 'fusion-builder' ),
+						'default'     => $fusion_settings->get( 'primary_color' ),
+						'dependency'  => [
+							[
+								'element'  => 'caption_style',
+								'value'    => 'off',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'above',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'below',
+								'operator' => '!=',
+							],
+						],
+					],
+					[
+						'type'        => 'radio_button_set',
+						'heading'     => esc_attr__( 'Caption Align', 'fusion-builder' ),
+						'description' => esc_attr__( 'Choose how to align the caption.', 'fusion-builder' ),
+						'param_name'  => 'caption_align',
+						'responsive'  => [
+							'state' => 'large',
+						],
+						'value'       => [
+							'none'   => esc_attr__( 'Text Flow', 'fusion-builder' ),
+							'left'   => esc_attr__( 'Left', 'fusion-builder' ),
+							'right'  => esc_attr__( 'Right', 'fusion-builder' ),
+							'center' => esc_attr__( 'Center', 'fusion-builder' ),
+						],
+						'default'     => 'none',
+						'group'       => esc_attr__( 'Caption', 'fusion-builder' ),
+						'dependency'  => [
+							[
+								'element'  => 'caption_style',
+								'value'    => 'off',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'schantel',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'dany',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'navin',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'dario',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'resa',
+								'operator' => '!=',
+							],
+						],
+					],
+					[
+						'type'             => 'dimension',
+						'remove_from_atts' => true,
+						'heading'          => esc_attr__( 'Caption Area Margin', 'fusion-builder' ),
+						'description'      => esc_attr__( 'In pixels or percentage, ex: 10px or 10%.', 'fusion-builder' ),
+						'param_name'       => 'caption_margin',
+						'value'            => [
+							'caption_margin_top'    => '',
+							'caption_margin_right'  => '',
+							'caption_margin_bottom' => '',
+							'caption_margin_left'   => '',
+						],
+						'callback'         => [
+							'function' => 'fusion_style_block',
+						],
+						'group'            => esc_attr__( 'Caption', 'fusion-builder' ),
+						'dependency'       => [
+							[
+								'element'  => 'caption_style',
+								'value'    => 'off',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'schantel',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'dany',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'navin',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'dario',
+								'operator' => '!=',
+							],
+							[
+								'element'  => 'caption_style',
+								'value'    => 'resa',
+								'operator' => '!=',
+							],
+						],
+					],
+					[
 						'type'        => 'checkbox_button_set',
 						'heading'     => esc_attr__( 'Element Visibility', 'fusion-builder' ),
 						'param_name'  => 'hide_on_mobile',
@@ -1178,6 +1828,36 @@ function fusion_element_fusion_gallery_image() {
 							'function' => 'fusion_gallery_image',
 							'action'   => 'get_fusion_gallery',
 							'ajax'     => true,
+						],
+					],
+					[
+						'type'         => 'textfield',
+						'heading'      => esc_attr__( 'Image Title', 'fusion-builder' ),
+						'description'  => esc_attr__( 'Enter title text to be displayed on image.', 'fusion-builder' ),
+						'param_name'   => 'image_title',
+						'value'        => '',
+						'dynamic_data' => true,
+						'dependency'   => [
+							[
+								'element'  => 'parent_caption_style',
+								'value'    => 'off',
+								'operator' => '!=',
+							],
+						],
+					],
+					[
+						'type'         => 'textfield',
+						'heading'      => esc_attr__( 'Image Caption', 'fusion-builder' ),
+						'description'  => esc_attr__( 'Enter caption text to be displayed on image.', 'fusion-builder' ),
+						'param_name'   => 'image_caption',
+						'value'        => '',
+						'dynamic_data' => true,
+						'dependency'   => [
+							[
+								'element'  => 'parent_caption_style',
+								'value'    => 'off',
+								'operator' => '!=',
+							],
 						],
 					],
 					[

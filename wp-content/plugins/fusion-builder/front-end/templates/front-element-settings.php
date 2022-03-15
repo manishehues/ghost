@@ -20,6 +20,7 @@ $icon_map = apply_filters(
 		'variations' => 'fusiona-variation',
 		'details'    => 'fusiona-details',
 		'cart'       => 'fusiona-woo-add-to-cart',
+		'caption'    => 'fusiona-comments',
 	]
 );
 ?>

@@ -195,7 +195,7 @@ if ( fusion_is_element_enabled( 'fusion_post_card_image' ) ) {
 				$this->generate_styles();
 
 				// Add styles to output if in Live Editor.
-				if ( $is_builder ) {
+				if ( $is_builder || isset( $_GET['awb-studio-post-card'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 					$html .= $this->get_styles();
 				}
 

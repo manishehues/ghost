@@ -218,12 +218,12 @@ function avada_page_options_tab_sliders( $sections ) {
 		],
 		'type'        => 'media',
 	];
-	$is_builder                                = isset( $_GET['builder'] ) && isset( $_GET['builder_id'] );
+	$is_builder                                = isset( $_GET['builder'] ) && isset( $_GET['builder_id'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	$sections['sliders']['fields']['slider_visibility'] = [
 		'id'          => 'slider_visibility',
 		'label'       => esc_attr__( 'Slider Visibility', 'Avada' ),
 		/* translators: Global Options link. */
-		'description' => sprintf( esc_html__( 'Choose to show or hide the slider on small, medium or large screens. You can choose more than one at a time. Each of the 3 sizes has a custom width setting on the Avada Builder Elements tab in the. %s.', 'Avada' ), '<a href="' . Avada()->settings->get_setting_link( 'visibility_small' ) . '" target="_blank" rel="noopener noreferrer">' . apply_filters( 'fusion_options_label', esc_html__( 'Element Options', 'Avada' ) ) . '</a>' ),
+		'description' => sprintf( esc_html__( 'Choose to show or hide the slider on small, medium or large screens. You can choose more than one at a time. Each of the 3 sizes has a custom width setting on the Responsive tab in the. %s.', 'Avada' ), '<a href="' . Avada()->settings->get_setting_link( 'visibility_small' ) . '" target="_blank" rel="noopener noreferrer">' . apply_filters( 'fusion_options_label', esc_html__( 'Element Options', 'Avada' ) ) . '</a>' ),
 		'value'       => [
 			'small-visibility'  => $is_builder ? '<span class="fusiona-mobile"></span>|' . esc_attr__( 'Small Screen', 'Avada' ) : esc_attr__( 'Small Screen', 'Avada' ),
 			'medium-visibility' => $is_builder ? '<span class="fusiona-tablet"></span>|' . esc_attr__( 'Medium Screen', 'Avada' ) : esc_attr__( 'Medium Screen', 'Avada' ),

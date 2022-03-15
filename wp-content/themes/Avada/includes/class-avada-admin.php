@@ -152,7 +152,7 @@ class Avada_Admin {
 		add_action( 'current_screen', [ $this, 'legacy_countdown' ] );
 
 		// Performance wizard, both needed for page and wizard ajax.
-		if ( ( isset( $_GET['page'] ) && 'avada-performance' === sanitize_text_field( wp_unslash( $_GET['page'] ) ) ) || ( fusion_doing_ajax() && ( isset( $_GET['awb_performance_nonce'] ) || isset( $_POST['awb_performance_nonce'] ) ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( ( isset( $_GET['page'] ) && 'avada-performance' === sanitize_text_field( wp_unslash( $_GET['page'] ) ) ) || ( fusion_doing_ajax() && ( isset( $_GET['awb_performance_nonce'] ) || isset( $_POST['awb_performance_nonce'] ) ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
 			$this->init_performance_wizard();
 		}
 
@@ -302,13 +302,13 @@ class Avada_Admin {
 			$avada_submenu_page_creation_method = 'add_submenu_page';
 
 			$dashboard         = $avada_menu_page_creation_method( 'Avada Website Builder', 'Avada', 'switch_themes', 'avada', [ $this, 'dashboard_screen' ], 'dashicons-avada', '2.111111' );
-			$options           = $avada_submenu_page_creation_method( 'avada', esc_html__( 'Options', 'Avada' ), esc_html__( 'Options', 'Avada' ), 'switch_themes', 'themes.php?page=avada_options', '', 1 );
-			$prebuilt_websites = $avada_submenu_page_creation_method( 'avada', esc_html__( 'Websites', 'Avada' ), esc_html__( 'Websites', 'Avada' ), 'manage_options', 'avada-prebuilt-websites', [ $this, 'prebuilt_websites_tab' ], 2 );
+			$options           = $avada_submenu_page_creation_method( 'avada', esc_html__( 'Options', 'Avada' ), esc_html__( 'Options', 'Avada' ), 'switch_themes', 'themes.php?page=avada_options', '', 2 );
+			$prebuilt_websites = $avada_submenu_page_creation_method( 'avada', esc_html__( 'Websites', 'Avada' ), esc_html__( 'Websites', 'Avada' ), 'manage_options', 'avada-prebuilt-websites', [ $this, 'prebuilt_websites_tab' ], 3 );
 
 			// Add in pages from Avada Builder.
 			do_action( 'avada_add_admin_menu_pages' );
 
-			$maintenance = $avada_submenu_page_creation_method( 'avada', esc_html__( 'Maintenance', 'Avada' ), esc_html__( 'Maintenance', 'Avada' ), 'manage_options', 'avada-maintenance', null, 8 );
+			$maintenance = $avada_submenu_page_creation_method( 'avada', esc_html__( 'Maintenance', 'Avada' ), esc_html__( 'Maintenance', 'Avada' ), 'manage_options', 'avada-maintenance', null, 12 );
 
 			// Patcher is added in through patcher class, order is 9.
 			do_action( 'avada_add_admin_menu_maintenance_pages' );
@@ -320,10 +320,10 @@ class Avada_Admin {
 				$plugins_callback = [ $GLOBALS['avada_tgmpa'], 'install_plugins_page' ];
 			}
 
-			$plugins     = $avada_submenu_page_creation_method( 'avada', esc_html__( 'Plugins & Add-ons', 'Avada' ), esc_html__( 'Plugins & Add-ons', 'Avada' ), 'install_plugins', 'avada-plugins', $plugins_callback, 10 );
-			$performance = $avada_submenu_page_creation_method( 'avada', esc_html__( 'Performance', 'Avada' ), esc_html__( 'Performance', 'Avada' ), 'switch_themes', 'avada-performance', [ $this, 'performance_tab' ], 11 );
-			$support     = $avada_submenu_page_creation_method( 'avada', esc_html__( 'Support', 'Avada' ), esc_html__( 'Support', 'Avada' ), 'manage_options', 'avada-support', [ $this, 'support_tab' ], 13 );
-			$status      = $avada_submenu_page_creation_method( 'avada', esc_html__( 'Status', 'Avada' ), esc_html__( 'Status', 'Avada' ), 'switch_themes', 'avada-status', [ $this, 'status_tab' ], 14 );
+			$plugins     = $avada_submenu_page_creation_method( 'avada', esc_html__( 'Plugins & Add-ons', 'Avada' ), esc_html__( 'Plugins & Add-ons', 'Avada' ), 'install_plugins', 'avada-plugins', $plugins_callback, 14 );
+			$performance = $avada_submenu_page_creation_method( 'avada', esc_html__( 'Performance', 'Avada' ), esc_html__( 'Performance', 'Avada' ), 'switch_themes', 'avada-performance', [ $this, 'performance_tab' ], 15 );
+			$support     = $avada_submenu_page_creation_method( 'avada', esc_html__( 'Support', 'Avada' ), esc_html__( 'Support', 'Avada' ), 'manage_options', 'avada-support', [ $this, 'support_tab' ], 17 );
+			$status      = $avada_submenu_page_creation_method( 'avada', esc_html__( 'Status', 'Avada' ), esc_html__( 'Status', 'Avada' ), 'switch_themes', 'avada-status', [ $this, 'status_tab' ], 18 );
 
 			if ( ! class_exists( 'FusionReduxFrameworkPlugin' ) ) {
 				$theme_options_global = $avada_submenu_page_creation_method( 'themes.php', esc_html__( 'Options', 'Avada' ), esc_html__( 'Options', 'Avada' ), 'switch_themes', 'themes.php?page=avada_options' );
@@ -451,7 +451,7 @@ class Avada_Admin {
 		$screen_classes  = 'wrap avada-dashboard avada-db-' . $screen;
 		$screen_classes .= Avada()->registration->appear_registered() ? ' avada-registration-completed' : ' avada-registration-pending';
 
-		if ( in_array( $screen, [ 'builder-options', 'layout-sections', 'layouts', 'icons', 'forms', 'form-entries', 'library' ], true ) ) {
+		if ( in_array( $screen, [ 'builder-options', 'layout-sections', 'layouts', 'off-canvas', 'icons', 'forms', 'form-entries', 'library' ], true ) ) {
 			$screen_classes .= ' fusion-builder-wrap';
 
 			if ( 'builder-options' === $screen ) {
@@ -494,6 +494,9 @@ class Avada_Admin {
 								</ul>
 							</li>
 							<li class="avada-db-menu-item avada-db-menu-item-prebuilt-websites"><a class="avada-db-menu-item-link<?php echo ( 'prebuilt-websites' === $screen ) ? ' avada-db-active' : ''; ?>" href="<?php echo esc_url( ( 'prebuilt-websites' === $screen ) ? '#' : admin_url( 'admin.php?page=avada-prebuilt-websites' ) ); ?>" ><span class="avada-db-menu-item-text"><?php esc_html_e( 'Websites', 'Avada' ); ?></span></a></li>
+							<?php if ( class_exists( 'AWB_Studio' ) && AWB_Studio::is_studio_enabled() && current_user_can( 'switch_themes' ) ) : ?>
+								<li class="avada-db-menu-item avada-db-menu-item-avada-studio"><a class="avada-db-menu-item-link<?php echo ( 'studio' === $screen ) ? ' avada-db-active' : ''; ?>" href="<?php echo esc_url( ( 'studio' === $screen ) ? '#' : admin_url( 'admin.php?page=avada-studio' ) ); ?>" ><span class="avada-db-menu-item-text"><?php esc_html_e( 'Studio', 'Avada' ); ?></span></a></li>
+							<?php endif; ?>
 							<li class="avada-db-menu-item avada-db-menu-item-maintenance"><a class="avada-db-menu-item-link<?php echo ( in_array( $screen, [ 'patcher', 'plugins', 'support', 'status', 'performance' ], true ) ) ? ' avada-db-active' : ''; ?>" href="<?php echo esc_url( ( 'patcher' === $screen ) ? '#' : admin_url( 'admin.php?page=avada-patcher' ) ); ?>"><span class="avada-db-menu-item-text"><?php esc_html_e( 'Maintenance', 'Avada' ); ?></span><span class="avada-db-maintenance-counter"></span></a>
 								<ul class="avada-db-menu-sub avada-db-menu-sub-maintenance">
 									<li class="avada-db-menu-sub-item avada-db-menu-sub-item-patcher">
@@ -790,12 +793,11 @@ class Avada_Admin {
 					'1.0.2',
 					true
 				);
-				wp_enqueue_script( 'jquery-color' );
-				wp_enqueue_script( 'wp-color-picker' );
-				wp_enqueue_style( 'wp-color-picker' );
 				wp_enqueue_style( 'fusion-font-icomoon', FUSION_LIBRARY_URL . '/assets/fonts/icomoon-admin/icomoon.css', false, $version, 'all' );
-				// ColorPicker Alpha Channel.
-				wp_enqueue_script( 'wp-color-picker-alpha', trailingslashit( Avada::$template_dir_url ) . 'assets/admin/js/wp-color-picker-alpha.js', [ 'wp-color-picker', 'jquery-color' ], $version, false );
+
+				if ( function_exists( 'AWB_Global_Colors' ) ) {
+					AWB_Global_Colors()->enqueue();
+				}
 
 				wp_enqueue_style( 'fontawesome', Fusion_Font_Awesome::get_backend_css_url(), [], $version );
 
@@ -1398,10 +1400,10 @@ class Avada_Admin {
 			'currently_removing'    => esc_attr__( 'Currently Removing: %s', 'Avada' ),
 			'file_does_not_exist'   => esc_attr__( 'The file does not exist', 'Avada' ),
 			/* translators: URL. */
-			'error_timeout'         => wp_kses_post( sprintf( __( 'Demo server couldn\'t be reached. Please check for wp_remote_get on the <a href="%s" target="_blank">Status</a> page.', 'Avada' ), admin_url( 'admin.php?page=avada-status' ) ) ),
+			'error_timeout'         => wp_kses_post( sprintf( __( 'The server couldn\'t be reached. Please check for wp_remote_get on the <a href="%s" target="_blank">Status</a> page.', 'Avada' ), admin_url( 'admin.php?page=avada-status' ) ) ),
 			/* translators: URL. */
-			'error_php_limits'      => wp_kses_post( sprintf( __( 'Demo import failed. Please check for PHP limits in red on the <a href="%s" target="_blank">Status</a> page. Change those to the recommended value and try again.', 'Avada' ), admin_url( 'admin.php?page=avada-status' ) ) ),
-			'remove_demo'           => esc_attr__( 'Removing demo content will remove ALL previously imported demo content from this demo and restore your site to the previous state it was in before this demo content was imported.', 'Avada' ),
+			'error_php_limits'      => wp_kses_post( sprintf( __( 'Prebuilt website import failed. Please check for PHP limits in red on the <a href="%s" target="_blank">Status</a> page. Change those to the recommended value and try again.', 'Avada' ), admin_url( 'admin.php?page=avada-status' ) ) ),
+			'remove_demo'           => esc_attr__( 'Removing prebuilt website content will remove ALL previously imported content from this prebuilt website and restore your site to the state it was in before this prebuilt content was imported.', 'Avada' ),
 			'update_fc'             => __( 'Avada Builder Plugin can only be installed and activated if Avada Core plugin is at version 3.0 or higher. Please update Avada Core first.', 'Avada' ),
 			/* translators: URL. */
 			'register_first'        => sprintf( __( 'This plugin can only be installed or updated, after you have successfully completed the Avada product registration on the <a href="%s" target="_blank">Dashboard Welcome</a> tab.', 'Avada' ), admin_url( 'admin.php?page=avada#avada-db-registration' ) ),

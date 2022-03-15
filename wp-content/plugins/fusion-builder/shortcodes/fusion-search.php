@@ -208,7 +208,6 @@ if ( fusion_is_element_enabled( 'fusion_search' ) ) {
 					'live_search'  => 'yes' === $this->args['live_search'] ? 1 : 0,
 					'design'       => $this->args['design'],
 					'after_fields' => $extra_fields,
-					'counter'      => $this->counter,
 				];
 
 				if ( $this->args['placeholder'] ) {
